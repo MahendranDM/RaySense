@@ -21,3 +21,12 @@ db.sqlite3
 # OS files
 .DS_Store
 Thumbs.db
+# RaySense generated ML datasets and model files
+data/*.csv
+data/*.pkl
+data/*.h5
+data/raw/*.csv
+data/raw/*.h5
+data/weather/*.csv
+data/weather/yearly/*.csv
+data/metadata/*.geojson
