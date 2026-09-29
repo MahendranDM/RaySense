@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     PerformanceAnalysisView,
     PerformanceRecordViewSet,
+    TodayPerformanceView,
 )
 
 
@@ -20,8 +21,15 @@ urlpatterns = [
     path(
         "analyze/",
         PerformanceAnalysisView.as_view(),
-        name="performance-analyze"
+        name="performance-analyze",
     ),
+
+    path(
+        "today/",
+        TodayPerformanceView.as_view(),
+        name="today-performance",
+    ),
+
     path(
         "",
         include(router.urls)
