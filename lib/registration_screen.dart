@@ -313,7 +313,7 @@ class _RegistrationScreenState
             await geocoding.Geocoding().placemarkFromCoordinates(
           position.latitude,
           position.longitude,
-        );
+        ).timeout(const Duration(seconds: 8));
 
         if (placemarks.isNotEmpty) {
           final place = placemarks.first;
@@ -2107,6 +2107,7 @@ class _RegistrationScreenState
     );
   }
 }
+
 
 
 
