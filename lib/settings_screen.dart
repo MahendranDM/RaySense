@@ -126,6 +126,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Edit Solar System
   // =====================================================
 
+  Future<void> _logout() async {
+    try {
+      await ApiService.logout();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        '/',
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: $e'),
+        ),
+      );
+    }
+  }
+
   Future<void> _editSolarSystem() async {
     if (systemId == null) {
       if (!mounted) return;
@@ -421,6 +442,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       subtitle:
                           'Update system information',
                       onTap: _editSolarSystem,
+                    ),
+                    _SettingsTile(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      subtitle: 'Sign out of your RaySense account',
+                      onTap: _logout,
                     ),
                   ],
                 ),
@@ -1128,3 +1155,5 @@ class _SettingsTile
     );
   }
 }
+
+
