@@ -349,7 +349,9 @@ class _RegistrationScreenState
 
       _showMessage(
         'Location detected successfully.',
-      );  if (!mounted) {
+      );
+    } catch (e) {
+      if (!mounted) {
         return;
       }
 
@@ -2103,6 +2105,8 @@ class _RegistrationScreenState
     );
   }
 }
+
+
 
 
 
