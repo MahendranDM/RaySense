@@ -46,17 +46,44 @@ class _DashboardScreenState
 
   Future<void> loadDashboardData() async {
     try {
+      // -------------------------------------------------
+      // 1. Get solar system
+      // -------------------------------------------------
+
       final systems =
           await ApiService.getSolarSystems();
+
+      // -------------------------------------------------
+      // 2. Get generation records
+      // -------------------------------------------------
 
       final generations =
           await ApiService.getGenerationRecords();
 
+      // -------------------------------------------------
+      // 3. Generate/update today's ML forecast first
+      // -------------------------------------------------
+      //
+      // This ensures today's ForecastRecord exists
+      // before the performance API is called.
+      //
+
+      await ApiService.getMLWeatherForecast();
+
+      // -------------------------------------------------
+      // 4. Get forecast records
+      // -------------------------------------------------
+
       final forecasts =
           await ApiService.getForecasts();
 
-      // Get today's calculated performance
-      // directly from Django backend.
+      // -------------------------------------------------
+      // 5. Get today's calculated performance
+      // -------------------------------------------------
+      //
+      // The backend can now find today's ForecastRecord.
+      //
+
       final todayPerformance =
           await ApiService.getTodayPerformance();
 
@@ -90,7 +117,6 @@ class _DashboardScreenState
             );
           }
 
-          // IMPORTANT:
           // Use today's backend performance.
           latestPerformance =
               Map<String, dynamic>.from(
@@ -117,8 +143,7 @@ class _DashboardScreenState
       setState(() {
         isLoading = false;
 
-        // SHOW THE REAL ERROR
-        // instead of hiding it.
+        // Show the real error.
         errorMessage =
             'Error: $e';
       });
