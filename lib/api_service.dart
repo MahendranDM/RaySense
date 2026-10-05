@@ -44,6 +44,101 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
+  // REGISTRATION
+  // ------------------------------------------------------------
+
+  static Future<Map<String, dynamic>> register({
+    required String username,
+    required String email,
+    required String password,
+    required String password2,
+    required String systemName,
+    required String location,
+    required double latitude,
+    required double longitude,
+    required double capacityKw,
+    required int panelCount,
+    required String panelType,
+    required String installationDate,
+    String provider = '',
+    String consumerCategory = '',
+    String? billFilePath,
+  }) async {
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/api/users/register/'),
+    );
+
+    // Account information
+    request.fields['username'] = username;
+    request.fields['email'] = email;
+    request.fields['password'] = password;
+    request.fields['password2'] = password2;
+
+    // Solar system information
+    request.fields['system_name'] = systemName;
+    request.fields['location'] = location;
+    request.fields['latitude'] = latitude.toString();
+    request.fields['longitude'] = longitude.toString();
+    request.fields['capacity_kw'] = capacityKw.toString();
+    request.fields['panel_count'] = panelCount.toString();
+    request.fields['panel_type'] = panelType;
+    request.fields['installation_date'] = installationDate;
+
+    // Electricity information
+    request.fields['provider'] = provider;
+    request.fields['consumer_category'] =
+        consumerCategory;
+
+    // Optional electricity bill
+    if (billFilePath != null &&
+        billFilePath.isNotEmpty) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'bill_file',
+          billFilePath,
+        ),
+      );
+    }
+
+    final streamedResponse =
+        await request.send();
+
+    final response =
+        await http.Response.fromStream(
+      streamedResponse,
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 201) {
+      return data as Map<String, dynamic>;
+    }
+
+    if (data is Map<String, dynamic>) {
+      if (data['detail'] != null) {
+        throw Exception(
+          data['detail'].toString(),
+        );
+      }
+
+      throw Exception(
+        data.entries
+            .map(
+              (entry) =>
+                  '${entry.key}: ${entry.value}',
+            )
+            .join('\n'),
+      );
+    }
+
+    throw Exception(
+      'Registration failed: '
+      '${response.statusCode}',
+    );
+  }
+
+  // ------------------------------------------------------------
   // CURRENT USER
   // ------------------------------------------------------------
 
@@ -112,7 +207,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Solar Systems
+  // SOLAR SYSTEMS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getSolarSystems() async {
@@ -133,7 +228,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Update Solar System
+  // UPDATE SOLAR SYSTEM
   // ------------------------------------------------------------
 
   static Future<Map<String, dynamic>> updateSolarSystem({
@@ -177,7 +272,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Forecast Records
+  // FORECAST RECORDS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getForecasts() async {
@@ -198,7 +293,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Performance Records
+  // PERFORMANCE RECORDS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getPerformance() async {
@@ -242,7 +337,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Alerts
+  // ALERTS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getAlerts() async {
@@ -263,7 +358,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Resolve / Update Alert
+  // RESOLVE / UPDATE ALERT
   // ------------------------------------------------------------
 
   static Future<Map<String, dynamic>> resolveAlert({
@@ -295,7 +390,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Generate Weather Alert
+  // GENERATE WEATHER ALERT
   // ------------------------------------------------------------
 
   static Future<Map<String, dynamic>> generateWeatherAlert({
@@ -327,7 +422,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Generation Records
+  // GENERATION RECORDS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getGenerationRecords() async {
@@ -371,7 +466,7 @@ class ApiService {
   }
 
   // ------------------------------------------------------------
-  // Weather Records
+  // WEATHER RECORDS
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getWeatherRecords() async {
