@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' as geocoding;
 
 import 'api_service.dart';
 
@@ -301,25 +302,54 @@ class _RegistrationScreenState
         return;
       }
 
+      String readableLocation =
+          'Latitude ${position.latitude.toStringAsFixed(6)}, '
+          'Longitude ${position.longitude.toStringAsFixed(6)}';
+
+      try {
+        final placemarks =
+            await geocoding.Geocoding().placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+
+          final parts = <String>[
+            if (place.locality != null &&
+                place.locality!.isNotEmpty)
+              place.locality!,
+            if (place.administrativeArea != null &&
+                place.administrativeArea!.isNotEmpty)
+              place.administrativeArea!,
+            if (place.country != null &&
+                place.country!.isNotEmpty)
+              place.country!,
+          ];
+
+          if (parts.isNotEmpty) {
+            readableLocation = parts.join(', ');
+          }
+        }
+      } catch (_) {
+        // Keep coordinates if reverse geocoding fails.
+      }
+
+      if (!mounted) {
+        return;
+      }
+
       setState(() {
-        _latitude =
-            position.latitude;
-
-        _longitude =
-            position.longitude;
-
-        _locationController.text =
-            'Latitude ${position.latitude.toStringAsFixed(6)}, '
-            'Longitude ${position.longitude.toStringAsFixed(6)}';
-
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+        _locationController.text = readableLocation;
         _locationDetected = true;
       });
 
       _showMessage(
         'Location detected successfully.',
-      );
-    } catch (e) {
-      if (!mounted) {
+      );  if (!mounted) {
         return;
       }
 
@@ -2073,3 +2103,7 @@ class _RegistrationScreenState
     );
   }
 }
+
+
+
+
