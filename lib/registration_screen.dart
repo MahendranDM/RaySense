@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'api_service.dart';
 
@@ -59,6 +60,7 @@ class _RegistrationScreenState
   double? _longitude;
 
   bool _locationDetected = false;
+  bool _isDetectingLocation = false;
 
   // ------------------------------------------------------------
   // ELECTRICITY
@@ -126,6 +128,14 @@ class _RegistrationScreenState
     FocusScope.of(context).unfocus();
 
     if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_installationDate == null) {
+      _showMessage(
+        'Please select the installation date.',
+        isError: true,
+      );
       return;
     }
 
@@ -222,15 +232,150 @@ class _RegistrationScreenState
   // ------------------------------------------------------------
 
   Future<void> _detectLocation() async {
-    /*
-     * GPS functionality will be connected in the next milestone
-     * using the geolocator package.
-     *
-     * We intentionally do not generate fake coordinates.
-     */
+    if (_isDetectingLocation) {
+      return;
+    }
 
-    _showMessage(
-      'Device location will be connected in the next step.',
+    setState(() {
+      _isDetectingLocation = true;
+    });
+
+    try {
+      final serviceEnabled =
+          await Geolocator.isLocationServiceEnabled();
+
+      if (!serviceEnabled) {
+        if (!mounted) {
+          return;
+        }
+
+        _showMessage(
+          'Please turn on location services on your device.',
+          isError: true,
+        );
+        return;
+      }
+
+      LocationPermission permission =
+          await Geolocator.checkPermission();
+
+      if (permission ==
+          LocationPermission.denied) {
+        permission =
+            await Geolocator.requestPermission();
+      }
+
+      if (permission ==
+          LocationPermission.denied) {
+        if (!mounted) {
+          return;
+        }
+
+        _showMessage(
+          'Location permission was denied. Please allow location access to continue.',
+          isError: true,
+        );
+        return;
+      }
+
+      if (permission ==
+          LocationPermission.deniedForever) {
+        if (!mounted) {
+          return;
+        }
+
+        _showLocationSettingsDialog();
+        return;
+      }
+
+      final position =
+          await Geolocator.getCurrentPosition(
+        locationSettings:
+            const LocationSettings(
+          accuracy:
+              LocationAccuracy.high,
+        ),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _latitude =
+            position.latitude;
+
+        _longitude =
+            position.longitude;
+
+        _locationController.text =
+            'Latitude ${position.latitude.toStringAsFixed(6)}, '
+            'Longitude ${position.longitude.toStringAsFixed(6)}';
+
+        _locationDetected = true;
+      });
+
+      _showMessage(
+        'Location detected successfully.',
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      _showMessage(
+        'Unable to detect your location. Please try again.',
+        isError: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDetectingLocation = false;
+        });
+      }
+    }
+  }
+
+  void _showLocationSettingsDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            'Location permission required',
+          ),
+          content: const Text(
+            'Location permission has been permanently denied. Please enable it from the app settings to use device location.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Cancel',
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+
+                await Geolocator.openAppSettings();
+              },
+              style:
+                  ElevatedButton.styleFrom(
+                backgroundColor:
+                    const Color(0xFFFFB300),
+                foregroundColor:
+                    Colors.white,
+              ),
+              child: const Text(
+                'Open Settings',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -288,11 +433,6 @@ class _RegistrationScreenState
   // ------------------------------------------------------------
 
   void _selectBillFile() {
-    /*
-     * File picker functionality will be connected
-     * in the next milestone.
-     */
-
     _showMessage(
       'Electricity bill upload will be enabled in the next step.',
     );
@@ -639,7 +779,6 @@ class _RegistrationScreenState
         const SizedBox(
           height: 12,
         ),
-
         const Text(
           'Set up your solar system',
           style: TextStyle(
@@ -651,11 +790,9 @@ class _RegistrationScreenState
             height: 1.15,
           ),
         ),
-
         const SizedBox(
           height: 10,
         ),
-
         const Text(
           'Tell RaySense about your solar installation so we can monitor performance, forecast generation and provide useful insights.',
           style: TextStyle(
@@ -776,11 +913,9 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildTextField(
           controller:
               _emailController,
@@ -796,11 +931,9 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildTextField(
           controller:
               _passwordController,
@@ -832,11 +965,9 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildTextField(
           controller:
               _confirmPasswordController,
@@ -905,11 +1036,9 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         Row(
           crossAxisAlignment:
               CrossAxisAlignment.start,
@@ -937,11 +1066,9 @@ class _RegistrationScreenState
                     TextInputAction.next,
               ),
             ),
-
             const SizedBox(
               width: 14,
             ),
-
             Expanded(
               child: _buildTextField(
                 controller:
@@ -964,11 +1091,9 @@ class _RegistrationScreenState
             ),
           ],
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildDropdown(
           value:
               _selectedPanelType,
@@ -994,11 +1119,9 @@ class _RegistrationScreenState
             return null;
           },
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         InkWell(
           onTap:
               _selectInstallationDate,
@@ -1037,7 +1160,6 @@ class _RegistrationScreenState
             ),
           ),
         ),
-
         if (_installationDate ==
             null)
           const Padding(
@@ -1110,11 +1232,9 @@ class _RegistrationScreenState
                       Colors.white,
                 ),
               ),
-
               const SizedBox(
                 width: 12,
               ),
-
               const Expanded(
                 child: Column(
                   crossAxisAlignment:
@@ -1149,30 +1269,41 @@ class _RegistrationScreenState
             ],
           ),
         ),
-
         const SizedBox(
           height: 14,
         ),
-
         SizedBox(
           height: 50,
           width: double.infinity,
           child:
               OutlinedButton.icon(
             onPressed:
-                _isLoading
+                _isLoading ||
+                        _isDetectingLocation
                     ? null
                     : _detectLocation,
-            icon: Icon(
-              _locationDetected
-                  ? Icons.check_circle_outline
-                  : Icons
-                      .my_location_rounded,
-            ),
+            icon: _isDetectingLocation
+                ? const SizedBox(
+                    width: 19,
+                    height: 19,
+                    child:
+                        CircularProgressIndicator(
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Icon(
+                    _locationDetected
+                        ? Icons
+                            .check_circle_outline
+                        : Icons
+                            .my_location_rounded,
+                  ),
             label: Text(
-              _locationDetected
-                  ? 'Location detected'
-                  : 'Detect my location',
+              _isDetectingLocation
+                  ? 'Detecting location...'
+                  : _locationDetected
+                      ? 'Location detected'
+                      : 'Detect my location',
             ),
             style:
                 OutlinedButton.styleFrom(
@@ -1204,11 +1335,9 @@ class _RegistrationScreenState
             ),
           ),
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildTextField(
           controller:
               _locationController,
@@ -1230,7 +1359,6 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         if (_locationDetected) ...[
           const SizedBox(
             height: 14,
@@ -1348,11 +1476,9 @@ class _RegistrationScreenState
           textInputAction:
               TextInputAction.next,
         ),
-
         const SizedBox(
           height: 16,
         ),
-
         _buildDropdown(
           value:
               _selectedConsumerCategory,
@@ -1371,11 +1497,9 @@ class _RegistrationScreenState
             });
           },
         ),
-
         const SizedBox(
           height: 12,
         ),
-
         Container(
           padding:
               const EdgeInsets.all(13),
@@ -1476,11 +1600,9 @@ class _RegistrationScreenState
                         Color(0xFFFFB300),
                   ),
                 ),
-
                 const SizedBox(
                   height: 12,
                 ),
-
                 Text(
                   _billFileName ??
                       'Upload electricity bill',
@@ -1495,11 +1617,9 @@ class _RegistrationScreenState
                         Color(0xFF172033),
                   ),
                 ),
-
                 const SizedBox(
                   height: 5,
                 ),
-
                 const Text(
                   'PDF, JPG or PNG • Optional',
                   textAlign:
@@ -1515,11 +1635,9 @@ class _RegistrationScreenState
             ),
           ),
         ),
-
         const SizedBox(
           height: 12,
         ),
-
         const Row(
           crossAxisAlignment:
               CrossAxisAlignment.start,
@@ -1715,11 +1833,9 @@ class _RegistrationScreenState
                   size: 23,
                 ),
               ),
-
               const SizedBox(
                 width: 12,
               ),
-
               Expanded(
                 child: Column(
                   crossAxisAlignment:
@@ -1754,11 +1870,9 @@ class _RegistrationScreenState
               ),
             ],
           ),
-
           const SizedBox(
             height: 20,
           ),
-
           ...children,
         ],
       ),
