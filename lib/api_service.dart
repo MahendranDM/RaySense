@@ -1,9 +1,115 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
+import 'auth_service.dart';
+
 class ApiService {
-  static const String baseUrl =
-      'http://127.0.0.1:8000';
+  static const String baseUrl = 'http://127.0.0.1:8000';
+
+  // ------------------------------------------------------------
+  // AUTHENTICATION
+  // ------------------------------------------------------------
+
+  static Future<Map<String, dynamic>> login({
+    required String username,
+    required String password,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/login/'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      final token = data['token'];
+
+      if (token != null) {
+        await AuthService.saveToken(token);
+      }
+
+      return data as Map<String, dynamic>;
+    }
+
+    throw Exception(
+      data['detail'] ?? 'Login failed: ${response.statusCode}',
+    );
+  }
+
+  // ------------------------------------------------------------
+  // CURRENT USER
+  // ------------------------------------------------------------
+
+  static Future<Map<String, dynamic>> getMe() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('User is not logged in.');
+    }
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/users/me/'),
+      headers: {
+        'Authorization': 'Token $token',
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return data as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+    }
+
+    throw Exception(
+      data['detail'] ?? 'Failed to load user profile.',
+    );
+  }
+
+  // ------------------------------------------------------------
+  // LOGOUT
+  // ------------------------------------------------------------
+
+  static Future<void> logout() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      return;
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/users/logout/'),
+      headers: {
+        'Authorization': 'Token $token',
+      },
+    );
+
+    await AuthService.clearToken();
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Logout failed: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  // ------------------------------------------------------------
+  // CHECK LOGIN STATUS
+  // ------------------------------------------------------------
+
+  static Future<bool> isLoggedIn() async {
+    return await AuthService.isLoggedIn();
+  }
 
   // ------------------------------------------------------------
   // Solar Systems
@@ -30,8 +136,7 @@ class ApiService {
   // Update Solar System
   // ------------------------------------------------------------
 
-  static Future<Map<String, dynamic>>
-      updateSolarSystem({
+  static Future<Map<String, dynamic>> updateSolarSystem({
     required int systemId,
     required String systemName,
     required String location,
@@ -115,20 +220,9 @@ class ApiService {
 
   // ------------------------------------------------------------
   // TODAY'S PERFORMANCE
-  //
-  // Backend automatically calculates:
-  // - Today's actual generation
-  // - Today's expected generation
-  // - Deviation
-  // - Performance percentage
-  // - Performance status
-  //
-  // Endpoint:
-  // /api/performance/today/
   // ------------------------------------------------------------
 
-  static Future<Map<String, dynamic>>
-      getTodayPerformance() async {
+  static Future<Map<String, dynamic>> getTodayPerformance() async {
     final response = await http.get(
       Uri.parse(
         '$baseUrl/api/performance/today/',
@@ -204,8 +298,7 @@ class ApiService {
   // Generate Weather Alert
   // ------------------------------------------------------------
 
-  static Future<Map<String, dynamic>>
-      generateWeatherAlert({
+  static Future<Map<String, dynamic>> generateWeatherAlert({
     required int solarSystemId,
   }) async {
     final response = await http.post(
@@ -237,8 +330,7 @@ class ApiService {
   // Generation Records
   // ------------------------------------------------------------
 
-  static Future<List<dynamic>>
-      getGenerationRecords() async {
+  static Future<List<dynamic>> getGenerationRecords() async {
     final response = await http.get(
       Uri.parse(
         '$baseUrl/api/solar/generation/',
@@ -257,17 +349,9 @@ class ApiService {
 
   // ------------------------------------------------------------
   // REAL ML WEATHER FORECAST
-  //
-  // Django gets:
-  // latitude
-  // longitude
-  // system capacity
-  //
-  // directly from SolarSystem in the database.
   // ------------------------------------------------------------
 
-  static Future<Map<String, dynamic>>
-      getMLWeatherForecast() async {
+  static Future<Map<String, dynamic>> getMLWeatherForecast() async {
     final response = await http.get(
       Uri.parse(
         '$baseUrl/api/forecasting/weather-predict/',
@@ -290,8 +374,7 @@ class ApiService {
   // Weather Records
   // ------------------------------------------------------------
 
-  static Future<List<dynamic>>
-      getWeatherRecords() async {
+  static Future<List<dynamic>> getWeatherRecords() async {
     final response = await http.get(
       Uri.parse(
         '$baseUrl/api/weather/records/',
