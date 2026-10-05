@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
 
 import 'api_service.dart';
 
@@ -304,48 +303,18 @@ class _RegistrationScreenState
         return;
       }
 
-      String readableLocation =
+      // TEMPORARY TEST:
+      // Do not use reverse geocoding yet.
+      // Directly display the GPS coordinates.
+      final readableLocation =
           'Latitude ${position.latitude.toStringAsFixed(6)}, '
           'Longitude ${position.longitude.toStringAsFixed(6)}';
-
-      try {
-        final placemarks =
-            await geocoding.Geocoding().placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        ).timeout(const Duration(seconds: 8));
-
-        if (placemarks.isNotEmpty) {
-          final place = placemarks.first;
-
-          final parts = <String>[
-            if (place.locality != null &&
-                place.locality!.isNotEmpty)
-              place.locality!,
-            if (place.administrativeArea != null &&
-                place.administrativeArea!.isNotEmpty)
-              place.administrativeArea!,
-            if (place.country != null &&
-                place.country!.isNotEmpty)
-              place.country!,
-          ];
-
-          if (parts.isNotEmpty) {
-            readableLocation = parts.join(', ');
-          }
-        }
-      } catch (_) {
-        // Keep coordinates if reverse geocoding fails.
-      }
-
-      if (!mounted) {
-        return;
-      }
 
       setState(() {
         _latitude = position.latitude;
         _longitude = position.longitude;
-        _locationController.text = readableLocation;
+        _locationController.text =
+            readableLocation;
         _locationDetected = true;
       });
 
@@ -1169,8 +1138,7 @@ class _RegistrationScreenState
               hint:
                   'Select installation date',
               icon:
-                  Icons
-                      .calendar_today_outlined,
+                  Icons.calendar_today_outlined,
             ),
             child: Text(
               _installationDate ==
@@ -1378,7 +1346,7 @@ class _RegistrationScreenState
           label:
               'Readable location',
           hint:
-              'Your detected address will appear here',
+              'Your detected location will appear here',
           icon:
               Icons.place_outlined,
           validator: (value) {
@@ -1505,8 +1473,7 @@ class _RegistrationScreenState
           hint:
               'e.g. KSEB',
           icon:
-              Icons
-                  .account_balance_outlined,
+              Icons.account_balance_outlined,
           textInputAction:
               TextInputAction.next,
         ),
@@ -2107,11 +2074,3 @@ class _RegistrationScreenState
     );
   }
 }
-
-
-
-
-
-
-
-
