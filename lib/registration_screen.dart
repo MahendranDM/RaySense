@@ -296,6 +296,8 @@ class _RegistrationScreenState
           accuracy:
               LocationAccuracy.high,
         ),
+      ).timeout(
+        const Duration(seconds: 15),
       );
 
       if (!mounted) {
@@ -2105,6 +2107,7 @@ class _RegistrationScreenState
     );
   }
 }
+
 
 
 
