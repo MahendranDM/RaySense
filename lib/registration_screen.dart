@@ -304,8 +304,8 @@ class _RegistrationScreenState
       }
 
       // TEMPORARY TEST:
-      // Do not use reverse geocoding yet.
-      // Directly display the GPS coordinates.
+      // Reverse geocoding is disabled for now.
+      // We directly display the GPS coordinates.
       final readableLocation =
           'Latitude ${position.latitude.toStringAsFixed(6)}, '
           'Longitude ${position.longitude.toStringAsFixed(6)}';
@@ -326,8 +326,11 @@ class _RegistrationScreenState
         return;
       }
 
+      // IMPORTANT:
+      // Show the actual error so we can identify
+      // why Geolocator is failing.
       _showMessage(
-        'Unable to detect your location. Please try again.',
+        'Location error: $e',
         isError: true,
       );
     } finally {
