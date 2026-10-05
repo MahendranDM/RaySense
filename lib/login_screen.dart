@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'api_service.dart';
+import 'registration_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onLoginSuccess;
@@ -281,8 +282,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             TextButton(
                               onPressed: () {
-                                // Registration screen will be connected
-                                // in the next milestone.
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const RegistrationScreen(),
+                                  ),
+                                );
                               },
                               child: const Text(
                                 'Create account',
@@ -306,3 +311,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
