@@ -1,6 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
+import 'package:http/http.dart' as http;
 import 'api_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -304,7 +306,7 @@ class _RegistrationScreenState
       }
 
       // ----------------------------------------------------------
-      // REVERSE GEOCODING
+      // REVERSE GEOCODING USING NOMINATIM
       // ----------------------------------------------------------
 
       String readableLocation =
@@ -312,49 +314,99 @@ class _RegistrationScreenState
           'Longitude ${position.longitude.toStringAsFixed(6)}';
 
       try {
-        final placemarks =
-            await geocoding.Geocoding()
-                .placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
+        final uri = Uri.https(
+          'nominatim.openstreetmap.org',
+          '/reverse',
+          {
+            'lat': position.latitude.toString(),
+            'lon': position.longitude.toString(),
+            'format': 'jsonv2',
+            'zoom': '10',
+            'addressdetails': '1',
+            'accept-language': 'en',
+          },
+        );
+
+        debugPrint(
+          'REVERSE GEOCODING REQUEST: $uri',
+        );
+
+        final response = await http.get(
+          uri,
+          headers: {
+            'User-Agent':
+                'RaySense/1.0 (solar monitoring application)',
+            'Accept':
+                'application/json',
+          },
         ).timeout(
           const Duration(seconds: 8),
         );
 
         debugPrint(
-          'REVERSE GEOCODING RESULT: ${placemarks.length} placemarks',
+          'REVERSE GEOCODING HTTP STATUS: '
+          '${response.statusCode}',
         );
 
-        if (placemarks.isNotEmpty) {
-          final place = placemarks.first;
+        if (response.statusCode == 200) {
+          final data =
+              jsonDecode(response.body)
+                  as Map<String, dynamic>;
 
-          final parts = <String>[
-            if (place.locality != null &&
-                place.locality!.isNotEmpty)
-              place.locality!,
+          final address =
+              data['address']
+                  as Map<String, dynamic>?;
 
-            if (place.administrativeArea != null &&
-                place.administrativeArea!.isNotEmpty)
-              place.administrativeArea!,
+          if (address != null) {
+            final city =
+                address['city'] ??
+                address['town'] ??
+                address['village'] ??
+                address['municipality'];
 
-            if (place.country != null &&
-                place.country!.isNotEmpty)
-              place.country!,
-          ];
+            final state =
+                address['state'];
 
-          if (parts.isNotEmpty) {
-            readableLocation =
-                parts.join(', ');
+            final country =
+                address['country'];
+
+            final parts = <String>[
+              if (city != null &&
+                  city.toString().isNotEmpty)
+                city.toString(),
+
+              if (state != null &&
+                  state.toString().isNotEmpty)
+                state.toString(),
+
+              if (country != null &&
+                  country.toString().isNotEmpty)
+                country.toString(),
+            ];
+
+            if (parts.isNotEmpty) {
+              readableLocation =
+                  parts.join(', ');
+            }
+
+            debugPrint(
+              'REVERSE GEOCODING RESULT: '
+              '$readableLocation',
+            );
           }
+        } else {
+          debugPrint(
+            'REVERSE GEOCODING ERROR: '
+            'HTTP ${response.statusCode}',
+          );
         }
       } catch (e) {
-  debugPrint(
-    'REVERSE GEOCODING ERROR: $e',
-  );
+        debugPrint(
+          'REVERSE GEOCODING ERROR: $e',
+        );
 
-  // If reverse geocoding fails,
-  // keep the GPS coordinates as fallback.
-}
+        // Keep GPS coordinates as fallback.
+      }
 
       // ----------------------------------------------------------
       // SAVE LOCATION
@@ -376,7 +428,6 @@ class _RegistrationScreenState
         return;
       }
 
-      // Show the actual error for debugging.
       _showMessage(
         'Location error: $e',
         isError: true,
