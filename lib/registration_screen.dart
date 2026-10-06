@@ -204,6 +204,18 @@ class _RegistrationScreenState
             'Registration successful.',
       );
 
+      // Wait briefly so the user can see the
+      // successful registration message.
+      await Future.delayed(
+        const Duration(seconds: 1),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      // Existing callback handles navigation
+      // back to the Login screen.
       widget.onRegistrationSuccess?.call();
     } catch (e) {
       if (!mounted) {
