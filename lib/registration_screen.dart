@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-
+import 'package:geocoding/geocoding.dart' as geocoding;
 import 'api_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -303,12 +303,62 @@ class _RegistrationScreenState
         return;
       }
 
-      // TEMPORARY TEST:
-      // Reverse geocoding is disabled for now.
-      // We directly display the GPS coordinates.
-      final readableLocation =
+      // ----------------------------------------------------------
+      // REVERSE GEOCODING
+      // ----------------------------------------------------------
+
+      String readableLocation =
           'Latitude ${position.latitude.toStringAsFixed(6)}, '
           'Longitude ${position.longitude.toStringAsFixed(6)}';
+
+      try {
+        final placemarks =
+            await geocoding.Geocoding()
+                .placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        ).timeout(
+          const Duration(seconds: 8),
+        );
+
+        debugPrint(
+          'REVERSE GEOCODING RESULT: ${placemarks.length} placemarks',
+        );
+
+        if (placemarks.isNotEmpty) {
+          final place = placemarks.first;
+
+          final parts = <String>[
+            if (place.locality != null &&
+                place.locality!.isNotEmpty)
+              place.locality!,
+
+            if (place.administrativeArea != null &&
+                place.administrativeArea!.isNotEmpty)
+              place.administrativeArea!,
+
+            if (place.country != null &&
+                place.country!.isNotEmpty)
+              place.country!,
+          ];
+
+          if (parts.isNotEmpty) {
+            readableLocation =
+                parts.join(', ');
+          }
+        }
+      } catch (e) {
+  debugPrint(
+    'REVERSE GEOCODING ERROR: $e',
+  );
+
+  // If reverse geocoding fails,
+  // keep the GPS coordinates as fallback.
+}
+
+      // ----------------------------------------------------------
+      // SAVE LOCATION
+      // ----------------------------------------------------------
 
       setState(() {
         _latitude = position.latitude;
@@ -326,9 +376,7 @@ class _RegistrationScreenState
         return;
       }
 
-      // IMPORTANT:
-      // Show the actual error so we can identify
-      // why Geolocator is failing.
+      // Show the actual error for debugging.
       _showMessage(
         'Location error: $e',
         isError: true,
