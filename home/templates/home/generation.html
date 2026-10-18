@@ -1,0 +1,717 @@
+﻿{% extends "home/base_dashboard.html" %}
+
+{% block title %}Generation | RaySense{% endblock %}
+
+{% block content %}
+
+<style>
+    .generation-page {
+        color: #f5f5f5;
+    }
+
+    .generation-page .page-header {
+        margin-bottom: 22px;
+    }
+
+    .generation-page .page-header h1 {
+        margin: 5px 0;
+        font-size: 30px;
+    }
+
+    .generation-page .page-header p,
+    .generation-muted {
+        color: #a1a1aa;
+        line-height: 1.6;
+    }
+
+    .generation-disclaimer {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        padding: 15px 18px;
+        margin-bottom: 22px;
+        border: 1px solid #785a20;
+        border-left: 4px solid #f5b942;
+        border-radius: 12px;
+        background: #211d15;
+    }
+
+    .generation-disclaimer .warning {
+        color: #f5b942;
+        font-size: 21px;
+    }
+
+    .generation-disclaimer strong {
+        display: block;
+        margin-bottom: 5px;
+        color: #f5c45e;
+        font-size: 12px;
+    }
+
+    .generation-disclaimer p {
+        margin: 0;
+        color: #c4c4cc;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .generation-summary {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .generation-card,
+    .generation-panel {
+        background: #17171d;
+        border: 1px solid #303039;
+        border-radius: 14px;
+    }
+
+    .generation-card {
+        padding: 20px;
+    }
+
+    .generation-card .label {
+        color: #a1a1aa;
+        font-size: 13px;
+    }
+
+    .generation-card .value {
+        margin-top: 12px;
+        font-size: 23px;
+        font-weight: 700;
+        overflow-wrap: anywhere;
+    }
+
+    .generation-card .subtext {
+        margin-top: 7px;
+        color: #a1a1aa;
+        font-size: 12px;
+    }
+
+    .generation-panel {
+        padding: 22px;
+        margin-bottom: 22px;
+    }
+
+    .generation-panel h2 {
+        margin: 0 0 7px;
+        font-size: 19px;
+    }
+
+    .generation-panel > p {
+        margin: 0 0 20px;
+        color: #a1a1aa;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .generation-chart {
+        height: 300px;
+        position: relative;
+    }
+
+    .generation-table-wrapper {
+        overflow-x: auto;
+    }
+
+    .generation-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    .generation-table th,
+.generation-table td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #303039;
+    text-align: left;
+    font-size: 13px;
+}
+
+.generation-table td {
+    color: #e4e4e7;
+}
+
+.generation-table td.energy {
+    color: #f5c45e;
+    font-weight: 700;
+}
+
+    .generation-table th {
+        color: #a1a1aa;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+
+    .generation-table td.energy {
+        color: #f5c45e;
+        font-weight: 700;
+    }
+
+    .generation-badge {
+        display: inline-block;
+        padding: 6px 9px;
+        border: 1px solid #785a20;
+        border-radius: 20px;
+        color: #f5c45e;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .generation-message {
+        padding: 22px 12px;
+        color: #a1a1aa;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    @media (max-width: 1100px) {
+        .generation-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 600px) {
+        .generation-summary {
+            grid-template-columns: 1fr;
+        }
+
+        .generation-panel {
+            padding: 15px;
+        }
+
+        .generation-chart {
+            height: 250px;
+        }
+    }
+</style>
+
+<div class="generation-page">
+
+    <div class="page-header">
+        <div>
+            <div class="eyebrow">SOLAR MONITORING</div>
+            <h1>Generation</h1>
+            <p>
+                Review your daily solar generation estimates,
+                system specifications, and historical records.
+            </p>
+        </div>
+    </div>
+
+    <!-- DISCLAIMER -->
+    <div class="generation-disclaimer" role="note">
+        <div class="warning">⚠</div>
+
+        <div>
+            <strong>SIMULATED GENERATION DATA — NOT ACTUAL MEASUREMENTS</strong>
+            <p>
+                The values displayed here are simulated estimates based
+                on your registered solar system configuration. They are
+                provided for demonstration purposes and do not represent
+                electricity measured from your panels. Actual generation
+                readings will be identified separately when verified
+                monitoring data is available.
+            </p>
+        </div>
+    </div>
+
+    <!-- GENERATION SUMMARY -->
+    <div class="generation-summary">
+
+        <div class="generation-card">
+            <div class="label">Yesterday's Generation</div>
+            <div class="value" id="yesterdayGeneration">—</div>
+            <div class="subtext">Daily simulated estimate</div>
+        </div>
+
+        <div class="generation-card">
+            <div class="label">Solar Panel Type</div>
+            <div class="value" id="panelType">—</div>
+            <div class="subtext">Registered configuration</div>
+        </div>
+
+        <div class="generation-card">
+            <div class="label">Number of Panels</div>
+            <div class="value" id="panelCount">—</div>
+            <div class="subtext">Registered solar panels</div>
+        </div>
+
+        <div class="generation-card">
+            <div class="label">Installed Capacity</div>
+            <div class="value" id="systemCapacity">—</div>
+            <div class="subtext">Registered system capacity</div>
+        </div>
+
+    </div>
+
+    <!-- GENERATION STATUS -->
+    <div class="generation-panel">
+        <h2>Generation Data Status</h2>
+        <p id="generationStatus">
+            Loading generation records...
+        </p>
+        <span class="generation-badge">SIMULATED HISTORY</span>
+    </div>
+
+    <!-- HISTORY CHART -->
+    <div class="generation-panel">
+        <h2>Daily Generation Trend</h2>
+        <p>
+            Historical daily generation estimates, ordered from older
+            dates on the left to newer dates on the right.
+        </p>
+
+        <div id="generationChartContainer" class="generation-chart">
+            <canvas id="generationChart"></canvas>
+        </div>
+
+        <div id="generationChartMessage"
+             class="generation-message"
+             hidden>
+        </div>
+    </div>
+
+    <!-- HISTORY TABLE -->
+    <div class="generation-panel">
+        <h2>Generation History</h2>
+        <p>
+            Daily records are displayed from newest to oldest.
+            All simulated values are clearly identified.
+        </p>
+
+        <div class="generation-table-wrapper"
+             id="generationTableWrapper">
+
+            <table class="generation-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Generation</th>
+                        <th>Power Output</th>
+                        <th>Data Source</th>
+                    </tr>
+                </thead>
+
+                <tbody id="generationTableBody">
+                    <tr>
+                        <td colspan="4">Loading records...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div id="generationTableMessage"
+             class="generation-message"
+             hidden>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+(function () {
+    "use strict";
+
+    let generationChart = null;
+
+    function apiFetch(url) {
+        const headers = {
+            "Accept": "application/json"
+        };
+
+        const token = localStorage.getItem("raysense_token");
+
+        if (token) {
+            headers["Authorization"] = "Token " + token;
+        }
+
+        return fetch(url, {
+            method: "GET",
+            headers: headers,
+            credentials: "same-origin"
+        }).then(function (response) {
+            if (!response.ok) {
+                throw new Error("API request failed: " + response.status);
+            }
+
+            return response.json();
+        });
+    }
+
+    function asArray(data) {
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (data && Array.isArray(data.results)) {
+            return data.results;
+        }
+
+        return [];
+    }
+
+    function dateKey(value) {
+    if (!value) {
+        return "";
+    }
+
+    // Prefer the backend's local calendar date.
+    if (typeof value === "object") {
+        if (value.generation_date) {
+            return String(value.generation_date).substring(0, 10);
+        }
+
+        value = value.recorded_at;
+    }
+
+    return value ? String(value).substring(0, 10) : "";
+}
+
+    function formatDate(value) {
+        if (!value) {
+            return "—";
+        }
+
+        // Parse date-only values as local calendar dates to avoid
+// UTC timezone shifts moving the displayed date backward.
+const date = /^\d{4}-\d{2}-\d{2}$/.test(String(value))
+    ? new Date(
+        Number(String(value).substring(0, 4)),
+        Number(String(value).substring(5, 7)) - 1,
+        Number(String(value).substring(8, 10))
+      )
+    : new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return String(value);
+        }
+
+        return date.toLocaleDateString([], {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+    }
+
+    function formatKwh(value) {
+        const number = Number(value);
+
+        return value !== null &&
+            value !== undefined &&
+            value !== "" &&
+            Number.isFinite(number)
+                ? number.toFixed(2) + " kWh"
+                : "—";
+    }
+
+    function formatPower(value) {
+        const number = Number(value);
+
+        return value !== null &&
+            value !== undefined &&
+            value !== "" &&
+            Number.isFinite(number)
+                ? number.toFixed(3) + " kW"
+                : "—";
+    }
+
+    function showMessage(id, message) {
+        const element = document.getElementById(id);
+        element.textContent = message;
+        element.hidden = false;
+    }
+
+    function renderChart(records) {
+        const simulated = records.filter(function (record) {
+            return record.data_source === "SIMULATED";
+        });
+
+        const container = document.getElementById(
+            "generationChartContainer"
+        );
+
+        const message = document.getElementById(
+            "generationChartMessage"
+        );
+
+        if (!simulated.length) {
+            container.hidden = true;
+
+            showMessage(
+                "generationChartMessage",
+                "No simulated generation history is available."
+            );
+
+            return;
+        }
+
+        // Use one record per calendar date.
+        const byDate = new Map();
+
+        simulated.forEach(function (record) {
+            const key = dateKey(record);
+
+            if (!key) {
+                return;
+            }
+
+            if (!byDate.has(key)) {
+                byDate.set(key, record);
+            }
+        });
+
+        const daily = Array.from(byDate.values()).sort(function (a, b) {
+            return a.recorded_at.localeCompare(b.recorded_at);
+        });
+
+        container.hidden = false;
+        message.hidden = true;
+
+        const labels = daily.map(function (record) {
+            return formatDate(record.recorded_at);
+        });
+
+        const values = daily.map(function (record) {
+            return Number(record.energy_generated_kwh) || 0;
+        });
+
+        if (generationChart) {
+            generationChart.destroy();
+        }
+
+        generationChart = new Chart(
+            document.getElementById("generationChart"),
+            {
+                type: "line",
+
+                data: {
+                    labels: labels,
+
+                    datasets: [{
+                        label: "Simulated Generation (kWh)",
+                        data: values,
+                        borderColor: "#f5b942",
+                        backgroundColor: "rgba(245,185,66,0.12)",
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        borderWidth: 2
+                    }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: "#d4d4d8"
+                            }
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: "#a1a1aa",
+                                maxTicksLimit: 8
+                            },
+                            grid: {
+                                color: "rgba(160,160,170,0.08)"
+                            }
+                        },
+
+                        y: {
+                            beginAtZero: true,
+
+                            title: {
+                                display: true,
+                                text: "Simulated generation (kWh)",
+                                color: "#a1a1aa"
+                            },
+
+                            ticks: {
+                                color: "#a1a1aa"
+                            },
+
+                            grid: {
+                                color: "rgba(160,160,170,0.08)"
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    function renderHistory(records) {
+        const tbody = document.getElementById("generationTableBody");
+        const wrapper = document.getElementById("generationTableWrapper");
+
+        tbody.replaceChildren();
+
+        // Group records by date and prefer simulated data for the
+        // demonstration history. Never combine actual and simulated data.
+        const byDate = new Map();
+
+        records.forEach(function (record) {
+const key = dateKey(record);
+            if (!key) {
+                return;
+            }
+
+            if (!byDate.has(key)) {
+                byDate.set(key, record);
+            } else if (
+                record.data_source === "SIMULATED" &&
+                byDate.get(key).data_source !== "SIMULATED"
+            ) {
+                byDate.set(key, record);
+            }
+        });
+
+        const daily = Array.from(byDate.values()).sort(function (a, b) {
+            return b.recorded_at.localeCompare(a.recorded_at);
+        });
+
+        if (!daily.length) {
+            wrapper.hidden = true;
+
+            showMessage(
+                "generationTableMessage",
+                "No generation history is available."
+            );
+
+            return;
+        }
+
+        wrapper.hidden = false;
+        document.getElementById("generationTableMessage").hidden = true;
+
+        daily.forEach(function (record) {
+            const row = document.createElement("tr");
+
+            const source = record.data_source || "ACTUAL";
+
+            const values = [
+                formatDate(record.recorded_at),
+                formatKwh(record.energy_generated_kwh),
+                formatPower(record.power_output_kw),
+                source === "SIMULATED"
+                    ? "Simulated estimate"
+                    : "Actual — verify source"
+            ];
+
+            values.forEach(function (value, index) {
+                const cell = document.createElement("td");
+                cell.textContent = value;
+
+                if (index === 1) {
+                    cell.className = "energy";
+                }
+
+                row.appendChild(cell);
+            });
+
+            tbody.appendChild(row);
+        });
+    }
+
+    async function loadGeneration() {
+        const status = document.getElementById("generationStatus");
+
+        try {
+            const results = await Promise.all([
+                apiFetch("/api/solar/systems/"),
+                apiFetch("/api/solar/generation/")
+            ]);
+
+            const systems = asArray(results[0]);
+            const records = asArray(results[1]);
+
+            const system = systems.length ? systems[0] : null;
+
+            document.getElementById("panelType").textContent =
+                system && system.panel_type
+                    ? system.panel_type
+                    : "Not specified";
+
+            document.getElementById("panelCount").textContent =
+                system && system.panel_count !== undefined
+                    ? String(system.panel_count)
+                    : "—";
+
+            document.getElementById("systemCapacity").textContent =
+                system && system.capacity_kw !== undefined
+                    ? Number(system.capacity_kw).toFixed(2) + " kW"
+                    : "—";
+
+            const simulated = records.filter(function (record) {
+                return record.data_source === "SIMULATED";
+            });
+
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const year = yesterday.getFullYear();
+            const month = String(yesterday.getMonth() + 1).padStart(2, "0");
+            const day = String(yesterday.getDate()).padStart(2, "0");
+            const yesterdayKey = year + "-" + month + "-" + day;
+
+            const yesterdayRecord = simulated.find(function (record) {
+                return dateKey(record) === yesterdayKey;            });
+
+            document.getElementById("yesterdayGeneration").textContent =
+                yesterdayRecord
+                    ? formatKwh(yesterdayRecord.energy_generated_kwh)
+                    : "Not available";
+
+            status.textContent =
+                simulated.length +
+                " simulated records are available. These are demonstration " +
+                "estimates, not verified measurements of actual production.";
+
+            renderChart(records);
+            renderHistory(records);
+
+        } catch (error) {
+            console.error("Generation loading error:", error);
+
+            document.getElementById("yesterdayGeneration").textContent = "—";
+            document.getElementById("panelType").textContent = "—";
+            document.getElementById("panelCount").textContent = "—";
+            document.getElementById("systemCapacity").textContent = "—";
+
+            status.textContent =
+                "Generation data could not be loaded. Check the backend " +
+                "server and browser console.";
+
+            document.getElementById("generationChartContainer").hidden = true;
+
+            showMessage(
+                "generationChartMessage",
+                "Unable to load generation history."
+            );
+
+            document.getElementById("generationTableWrapper").hidden = true;
+
+            showMessage(
+                "generationTableMessage",
+                "Unable to load generation history."
+            );
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadGeneration);
+})();
+</script>
+
+{% endblock %}

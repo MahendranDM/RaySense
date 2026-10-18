@@ -1,0 +1,1127 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}RaySense{% endblock %}
+    </title>
+
+    <meta
+        name="description"
+        content="RaySense solar energy monitoring and AI forecasting platform."
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --gold: #f5c542;
+            --gold-light: #ffd95a;
+            --black: #0b0b0b;
+            --black-soft: #111111;
+            --sidebar: #101010;
+            --card: #ffffff;
+            --page: #f6f6f4;
+            --text: #171717;
+            --muted: #777777;
+            --border: #e8e8e8;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: var(--page);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+
+        /* =====================================================
+           APP LAYOUT
+           ===================================================== */
+
+        .app {
+            min-height: 100vh;
+            display: flex;
+        }
+
+
+        /* =====================================================
+           SIDEBAR
+           ===================================================== */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            width: 250px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #111111 0%,
+                    #090909 100%
+                );
+
+            color: #ffffff;
+
+            display: flex;
+            flex-direction: column;
+
+            padding: 24px 16px;
+
+            z-index: 1000;
+
+            border-right: 1px solid #202020;
+        }
+
+
+        /* LOGO */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 6px 12px 28px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            border-radius: 13px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--gold),
+                    #e5a900
+                );
+
+            color: #111111;
+
+            font-size: 23px;
+            font-weight: 900;
+
+            box-shadow:
+                0 8px 24px rgba(245, 197, 66, 0.18);
+        }
+
+        .brand-text {
+            font-size: 1.35rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-subtitle {
+            color: #888888;
+            font-size: 0.68rem;
+            margin-top: 2px;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+
+        /* NAVIGATION */
+
+        .nav-label {
+            color: #686868;
+            font-size: 0.68rem;
+            font-weight: 700;
+
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+
+            padding: 8px 13px 10px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            min-height: 48px;
+
+            padding: 0 13px;
+
+            border-radius: 12px;
+
+            color: #a8a8a8;
+
+            font-size: 0.92rem;
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        .nav-item:hover {
+            background: #1d1d1d;
+            color: #ffffff;
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(245, 197, 66, 0.18),
+                    rgba(245, 197, 66, 0.07)
+                );
+
+            color: var(--gold);
+
+            box-shadow:
+                inset 3px 0 0 var(--gold);
+        }
+
+        .nav-icon {
+            width: 23px;
+            text-align: center;
+            font-size: 1.15rem;
+        }
+
+        .nav-text {
+            flex: 1;
+        }
+
+
+        /* SIDEBAR BOTTOM */
+
+        .sidebar-bottom {
+            margin-top: auto;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: #242424;
+            margin: 14px 8px;
+        }
+
+        .logout-link {
+            width: 100%;
+
+            border: none;
+            background: transparent;
+
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            gap: 13px;
+
+            min-height: 48px;
+
+            padding: 0 13px;
+
+            border-radius: 12px;
+
+            color: #999999;
+
+            font-size: 0.92rem;
+            font-weight: 600;
+
+            transition:
+                background 0.2s ease,
+                color 0.2s ease;
+        }
+
+        .logout-link:hover {
+            background: rgba(220, 53, 69, 0.12);
+            color: #ff6b78;
+        }
+
+
+        /* =====================================================
+           MAIN AREA
+           ===================================================== */
+
+        .main-area {
+            width: calc(100% - 250px);
+            margin-left: 250px;
+            min-height: 100vh;
+        }
+
+
+        /* =====================================================
+           TOP BAR
+           ===================================================== */
+
+        .topbar {
+            height: 74px;
+
+            background: rgba(255, 255, 255, 0.94);
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 34px;
+
+            position: sticky;
+            top: 0;
+
+            z-index: 900;
+
+            backdrop-filter: blur(12px);
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .mobile-menu {
+            display: none;
+
+            border: none;
+            background: #f0f0ee;
+
+            width: 42px;
+            height: 42px;
+
+            border-radius: 10px;
+
+            cursor: pointer;
+
+            font-size: 1.2rem;
+        }
+
+        .topbar-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 7px 12px;
+
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+
+            background: #ffffff;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+
+            border-radius: 50%;
+
+            background: #111111;
+            color: var(--gold);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .user-role {
+            color: var(--muted);
+            font-size: 0.68rem;
+        }
+
+
+        /* =====================================================
+           PAGE
+           ===================================================== */
+
+        .page {
+            width: 100%;
+            max-width: 1500px;
+
+            margin: 0 auto;
+
+            padding: 34px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: #b28a12;
+
+            font-size: 0.72rem;
+            font-weight: 800;
+
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+
+            margin-bottom: 7px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            line-height: 1.15;
+
+            letter-spacing: -0.8px;
+
+            margin-bottom: 7px;
+        }
+
+        .page-header p {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+
+        /* =====================================================
+           COMMON CARDS
+           ===================================================== */
+
+        .card {
+            background: var(--card);
+
+            border: 1px solid var(--border);
+
+            border-radius: 18px;
+
+            padding: 24px;
+
+            box-shadow:
+                0 5px 24px rgba(0, 0, 0, 0.035);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .card-subtitle {
+            margin-top: 5px;
+
+            color: var(--muted);
+
+            font-size: 0.78rem;
+        }
+
+
+        /* =====================================================
+           DASHBOARD MESSAGE
+           ===================================================== */
+
+        .dashboard-message {
+            display: none;
+
+            margin-bottom: 20px;
+
+            padding: 14px 18px;
+
+            border-radius: 12px;
+
+            background: #fff7dc;
+
+            border: 1px solid #f1d77d;
+
+            color: #705900;
+
+            font-size: 0.85rem;
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-area {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .topbar {
+                padding: 0 18px;
+            }
+
+            .page {
+                padding: 24px 18px;
+            }
+
+            .user-role {
+                display: none;
+            }
+
+        }
+
+
+        @media (max-width: 520px) {
+
+            .topbar {
+                height: 66px;
+            }
+
+            .user-pill {
+                padding: 5px;
+                border: none;
+                background: transparent;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .page-header h1 {
+                font-size: 1.65rem;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            href="/dashboard/"
+            class="brand"
+        >
+
+            <div class="brand-icon">
+                ☀
+            </div>
+
+            <div>
+
+                <div class="brand-text">
+                    RaySense
+                </div>
+
+                <div class="brand-subtitle">
+                    Solar Intelligence
+                </div>
+
+            </div>
+
+        </a>
+
+
+        <div class="nav-label">
+            Main Menu
+        </div>
+
+
+        <nav class="nav">
+
+
+            <a
+                href="/dashboard/"
+                class="nav-item {% if request.path == '/dashboard/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">⌂</span>
+
+                <span class="nav-text">
+                    Dashboard
+                </span>
+
+            </a>
+
+
+            <a
+                href="/generation/"
+                class="nav-item {% if request.path == '/generation/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">⚡</span>
+
+                <span class="nav-text">
+                    Generation
+                </span>
+
+            </a>
+
+
+            <a
+                href="/forecast/"
+                class="nav-item {% if request.path == '/forecast/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">◈</span>
+
+                <span class="nav-text">
+                    AI Forecast
+                </span>
+
+            </a>
+
+
+            <a
+                href="/performance/"
+                class="nav-item {% if request.path == '/performance/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">▥</span>
+
+                <span class="nav-text">
+                    Performance
+                </span>
+
+            </a>
+
+
+            <a
+                href="/weather/"
+                class="nav-item {% if request.path == '/weather/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">☁</span>
+
+                <span class="nav-text">
+                    Weather
+                </span>
+
+            </a>
+
+
+            <a
+                href="/alerts/"
+                class="nav-item {% if request.path == '/alerts/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">🔔</span>
+
+                <span class="nav-text">
+                    Alerts
+                </span>
+
+            </a>
+
+
+            <a
+                href="/reports/"
+                class="nav-item {% if request.path == '/reports/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">▤</span>
+
+                <span class="nav-text">
+                    Reports
+                </span>
+
+            </a>
+
+
+            <a
+                href="/settings/"
+                class="nav-item {% if request.path == '/settings/' %}active{% endif %}"
+            >
+
+                <span class="nav-icon">⚙</span>
+
+                <span class="nav-text">
+                    Settings
+                </span>
+
+            </a>
+
+
+        </nav>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="sidebar-divider"></div>
+
+
+            <button
+                type="button"
+                class="logout-link"
+                id="sidebarLogout"
+            >
+
+                <span class="nav-icon">↪</span>
+
+                <span class="nav-text">
+                    Logout
+                </span>
+
+            </button>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN AREA
+         ===================================================== -->
+
+    <div class="main-area">
+
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+
+            <div class="topbar-left">
+
+                <button
+                    type="button"
+                    class="mobile-menu"
+                    id="mobileMenu"
+                    aria-label="Open menu"
+                >
+                    ☰
+                </button>
+
+
+                <div class="topbar-title">
+                    RaySense Solar Intelligence
+                </div>
+
+            </div>
+
+
+            <div class="topbar-right">
+
+
+                <div class="user-pill">
+
+                    <div
+                        class="user-avatar"
+                        id="userAvatar"
+                    >
+                        R
+                    </div>
+
+
+                    <div class="user-info">
+
+                        <div
+                            class="user-name"
+                            id="userName"
+                        >
+                            Loading...
+                        </div>
+
+                        <div class="user-role">
+                            Solar System Owner
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- PAGE CONTENT -->
+
+        <main class="page">
+
+            {% block content %}
+
+            {% endblock %}
+
+        </main>
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+    /* =====================================================
+       TOKEN
+       ===================================================== */
+
+    const token =
+        localStorage.getItem("raysense_token");
+
+
+    /* =====================================================
+       API HELPER
+       ===================================================== */
+
+    async function apiFetch(
+        url,
+        options = {}
+    ) {
+
+        const headers = {
+            ...(options.headers || {}),
+        };
+
+
+        if (token) {
+
+            headers["Authorization"] =
+                `Token ${token}`;
+
+        }
+
+
+        const response =
+            await fetch(
+                url,
+                {
+                    ...options,
+                    headers,
+                }
+            );
+
+
+        if (response.status === 401) {
+
+            localStorage.removeItem(
+                "raysense_token"
+            );
+
+            localStorage.removeItem(
+                "raysense_user"
+            );
+
+            window.location.href =
+                "/login/";
+
+            throw new Error(
+                "Authentication required."
+            );
+
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Request failed: ${response.status}`
+            );
+
+        }
+
+
+        return response.json();
+
+    }
+
+
+
+    /* =====================================================
+       USER
+       ===================================================== */
+
+    async function loadCurrentUser() {
+
+        try {
+
+            const data =
+                await apiFetch(
+                    "/api/users/me/"
+                );
+
+
+            const user =
+                data.user || data;
+
+
+            const username =
+                user.username ||
+                user.email ||
+                "User";
+
+
+            const nameElement =
+                document.getElementById(
+                    "userName"
+                );
+
+
+            if (nameElement) {
+
+                nameElement.textContent =
+                    username;
+
+            }
+
+
+            const avatar =
+                document.getElementById(
+                    "userAvatar"
+                );
+
+
+            if (avatar) {
+
+                avatar.textContent =
+                    username
+                        .charAt(0)
+                        .toUpperCase();
+
+            }
+
+
+        } catch (error) {
+
+            console.error(
+                "User loading error:",
+                error
+            );
+
+        }
+
+    }
+
+
+
+    /* =====================================================
+       LOGOUT
+       ===================================================== */
+
+    async function logout() {
+
+        try {
+
+            if (token) {
+
+                await fetch(
+                    "/api/users/logout/",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Authorization":
+                                `Token ${token}`,
+                        },
+                    }
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Logout error:",
+                error
+            );
+
+        } finally {
+
+            localStorage.removeItem(
+                "raysense_token"
+            );
+
+            localStorage.removeItem(
+                "raysense_user"
+            );
+
+            window.location.href =
+                "/login/";
+
+        }
+
+    }
+
+
+
+    /* =====================================================
+       MOBILE SIDEBAR
+       ===================================================== */
+
+    const sidebar =
+        document.getElementById(
+            "sidebar"
+        );
+
+    const mobileMenu =
+        document.getElementById(
+            "mobileMenu"
+        );
+
+
+    if (mobileMenu) {
+
+        mobileMenu.addEventListener(
+            "click",
+            function () {
+
+                sidebar.classList.toggle(
+                    "open"
+                );
+
+            }
+        );
+
+    }
+
+
+
+    /* Close sidebar after selecting a page */
+
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(
+            function (item) {
+
+                item.addEventListener(
+                    "click",
+                    function () {
+
+                        if (sidebar) {
+
+                            sidebar.classList.remove(
+                                "open"
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+
+    /* =====================================================
+       LOGOUT BUTTON
+       ===================================================== */
+
+    const sidebarLogout =
+        document.getElementById(
+            "sidebarLogout"
+        );
+
+
+    if (sidebarLogout) {
+
+        sidebarLogout.addEventListener(
+            "click",
+            logout
+        );
+
+    }
+
+
+
+    /* =====================================================
+       INITIALIZE
+       ===================================================== */
+
+    if (!token) {
+
+        window.location.href =
+            "/login/";
+
+    } else {
+
+        loadCurrentUser();
+
+    }
+
+</script>
+
+
+{% block extra_scripts %}
+
+{% endblock %}
+
+
+</body>
+
+</html>

@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RaySense | Admin Alerts</title>
+<style>
+:root{--gold:#d6ad60;--gold-light:#f2d89b;--dark:#151515;--bg:#f5f6f8;--text:#242424;--muted:#777e88;--border:#e9e9ed;--green:#16845b;--red:#c94c4c}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--bg);color:var(--text)}
+.layout{display:flex;min-height:100vh}
+
+.main{margin-left:245px;width:calc(100% - 245px);padding:30px 35px 45px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:28px}
+.eyebrow{font-size:11px;color:#9b7a3c;letter-spacing:2px;text-transform:uppercase;font-weight:700}
+h1{font-size:29px;margin:7px 0 8px;letter-spacing:-.7px}
+.subtitle{color:var(--muted);font-size:13px;line-height:1.6}
+.badge{background:#e6f6ee;color:#16784f;padding:9px 13px;border-radius:25px;font-size:11px;font-weight:700;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:17px;margin-bottom:23px}
+.card{background:white;border:1px solid var(--border);border-radius:14px;padding:21px;box-shadow:0 4px 16px rgba(25,25,25,.025)}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:14px}
+.stat-value{font-size:29px;font-weight:750;letter-spacing:-.6px}
+.stat-note{font-size:11px;color:var(--muted);margin-top:10px}
+.gold{color:#ad8337}.red{color:var(--red)}.green{color:var(--green)}
+.section-title{font-size:17px;font-weight:750;margin:0 0 6px}
+.section-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.toolbar{display:grid;grid-template-columns:minmax(200px,2fr) repeat(3,minmax(130px,1fr));gap:11px;margin-bottom:18px}
+input,select{width:100%;padding:12px 13px;border:1px solid #dedfe5;border-radius:9px;background:white;font-size:12px;color:#333;outline:none}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px #d6ad6020}
+.results-line{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;font-size:12px;color:var(--muted);gap:10px}
+.btn{border:0;border-radius:8px;padding:10px 13px;font-size:11px;font-weight:700;cursor:pointer;transition:.2s}
+.btn:disabled{opacity:.5;cursor:wait}
+.btn-refresh{background:#f7f0e1;color:#8c6622}
+.btn-resolve{background:#e5f5ed;color:#14744c}
+.btn-reopen{background:#fff0df;color:#8c5c19}
+.btn:hover{filter:brightness(.97)}
+.alert-list{display:grid;gap:13px}
+.alert-card{background:white;border:1px solid var(--border);border-radius:13px;padding:19px 20px;display:grid;grid-template-columns:5px minmax(0,1fr);gap:16px;box-shadow:0 3px 12px rgba(20,20,20,.02)}
+.severity-line{border-radius:10px;background:#9b9ba5}
+.severity-line.Critical{background:#d9534f}.severity-line.Warning{background:#d6a342}.severity-line.Info{background:#399b77}
+.alert-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.alert-title{font-size:15px;font-weight:750;line-height:1.5}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:10px;font-weight:700;padding:5px 8px;border-radius:20px;background:#f0f1f4;color:#626776}
+.tag.Critical{background:#fde9e8;color:#b83232}.tag.Warning{background:#fff2d9;color:#916514}.tag.Info{background:#e2f5eb;color:#17784f}
+.tag.resolved{background:#e7f4ec;color:#18774f}.tag.active{background:#fce9e8;color:#b83232}
+.alert-message{font-size:12px;color:#636975;line-height:1.75;margin:13px 0;overflow-wrap:anywhere}
+.alert-meta{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;flex-wrap:wrap}
+.meta{font-size:11px;color:#7a808a;line-height:1.9}
+.meta strong{color:#454953}
+.alert-actions{display:flex;gap:8px;align-items:center}
+.empty{text-align:center;padding:55px 20px;color:var(--muted);background:white;border:1px solid var(--border);border-radius:13px}
+.empty strong{display:block;color:#343944;font-size:16px;margin-bottom:8px}
+.notice{padding:13px 15px;border-radius:9px;font-size:12px;margin-bottom:16px;display:none;line-height:1.6}
+.notice.error{display:block;background:#fff0ef;color:#a02f2f;border:1px solid #f2cdca}
+.notice.success{display:block;background:#e9f7ef;color:#176c47;border:1px solid #ccebd8}
+.loading{text-align:center;padding:35px;color:var(--muted);font-size:13px}
+.footer{text-align:center;color:#9298a1;font-size:11px;margin-top:28px}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.toolbar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* Sidebar styling aligned with the working User Management page */
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 290px;
+    box-sizing: border-box;
+    background: #0a0a0a;
+    color: #fff;
+    padding: 27px 17px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    overflow-y: auto;
+}
+
+.sidebar .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 10px 30px;
+    margin: 0;
+    border-bottom: 1px solid #292929;
+    font-size: inherit;
+    letter-spacing: normal;
+}
+
+.sidebar .brand-icon {
+    width: 43px;
+    height: 43px;
+    min-width: 43px;
+    border-radius: 13px;
+    display: grid;
+    place-items: center;
+    color: #080808;
+    background: linear-gradient(135deg,#ffe082,#ffb703);
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.sidebar .brand h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 21px;
+    line-height: 1.3;
+}
+
+.sidebar .brand p {
+    color: #aaa;
+    font-size: 11px;
+    margin: 4px 0 0;
+    font-weight: 400;
+    letter-spacing: normal;
+}
+
+.sidebar .section-label {
+    color: #777;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 27px 12px 12px;
+}
+
+.sidebar .nav {
+    display: grid;
+    gap: 6px;
+}
+
+.sidebar .nav a {
+    box-sizing: border-box;
+    padding: 13px 14px;
+    margin: 0;
+    border-radius: 10px;
+    color: #c5c5c5;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: .2s;
+}
+
+.sidebar .nav a:hover,
+.sidebar .nav a.active {
+    color: #ffd166;
+    background: rgba(255,209,102,.10);
+}
+
+.sidebar .nav .icon {
+    width: 20px;
+    min-width: 20px;
+    text-align: center;
+    font-size: 17px;
+}
+
+.sidebar .sidebar-bottom {
+    margin-top: auto;
+    border-top: 1px solid #292929;
+    padding-top: 15px;
+}
+
+.sidebar .sidebar-bottom a {
+    display: block;
+    padding: 12px;
+    color: #bbb;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.main {
+    margin-left: 290px;
+    width: calc(100% - 290px);
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+    .sidebar {
+        position: relative;
+        inset: auto;
+        width: 100%;
+        min-width: 0;
+        height: auto;
+    }
+
+    .main {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+
+/* FINAL FIX: MATCH RAYSENSE ADMIN OVERVIEW SIDEBAR */
+body.admin-sidebar-normalized aside.sidebar {
+    box-sizing: border-box !important;
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    height: 100vh !important;
+    padding: 27px 17px !important;
+    background: #080808 !important;
+    color: #ffffff !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 1000 !important;
+    border-radius: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 0 0 !important;
+    padding: 0 10px 30px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    border-radius: 0 !important;
+    color: #ffffff !important;
+    text-decoration: none !important;
+    font-size: inherit !important;
+    letter-spacing: normal !important;
+    line-height: normal !important;
+    background: transparent !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand-icon {
+    box-sizing: border-box !important;
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 43px !important;
+    width: 43px !important;
+    min-width: 43px !important;
+    max-width: 43px !important;
+    height: 43px !important;
+    min-height: 43px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 13px !important;
+    color: #080808 !important;
+    background: linear-gradient(135deg, #ffe082, #ffb703) !important;
+    font-size: 23px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand > span:last-child {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand h2 {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand p {
+    display: block !important;
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    color: #aaaaaa !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .section-label,
+body.admin-sidebar-normalized aside.sidebar .nav-title {
+    display: block !important;
+    margin: 0 !important;
+    padding: 27px 12px 12px !important;
+    color: #777777 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    line-height: 1.4 !important;
+    text-transform: uppercase !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav,
+body.admin-sidebar-normalized aside.sidebar .nav {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a,
+body.admin-sidebar-normalized aside.sidebar .nav a {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 13px 14px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #e4e4e7 !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a .icon,
+body.admin-sidebar-normalized aside.sidebar .nav a .icon {
+    display: inline-block !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a.active,
+body.admin-sidebar-normalized aside.sidebar .nav a.active,
+body.admin-sidebar-normalized aside.sidebar nav a[aria-current="page"] {
+    color: #ffd166 !important;
+    background: #292416 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a:hover,
+body.admin-sidebar-normalized aside.sidebar .nav a:hover {
+    color: #ffd166 !important;
+    background: #20201b !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    margin: auto 0 0 !important;
+    padding: 15px 0 0 !important;
+    border-top: 1px solid #292929 !important;
+    background: transparent !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a {
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #bbbbbb !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a:hover {
+    color: #ffd166 !important;
+    background: #20201b !important;
+}
+
+body.admin-sidebar-normalized .main {
+    box-sizing: border-box !important;
+    width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    margin-left: 250px !important;
+}
+
+@media (max-width: 650px) {
+    body.admin-sidebar-normalized aside.sidebar {
+        position: relative !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    body.admin-sidebar-normalized .main {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+/* END FINAL FIX */
+
+
+/* FINAL SIDEBAR ALIGNMENT: MATCH ADMIN OVERVIEW */
+body.admin-sidebar-normalized aside.sidebar {
+    box-sizing: border-box !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    padding: 27px 17px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    background: #080808 !important;
+    color: #fff !important;
+    overflow-x: hidden !important;
+}
+
+/* Logo and subtitle */
+body.admin-sidebar-normalized aside.sidebar > a.brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 10px 30px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    border-radius: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    text-decoration: none !important;
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: normal !important;
+    line-height: normal !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand-icon {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 43px !important;
+    width: 43px !important;
+    min-width: 43px !important;
+    max-width: 43px !important;
+    height: 43px !important;
+    min-height: 43px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg,#ffe082,#ffb703) !important;
+    color: #080808 !important;
+    font-size: 23px !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand > span:last-child {
+    display: block !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand h2 {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand p {
+    display: block !important;
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    color: #aaa !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.35 !important;
+    white-space: normal !important;
+}
+
+/* Section labels */
+body.admin-sidebar-normalized aside.sidebar .section-label,
+body.admin-sidebar-normalized aside.sidebar .nav-title {
+    display: block !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 27px 12px 12px !important;
+    color: #777 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    line-height: 1.4 !important;
+    text-transform: uppercase !important;
+}
+
+/* Consistent navigation spacing */
+body.admin-sidebar-normalized aside.sidebar nav,
+body.admin-sidebar-normalized aside.sidebar .nav {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a,
+body.admin-sidebar-normalized aside.sidebar .nav a {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 13px 14px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    color: #e4e4e7 !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0 !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a .icon,
+body.admin-sidebar-normalized aside.sidebar .nav a .icon {
+    display: inline-block !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 17px !important;
+    line-height: 1 !important;
+    text-align: center !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a.active,
+body.admin-sidebar-normalized aside.sidebar .nav a.active,
+body.admin-sidebar-normalized aside.sidebar nav a[aria-current="page"] {
+    color: #ffd166 !important;
+    background: #292416 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav a:hover,
+body.admin-sidebar-normalized aside.sidebar .nav a:hover {
+    color: #ffd166 !important;
+    background: #20201b !important;
+}
+
+/* Account section */
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    margin: auto 0 0 !important;
+    padding: 15px 0 0 !important;
+    border-top: 1px solid #292929 !important;
+    background: transparent !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a {
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    color: #bbb !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a:hover {
+    color: #ffd166 !important;
+    background: #20201b !important;
+}
+
+body.admin-sidebar-normalized .main {
+    box-sizing: border-box !important;
+    width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    margin-left: 250px !important;
+}
+
+@media(max-width:650px) {
+    body.admin-sidebar-normalized aside.sidebar {
+        position: relative !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body.admin-sidebar-normalized .main {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+/* END FINAL SIDEBAR ALIGNMENT */
+</style>
+<link rel="stylesheet" href="{% static 'home/css/admin-unified.css' %}">
+</head>
+<body class="admin-sidebar-normalized">
+<div class="layout">
+<aside class="sidebar">
+    <a href="/admin-dashboard/" class="brand">
+        <span class="brand-icon">☀</span>
+        <span>
+            <h2>RaySense</h2>
+            <p>ADMINISTRATION CONSOLE</p>
+        </span>
+    </a>
+
+    <div class="section-label">ADMINISTRATION</div>
+    <nav class="nav">
+        <a href="/admin-dashboard/"><span class="icon">▦</span>Overview</a>
+        <a href="/admin-users/"><span class="icon">♙</span>User Management</a>
+        <a href="/admin-systems/"><span class="icon">☀</span>Solar Systems</a>
+        <a href="/admin-ml/"><span class="icon">◈</span>ML Comparison</a>
+        <a class="active" href="/admin-alerts/"><span class="icon">♧</span>Platform Alerts</a>
+        <a href="/admin-reports/"><span class="icon">▤</span>Analytics & Reports</a>
+    </nav>
+
+    <div class="section-label">ACCOUNT</div>
+    <nav class="nav">
+        <a href="/admin/"><span class="icon">⚙</span>Django Admin</a>
+    </nav>
+
+
+    <div class="sidebar-bottom">
+<a class="public-site-link" href="/">↗ Public Website</a>
+<a href="/dashboard/">◉ User Dashboard</a>
+        <a href="/login/" id="logoutLink">↪ Sign out</a>
+    </div>
+</aside>
+
+<main class="main">
+    <header class="topbar">
+        <div>
+            <div class="eyebrow">Monitoring / System Health</div>
+            <h1>Alerts Management</h1>
+            <div class="subtitle">Monitor solar system alerts and manage resolution status across RaySense.</div>
+        </div>
+        <div class="badge">● &nbsp; LIVE DATABASE</div>
+    </header>
+
+    <section class="grid">
+        <div class="card"><div class="stat-label">Total Alerts</div><div class="stat-value" id="totalAlerts">—</div><div class="stat-note">All recorded alerts</div></div>
+        <div class="card"><div class="stat-label">Active Alerts</div><div class="stat-value red" id="activeAlerts">—</div><div class="stat-note">Awaiting resolution</div></div>
+        <div class="card"><div class="stat-label">Resolved Alerts</div><div class="stat-value green" id="resolvedAlerts">—</div><div class="stat-note">Marked as resolved</div></div>
+        <div class="card"><div class="stat-label">Critical Alerts</div><div class="stat-value gold" id="criticalAlerts">—</div><div class="stat-note">Unresolved critical alerts</div></div>
+    </section>
+
+    <section class="card">
+        <h2 class="section-title">Alert Centre</h2>
+        <div class="section-sub">Search and filter real alerts. Resolve an alert after the issue has been addressed, or reopen it if further action is needed.</div>
+        <div id="notice" class="notice"></div>
+        <div class="toolbar">
+            <input id="searchInput" type="search" placeholder="Search title, message, system or owner...">
+            <select id="severityFilter"><option value="">All severities</option><option>Critical</option><option>Warning</option><option>Info</option></select>
+            <select id="typeFilter"><option value="">All alert types</option><option>Performance</option><option>Generation</option><option>Weather</option><option>Maintenance</option></select>
+            <select id="statusFilter"><option value="">All statuses</option><option value="false">Active</option><option value="true">Resolved</option></select>
+        </div>
+        <div class="results-line"><span id="resultCount">Loading alerts…</span><button class="btn btn-refresh" id="refreshBtn">↻ Refresh data</button></div>
+        <div id="alertList" class="alert-list"><div class="loading">Loading alerts from RaySense database…</div></div>
+    </section>
+    <div class="footer">RaySense · Solar Energy Monitoring & Forecasting · Admin Alerts</div>
+</main>
+</div>
+
+<script>
+const API_URL = '/api/admin/alerts/';
+const alertList = document.getElementById('alertList');
+const notice = document.getElementById('notice');
+let allAlerts = [];
+let refreshTimer = null;
+
+function getToken() {
+    return localStorage.getItem('raysense_token');
+}
+
+function showNotice(message, type='error') {
+    notice.textContent = message;
+    notice.className = 'notice ' + type;
+}
+
+function clearNotice() {
+    notice.textContent = '';
+    notice.className = 'notice';
+}
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[char]));
+}
+
+function formatDate(value) {
+    if (!value) return 'Date unavailable';
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Date unavailable' : date.toLocaleString();
+}
+
+async function requestApi(url, options={}) {
+    const token = getToken();
+    if (!token) {
+        window.location.href = '/login/';
+        throw new Error('Your session is missing. Please log in again.');
+    }
+    const response = await fetch(url, {
+        ...options,
+        headers: {
+            'Authorization': 'Token ' + token,
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 401 || response.status === 403) {
+        localStorage.removeItem('raysense_token');
+        localStorage.removeItem('raysense_user');
+        window.location.href = '/login/';
+        throw new Error('Administrator access is required. Please log in again with an administrator account.');
+    }
+    if (!response.ok) {
+        throw new Error(data.error || data.detail || 'Request failed. Please try again.');
+    }
+    return data;
+}
+
+async function loadAlerts(showLoading=true) {
+    clearNotice();
+    if (showLoading) alertList.innerHTML = '<div class="loading">Loading alerts from RaySense database…</div>';
+    try {
+        const data = await requestApi(API_URL);
+        document.getElementById('totalAlerts').textContent = data.total_alerts ?? 0;
+        document.getElementById('activeAlerts').textContent = data.active_alerts ?? 0;
+        document.getElementById('resolvedAlerts').textContent = data.resolved_alerts ?? 0;
+        document.getElementById('criticalAlerts').textContent = data.critical_alerts ?? 0;
+        allAlerts = Array.isArray(data.alerts) ? data.alerts : [];
+        renderAlerts();
+    } catch (error) {
+        alertList.innerHTML = '<div class="empty"><strong>Unable to load alerts</strong>' + escapeHtml(error.message) + '</div>';
+        document.getElementById('resultCount').textContent = 'Alerts unavailable';
+        if (error.message) showNotice(error.message);
+    }
+}
+
+function renderAlerts() {
+    const search = document.getElementById('searchInput').value.trim().toLowerCase();
+    const severity = document.getElementById('severityFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const resolved = document.getElementById('statusFilter').value;
+
+    const filtered = allAlerts.filter(alert => {
+        const text = [alert.title, alert.message, alert.system_name, alert.username, alert.email].join(' ').toLowerCase();
+        return (!search || text.includes(search))
+            && (!severity || alert.severity === severity)
+            && (!type || alert.alert_type === type)
+            && (resolved === '' || String(alert.is_resolved) === resolved);
+    });
+
+    document.getElementById('resultCount').textContent =
+        `Showing ${filtered.length} of ${allAlerts.length} alerts`;
+
+    if (!filtered.length) {
+        alertList.innerHTML = '<div class="empty"><strong>No matching alerts</strong>Try changing your search or filters.</div>';
+        return;
+    }
+
+    alertList.innerHTML = filtered.map(alert => {
+        const severity = ['Critical','Warning','Info'].includes(alert.severity) ? alert.severity : 'Info';
+        const isResolved = Boolean(alert.is_resolved);
+        const statusTag = isResolved
+            ? '<span class="tag resolved">RESOLVED</span>'
+            : '<span class="tag active">ACTIVE</span>';
+        const action = isResolved
+            ? `<button class="btn btn-reopen" data-alert-id="${Number(alert.id)}" data-resolved="false">Reopen alert</button>`
+            : `<button class="btn btn-resolve" data-alert-id="${Number(alert.id)}" data-resolved="true">✓ Resolve alert</button>`;
+
+        return `
+        <article class="alert-card">
+            <div class="severity-line ${severity}"></div>
+            <div>
+                <div class="alert-head">
+                    <div>
+                        <div class="alert-title">${escapeHtml(alert.title)}</div>
+                        <div class="tags">
+                            <span class="tag ${severity}">${escapeHtml(severity.toUpperCase())}</span>
+                            <span class="tag">${escapeHtml(alert.alert_type)}</span>
+                            ${statusTag}
+                        </div>
+                    </div>
+                </div>
+                <div class="alert-message">${escapeHtml(alert.message)}</div>
+                <div class="alert-meta">
+                    <div class="meta">
+                        <strong>System:</strong> ${escapeHtml(alert.system_name)}<br>
+                        <strong>Owner:</strong> ${escapeHtml(alert.username)} · ${escapeHtml(alert.email)}<br>
+                        <strong>Created:</strong> ${escapeHtml(formatDate(alert.alert_date))} · <strong>Alert #${Number(alert.id)}</strong>
+                    </div>
+                    <div class="alert-actions">${action}</div>
+                </div>
+            </div>
+        </article>`;
+    }).join('');
+}
+
+async function updateAlert(id, resolved, button) {
+    const action = resolved ? 'resolve' : 'reopen';
+    if (!window.confirm(`Are you sure you want to ${action} alert #${id}?`)) return;
+
+    button.disabled = true;
+    clearNotice();
+    try {
+        await requestApi(API_URL, {
+            method: 'PATCH',
+            body: JSON.stringify({id: Number(id), is_resolved: resolved})
+        });
+        showNotice(`Alert #${id} was ${resolved ? 'resolved' : 'reopened'} successfully.`, 'success');
+        await loadAlerts(false);
+    } catch (error) {
+        showNotice(error.message || 'Unable to update the alert.');
+        button.disabled = false;
+    }
+}
+
+alertList.addEventListener('click', event => {
+    const button = event.target.closest('button[data-alert-id]');
+    if (!button) return;
+    updateAlert(Number(button.dataset.alertId), button.dataset.resolved === 'true', button);
+});
+
+['searchInput','severityFilter','typeFilter','statusFilter'].forEach(id => {
+    document.getElementById(id).addEventListener(id === 'searchInput' ? 'input' : 'change', renderAlerts);
+});
+
+document.getElementById('refreshBtn').addEventListener('click', () => loadAlerts());
+
+document.getElementById('logoutLink').addEventListener('click', event => {
+    event.preventDefault();
+    localStorage.removeItem('raysense_token');
+    localStorage.removeItem('raysense_user');
+    window.location.href = '/login/';
+});
+
+loadAlerts();
+refreshTimer = window.setInterval(() => loadAlerts(false), 60000);
+window.addEventListener('beforeunload', () => {
+    if (refreshTimer) window.clearInterval(refreshTimer);
+});
+</script>
+</body>
+</html>

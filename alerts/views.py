@@ -3,6 +3,7 @@ from datetime import datetime
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 from solar.models import SolarSystem
 from performance.models import PerformanceRecord
@@ -18,6 +19,8 @@ from .serializers import AlertSerializer
 
 class AlertGenerationView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
 
         performance_id = request.data.get("performance_id")
@@ -29,8 +32,13 @@ class AlertGenerationView(APIView):
             )
 
         try:
+            # ------------------------------------------------
+            # Get only this user's performance record
+            # ------------------------------------------------
+
             performance = PerformanceRecord.objects.get(
-                id=performance_id
+                id=performance_id,
+                solar_system__user=request.user
             )
 
             percentage = performance.performance_percentage
@@ -100,7 +108,10 @@ class AlertGenerationView(APIView):
 
         except PerformanceRecord.DoesNotExist:
             return Response(
-                {"error": "Performance record not found."},
+                {
+                    "error":
+                    "Performance record not found for this user."
+                },
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -110,6 +121,8 @@ class AlertGenerationView(APIView):
 # ============================================================
 
 class WeatherAlertGenerationView(APIView):
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
 
@@ -125,19 +138,26 @@ class WeatherAlertGenerationView(APIView):
 
             if solar_system_id:
 
+                # Only allow the authenticated user to access
+                # their own solar system.
                 solar_system = SolarSystem.objects.get(
-                    id=solar_system_id
+                    id=solar_system_id,
+                    user=request.user
                 )
 
             else:
 
-                solar_system = SolarSystem.objects.first()
+                # If no system ID is supplied, use the
+                # authenticated user's first solar system.
+                solar_system = SolarSystem.objects.filter(
+                    user=request.user
+                ).first()
 
                 if solar_system is None:
                     return Response(
                         {
                             "error":
-                            "No solar system found."
+                            "No solar system found for this user."
                         },
                         status=status.HTTP_404_NOT_FOUND
                     )
@@ -193,8 +213,8 @@ class WeatherAlertGenerationView(APIView):
 
                 hour = record_time.hour
 
-                solar_radiation = (
-                    record.get("solar_radiation")
+                solar_radiation = record.get(
+                    "solar_radiation"
                 )
 
                 if solar_radiation is None:
@@ -326,7 +346,7 @@ class WeatherAlertGenerationView(APIView):
             return Response(
                 {
                     "error":
-                        "Solar system not found."
+                    "Solar system not found for this user."
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
@@ -336,7 +356,7 @@ class WeatherAlertGenerationView(APIView):
             return Response(
                 {
                     "error":
-                        "Invalid weather time format."
+                    "Invalid weather time format."
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
@@ -348,11 +368,14 @@ class WeatherAlertGenerationView(APIView):
 
 class AlertViewSet(viewsets.ModelViewSet):
 
-    queryset = Alert.objects.all().order_by(
-        "-alert_date"
-    )
-
     serializer_class = AlertSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return Alert.objects.filter(
+            solar_system__user=self.request.user
+        ).order_by("-alert_date")
 
     # --------------------------------------------------------
     # Resolve / Unresolve Alert
@@ -392,7 +415,7 @@ class AlertViewSet(viewsets.ModelViewSet):
             return Response(
                 {
                     "error":
-                        "is_resolved field is required."
+                    "is_resolved field is required."
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )

@@ -1,0 +1,1421 @@
+{% extends "home/base_dashboard.html" %}
+
+{% block title %}Weather | RaySense{% endblock %}
+
+{% block content %}
+
+<style>
+
+    .page-header {
+        margin-bottom: 28px;
+    }
+
+    .page-header h1 {
+        margin: 0 0 8px;
+        font-size: 32px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .page-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 15px;
+    }
+
+    .location-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 22px;
+        margin-bottom: 24px;
+        border: 1px solid rgba(234, 179, 8, 0.25);
+        background: rgba(234, 179, 8, 0.08);
+        border-radius: 16px;
+    }
+
+    .location-left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .location-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(234, 179, 8, 0.14);
+        font-size: 21px;
+    }
+
+    .location-text strong {
+        display: block;
+        color: #111827;
+        font-size: 15px;
+        margin-bottom: 4px;
+    }
+
+    .location-text span {
+        color: #64748b;
+        font-size: 13px;
+    }
+
+    .model-badge {
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        background: rgba(234, 179, 8, 0.14);
+        color: #b45309;
+        white-space: nowrap;
+    }
+
+    .current-weather {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(130px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .main-weather-card,
+    .weather-card,
+    .panel {
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 18px;
+    }
+
+    .main-weather-card {
+        padding: 24px;
+        min-height: 170px;
+    }
+
+    .main-weather-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .weather-label {
+        color: #94a3b8;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .weather-time {
+        color: #64748b;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .weather-main-value {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 24px;
+    }
+
+    .weather-temperature {
+        color: #f8fafc;
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .weather-degree {
+        color: #94a3b8;
+        font-size: 17px;
+    }
+
+    .weather-card {
+        padding: 20px;
+        min-height: 170px;
+    }
+
+    .weather-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .weather-card-label {
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .weather-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(250, 204, 21, 0.10);
+        color: #facc15;
+        font-size: 16px;
+    }
+
+    .weather-card-value {
+        color: #f8fafc;
+        font-size: 25px;
+        font-weight: 800;
+    }
+
+    .weather-card-unit {
+        color: #64748b;
+        font-size: 11px;
+        margin-top: 6px;
+    }
+
+    .forecast-summary {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .forecast-day {
+        padding: 20px;
+        background: #111827;
+        border: 1px solid #1f2937;
+        border-radius: 18px;
+    }
+
+    .forecast-day-label {
+        color: #94a3b8;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+
+    .forecast-day-date {
+        color: #64748b;
+        font-size: 11px;
+        margin-bottom: 16px;
+    }
+
+    .forecast-generation {
+        color: #f8fafc;
+        font-size: 27px;
+        font-weight: 800;
+    }
+
+    .forecast-generation span {
+        color: #64748b;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .content-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(300px, 0.8fr);
+        gap: 22px;
+        margin-bottom: 24px;
+    }
+
+    .panel {
+        padding: 22px;
+    }
+
+    .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .panel-title {
+        color: #f8fafc;
+        font-size: 17px;
+        font-weight: 750;
+        margin: 0 0 5px;
+    }
+
+    .panel-subtitle {
+        color: #64748b;
+        font-size: 12px;
+        margin: 0;
+    }
+
+    .chart-container {
+        height: 320px;
+        position: relative;
+    }
+
+    .info-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        padding: 15px 0;
+        border-bottom: 1px solid #1f2937;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    .info-value {
+        color: #f8fafc;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: right;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: left;
+        padding: 13px 14px;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 1px solid #1f2937;
+        white-space: nowrap;
+    }
+
+    td {
+        padding: 14px;
+        color: #cbd5e1;
+        font-size: 13px;
+        border-bottom: 1px solid #172033;
+        white-space: nowrap;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    .generation-value {
+        color: #facc15;
+        font-weight: 700;
+    }
+
+    .loading {
+        color: #64748b;
+        text-align: center;
+        padding: 45px 20px;
+    }
+
+    .error-message {
+        display: none;
+        margin-bottom: 22px;
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(239, 68, 68, 0.10);
+        border: 1px solid rgba(239, 68, 68, 0.20);
+        color: #fca5a5;
+        font-size: 13px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #64748b;
+    }
+
+    @media (max-width: 1250px) {
+
+        .current-weather {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .main-weather-card {
+            grid-column: span 3;
+        }
+
+    }
+
+    @media (max-width: 1050px) {
+
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+    @media (max-width: 750px) {
+
+        .current-weather {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .main-weather-card {
+            grid-column: span 2;
+        }
+
+        .forecast-summary {
+            grid-template-columns: 1fr;
+        }
+
+    }
+
+    @media (max-width: 520px) {
+
+        .current-weather {
+            grid-template-columns: 1fr;
+        }
+
+        .main-weather-card {
+            grid-column: span 1;
+        }
+
+        .page-header h1 {
+            font-size: 26px;
+        }
+
+        .location-banner {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+    }
+
+</style>
+
+
+<div class="page-header">
+
+    <h1>Weather</h1>
+
+    <p>
+        Live weather conditions used by RaySense for solar energy forecasting.
+    </p>
+
+</div>
+
+
+<div id="errorMessage" class="error-message"></div>
+
+
+<div class="location-banner">
+
+    <div class="location-left">
+
+        <div class="location-icon">
+            📍
+        </div>
+
+        <div class="location-text">
+
+            <strong id="systemName">
+                Loading solar system...
+            </strong>
+
+            <span id="systemLocation">
+                Loading location...
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="model-badge">
+        XGBoost Forecast
+    </div>
+
+</div>
+
+
+<div class="current-weather">
+
+    <div class="main-weather-card">
+
+        <div class="main-weather-top">
+
+            <div>
+
+                <div class="weather-label">
+                    Current Temperature
+                </div>
+
+                <div class="weather-time" id="weatherTime">
+                    Loading...
+                </div>
+
+            </div>
+
+            <div class="weather-icon">
+                🌡️
+            </div>
+
+        </div>
+
+        <div class="weather-main-value">
+
+            <div class="weather-temperature" id="temperature">
+                —
+            </div>
+
+            <div class="weather-degree">
+                °C
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="weather-card">
+
+        <div class="weather-card-top">
+
+            <span class="weather-card-label">
+                Humidity
+            </span>
+
+            <div class="weather-icon">
+                💧
+            </div>
+
+        </div>
+
+        <div class="weather-card-value" id="humidity">
+            —
+        </div>
+
+        <div class="weather-card-unit">
+            relative humidity
+        </div>
+
+    </div>
+
+
+    <div class="weather-card">
+
+        <div class="weather-card-top">
+
+            <span class="weather-card-label">
+                Wind Speed
+            </span>
+
+            <div class="weather-icon">
+                💨
+            </div>
+
+        </div>
+
+        <div class="weather-card-value" id="windSpeed">
+            —
+        </div>
+
+        <div class="weather-card-unit">
+            m/s
+        </div>
+
+    </div>
+
+
+    <div class="weather-card">
+
+        <div class="weather-card-top">
+
+            <span class="weather-card-label">
+                Pressure
+            </span>
+
+            <div class="weather-icon">
+                ◉
+            </div>
+
+        </div>
+
+        <div class="weather-card-value" id="pressure">
+            —
+        </div>
+
+        <div class="weather-card-unit">
+            kPa
+        </div>
+
+    </div>
+
+
+    <div class="weather-card">
+
+        <div class="weather-card-top">
+
+            <span class="weather-card-label">
+                Solar Radiation
+            </span>
+
+            <div class="weather-icon">
+                ☀
+            </div>
+
+        </div>
+
+        <div class="weather-card-value" id="solarRadiation">
+            —
+        </div>
+
+        <div class="weather-card-unit">
+            W/m²
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="forecast-summary">
+
+    <div class="forecast-day">
+
+        <div class="forecast-day-label">
+            TODAY
+        </div>
+
+        <div class="forecast-day-date" id="todayDate">
+            —
+        </div>
+
+        <div class="forecast-generation">
+
+            <span id="todayGeneration">
+                —
+            </span>
+
+            <span>
+                kWh
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="forecast-day">
+
+        <div class="forecast-day-label">
+            TOMORROW
+        </div>
+
+        <div class="forecast-day-date" id="tomorrowDate">
+            —
+        </div>
+
+        <div class="forecast-generation">
+
+            <span id="tomorrowGeneration">
+                —
+            </span>
+
+            <span>
+                kWh
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <div class="forecast-day">
+
+        <div class="forecast-day-label">
+            DAY AFTER TOMORROW
+        </div>
+
+        <div class="forecast-day-date" id="dayAfterDate">
+            —
+        </div>
+
+        <div class="forecast-generation">
+
+            <span id="dayAfterGeneration">
+                —
+            </span>
+
+            <span>
+                kWh
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="content-grid">
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2 class="panel-title">
+                    Weather & Solar Radiation
+                </h2>
+
+                <p class="panel-subtitle">
+                    Hourly weather conditions used by the forecasting model
+                </p>
+
+            </div>
+
+        </div>
+
+        <div class="chart-container">
+
+            <canvas id="weatherChart"></canvas>
+
+        </div>
+
+    </div>
+
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h2 class="panel-title">
+                    Current Conditions
+                </h2>
+
+                <p class="panel-subtitle">
+                    Live weather inputs
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-list">
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Temperature
+                </span>
+
+                <span class="info-value" id="infoTemperature">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Humidity
+                </span>
+
+                <span class="info-value" id="infoHumidity">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Wind Speed
+                </span>
+
+                <span class="info-value" id="infoWindSpeed">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Wind Direction
+                </span>
+
+                <span class="info-value" id="windDirection">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Pressure
+                </span>
+
+                <span class="info-value" id="infoPressure">
+                    —
+                </span>
+
+            </div>
+
+
+            <div class="info-row">
+
+                <span class="info-label">
+                    Solar Radiation
+                </span>
+
+                <span class="info-value" id="infoSolarRadiation">
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div class="panel">
+
+    <div class="panel-header">
+
+        <div>
+
+            <h2 class="panel-title">
+                168-Hour Weather Forecast
+            </h2>
+
+            <p class="panel-subtitle">
+                Weather inputs and predicted solar generation for the next 7 days
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div id="tableLoading" class="loading">
+        Loading weather forecast...
+    </div>
+
+
+    <div id="weatherTable" class="table-wrapper" style="display:none;">
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Time
+                    </th>
+
+                    <th>
+                        Temperature
+                    </th>
+
+                    <th>
+                        Humidity
+                    </th>
+
+                    <th>
+                        Wind
+                    </th>
+
+                    <th>
+                        Pressure
+                    </th>
+
+                    <th>
+                        Solar Radiation
+                    </th>
+
+                    <th>
+                        Predicted Generation
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="weatherTableBody"></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+let weatherChart = null;
+let weatherData = [];
+
+
+/* -------------------------------------------------------
+   Helpers
+------------------------------------------------------- */
+
+function formatNumber(value, decimals = 1) {
+
+    const number = Number(value);
+
+    if (!Number.isFinite(number)) {
+        return "—";
+    }
+
+    return number.toFixed(decimals);
+
+}
+
+
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "—";
+    }
+
+    const date = new Date(`${dateString}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+    return date.toLocaleDateString(undefined, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
+
+}
+
+
+function formatForecastTime(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    return date.toLocaleString(undefined, {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+}
+
+
+function showError(message) {
+
+    const element = document.getElementById("errorMessage");
+
+    element.textContent = message;
+    element.style.display = "block";
+
+}
+
+
+/* -------------------------------------------------------
+   Find current weather record
+------------------------------------------------------- */
+
+function findCurrentWeather(predictions) {
+
+    if (!predictions || !predictions.length) {
+        return null;
+    }
+
+    const now = new Date();
+
+    let closest = predictions[0];
+    let closestDifference = Infinity;
+
+    predictions.forEach(item => {
+
+        const date = new Date(item.time);
+
+        if (Number.isNaN(date.getTime())) {
+            return;
+        }
+
+        const difference = Math.abs(
+            date.getTime() - now.getTime()
+        );
+
+        if (difference < closestDifference) {
+
+            closestDifference = difference;
+            closest = item;
+
+        }
+
+    });
+
+    return closest;
+
+}
+
+
+/* -------------------------------------------------------
+   Current Weather
+------------------------------------------------------- */
+
+function displayCurrentWeather(current) {
+
+    if (!current) {
+        return;
+    }
+
+    document.getElementById("temperature").textContent =
+        formatNumber(current.temperature, 1);
+
+    document.getElementById("humidity").textContent =
+        `${formatNumber(current.humidity, 0)}%`;
+
+    document.getElementById("windSpeed").textContent =
+        formatNumber(current.wind_speed, 1);
+
+    document.getElementById("pressure").textContent =
+        formatNumber(current.pressure, 2);
+
+    document.getElementById("solarRadiation").textContent =
+        formatNumber(current.solar_radiation, 1);
+
+
+    document.getElementById("weatherTime").textContent =
+        `Weather data for ${formatForecastTime(current.time)}`;
+
+
+    document.getElementById("infoTemperature").textContent =
+        `${formatNumber(current.temperature, 1)} °C`;
+
+    document.getElementById("infoHumidity").textContent =
+        `${formatNumber(current.humidity, 0)}%`;
+
+    document.getElementById("infoWindSpeed").textContent =
+        `${formatNumber(current.wind_speed, 1)} m/s`;
+
+    document.getElementById("windDirection").textContent =
+        `${formatNumber(current.wind_direction, 0)}°`;
+
+    document.getElementById("infoPressure").textContent =
+        `${formatNumber(current.pressure, 2)} kPa`;
+
+    document.getElementById("infoSolarRadiation").textContent =
+        `${formatNumber(current.solar_radiation, 1)} W/m²`;
+
+}
+
+
+/* -------------------------------------------------------
+   Daily Summary
+------------------------------------------------------- */
+
+function displayDailySummary(data) {
+
+    const today = data.today || {};
+    const tomorrow = data.tomorrow || {};
+    const dayAfter = data.day_after_tomorrow || {};
+
+    document.getElementById("todayDate").textContent =
+        formatDate(today.date);
+
+    document.getElementById("todayGeneration").textContent =
+        formatNumber(today.generation_kwh, 2);
+
+
+    document.getElementById("tomorrowDate").textContent =
+        formatDate(tomorrow.date);
+
+    document.getElementById("tomorrowGeneration").textContent =
+        formatNumber(tomorrow.generation_kwh, 2);
+
+
+    document.getElementById("dayAfterDate").textContent =
+        formatDate(dayAfter.date);
+
+    document.getElementById("dayAfterGeneration").textContent =
+        formatNumber(dayAfter.generation_kwh, 2);
+
+}
+
+
+/* -------------------------------------------------------
+   Weather Chart
+------------------------------------------------------- */
+
+function createWeatherChart(predictions) {
+
+    const canvas = document.getElementById("weatherChart");
+
+    if (!canvas || !predictions.length) {
+        return;
+    }
+
+    if (weatherChart) {
+        weatherChart.destroy();
+    }
+
+
+    const chartData = predictions.slice(0, 48);
+
+    const labels = chartData.map(item => {
+
+        const date = new Date(item.time);
+
+        if (Number.isNaN(date.getTime())) {
+            return item.time;
+        }
+
+        return date.toLocaleTimeString(undefined, {
+            hour: "2-digit"
+        });
+
+    });
+
+
+    weatherChart = new Chart(
+        canvas,
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: labels,
+
+                datasets: [
+
+                    {
+                        label: "Solar Radiation (W/m²)",
+
+                        data: chartData.map(
+                            item => Number(item.solar_radiation) || 0
+                        ),
+
+                        borderWidth: 2,
+
+                        pointRadius: 2,
+
+                        tension: 0.35,
+
+                        yAxisID: "radiation"
+
+                    },
+
+                    {
+                        label: "Temperature (°C)",
+
+                        data: chartData.map(
+                            item => Number(item.temperature) || 0
+                        ),
+
+                        borderWidth: 2,
+
+                        pointRadius: 2,
+
+                        tension: 0.35,
+
+                        yAxisID: "temperature"
+
+                    }
+
+                ]
+
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                interaction: {
+                    mode: "index",
+                    intersect: false
+                },
+
+                plugins: {
+
+                    legend: {
+
+                        labels: {
+                            color: "#94a3b8"
+                        }
+
+                    }
+
+                },
+
+                scales: {
+
+                    x: {
+
+                        ticks: {
+                            color: "#64748b",
+                            maxTicksLimit: 12
+                        },
+
+                        grid: {
+                            display: false
+                        }
+
+                    },
+
+                    radiation: {
+
+                        position: "left",
+
+                        beginAtZero: true,
+
+                        ticks: {
+                            color: "#64748b"
+                        },
+
+                        grid: {
+                            color: "rgba(148, 163, 184, 0.08)"
+                        }
+
+                    },
+
+                    temperature: {
+
+                        position: "right",
+
+                        ticks: {
+                            color: "#64748b"
+                        },
+
+                        grid: {
+                            display: false
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+    );
+
+}
+
+
+/* -------------------------------------------------------
+   Weather Table
+------------------------------------------------------- */
+
+function displayWeatherTable(predictions) {
+
+    const loading = document.getElementById("tableLoading");
+    const table = document.getElementById("weatherTable");
+    const body = document.getElementById("weatherTableBody");
+
+
+    loading.style.display = "none";
+
+
+    if (!predictions.length) {
+
+        table.innerHTML = `
+            <div class="empty-state">
+                No weather forecast data available.
+            </div>
+        `;
+
+        table.style.display = "block";
+
+        return;
+    }
+
+
+    table.style.display = "block";
+
+
+    body.innerHTML = predictions.map(item => {
+
+        return `
+
+            <tr>
+
+                <td>
+                    ${formatForecastTime(item.time)}
+                </td>
+
+                <td>
+                    ${formatNumber(item.temperature, 1)} °C
+                </td>
+
+                <td>
+                    ${formatNumber(item.humidity, 0)}%
+                </td>
+
+                <td>
+                    ${formatNumber(item.wind_speed, 1)} m/s
+                    /
+                    ${formatNumber(item.wind_direction, 0)}°
+                </td>
+
+                <td>
+                    ${formatNumber(item.pressure, 2)} kPa
+                </td>
+
+                <td>
+                    ${formatNumber(item.solar_radiation, 1)} W/m²
+                </td>
+
+                <td class="generation-value">
+                    ${formatNumber(item.predicted_generation_kwh, 2)} kWh
+                </td>
+
+            </tr>
+
+        `;
+
+    }).join("");
+
+}
+
+
+/* -------------------------------------------------------
+   Load Weather API
+------------------------------------------------------- */
+
+async function loadWeather() {
+
+    try {
+
+        const response = await fetch(
+            "/api/forecasting/weather-predict/",
+            {
+                headers: {
+                    "Authorization": `Token ${token}`
+                }
+            }
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `Weather API returned ${response.status}`
+            );
+
+        }
+
+
+        const data = await response.json();
+
+        console.log(
+            "RaySense live weather forecast:",
+            data
+        );
+
+
+        document.getElementById("systemName").textContent =
+            data.system_name || "Solar System";
+
+
+        document.getElementById("systemLocation").textContent =
+            data.system_location || "Location unavailable";
+
+
+        weatherData = data.predictions || [];
+
+
+        const current = findCurrentWeather(weatherData);
+
+
+        displayCurrentWeather(current);
+
+        displayDailySummary(data);
+
+        createWeatherChart(weatherData);
+
+        displayWeatherTable(weatherData);
+
+
+    } catch (error) {
+
+        console.error(
+            "Weather loading error:",
+            error
+        );
+
+
+        showError(
+            "Unable to load live weather data. Please make sure you are logged in and the backend is running."
+        );
+
+
+        document.getElementById("tableLoading").textContent =
+            "Unable to load weather forecast.";
+
+    }
+
+}
+
+
+/* -------------------------------------------------------
+   Start
+------------------------------------------------------- */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    async function() {
+
+        if (!token) {
+
+            window.location.href = "/login/";
+
+            return;
+        }
+
+        await loadWeather();
+
+    }
+);
+
+</script>
+
+{% endblock %}

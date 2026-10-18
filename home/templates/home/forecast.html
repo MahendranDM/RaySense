@@ -1,0 +1,2116 @@
+﻿{% extends "home/base_dashboard.html" %}
+
+{% block title %}AI Forecast | RaySense{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <div class="eyebrow">ARTIFICIAL INTELLIGENCE</div>
+
+        <h1>AI Forecast</h1>
+
+        <p>
+            XGBoost-powered solar generation forecasting using weather data.
+        </p>
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     LOADING STATE
+     ===================================================== -->
+
+<div id="loadingState" class="loading-card">
+
+    <div class="loader"></div>
+
+    <h3>Generating AI Forecast</h3>
+
+    <p>
+        Fetching weather conditions and calculating solar generation predictions...
+    </p>
+
+</div>
+
+
+<!-- =====================================================
+     ERROR STATE
+     ===================================================== -->
+
+<div id="errorState" class="error-card" style="display:none;">
+
+    <div class="error-icon">!</div>
+
+    <div>
+
+        <h3>Unable to load forecast</h3>
+
+        <p id="errorMessage">
+            Something went wrong while loading the AI forecast.
+        </p>
+
+        <button
+            type="button"
+            class="retry-button"
+            onclick="loadForecast()"
+        >
+            Try Again
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     MAIN FORECAST CONTENT
+     ===================================================== -->
+
+<div id="forecastContent" style="display:none;">
+
+
+    <!-- =================================================
+         SYSTEM / MODEL INFORMATION
+         ================================================= -->
+
+    <div class="info-grid">
+
+        <div class="info-card">
+
+            <div class="info-icon">◈</div>
+
+            <div>
+
+                <span>Solar System</span>
+
+                <strong id="systemName">—</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="info-icon">⌖</div>
+
+            <div>
+
+                <span>Location</span>
+
+                <strong id="systemLocation">—</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-card">
+
+            <div class="info-icon">⚡</div>
+
+            <div>
+
+                <span>System Capacity</span>
+
+                <strong id="systemCapacity">—</strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="info-card ai-card">
+
+            <div class="info-icon">✦</div>
+
+            <div>
+
+                <span>AI Model</span>
+
+                <strong id="modelName">XGBoost</strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =================================================
+         FORECAST SUMMARY
+         ================================================= -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    GENERATION OUTLOOK
+                </div>
+
+                <h2>Solar Generation Forecast</h2>
+
+                <p>
+                    Predicted energy production based on forecasted weather conditions.
+                </p>
+
+            </div>
+
+            <div class="forecast-badge">
+
+                <span class="badge-dot"></span>
+
+                7-Day AI Forecast
+
+            </div>
+
+        </div>
+
+
+        <div class="forecast-summary-grid">
+
+
+            <div class="forecast-day today">
+
+                <div class="day-label">
+                    TODAY
+                </div>
+
+                <div id="todayDate" class="date-label">
+                    —
+                </div>
+
+                <div class="day-icon">
+                    ☀
+                </div>
+
+                <strong id="todayGeneration">
+                    —
+                </strong>
+
+                <span>kWh predicted</span>
+
+            </div>
+
+
+            <div class="forecast-day">
+
+                <div class="day-label">
+                    TOMORROW
+                </div>
+
+                <div id="tomorrowDate" class="date-label">
+                    —
+                </div>
+
+                <div class="day-icon">
+                    ☀
+                </div>
+
+                <strong id="tomorrowGeneration">
+                    —
+                </strong>
+
+                <span>kWh predicted</span>
+
+            </div>
+
+
+            <div class="forecast-day">
+
+                <div class="day-label">
+                    DAY AFTER
+                </div>
+
+                <div id="dayAfterDate" class="date-label">
+                    —
+                </div>
+
+                <div class="day-icon">
+                    ☀
+                </div>
+
+                <strong id="dayAfterGeneration">
+                    —
+                </strong>
+
+                <span>kWh predicted</span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         SHORT TERM FORECAST
+         ================================================= -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    SHORT-TERM PREDICTION
+                </div>
+
+                <h2>Upcoming Generation</h2>
+
+                <p>
+                    AI prediction for the next several hours.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="short-term-grid">
+
+
+            <div class="short-card">
+
+                <span class="short-label">
+                    NEXT 1 HOUR
+                </span>
+
+                <strong id="next1Hour">
+                    —
+                </strong>
+
+                <span>kWh</span>
+
+            </div>
+
+
+            <div class="short-card">
+
+                <span class="short-label">
+                    NEXT 5 HOURS
+                </span>
+
+                <strong id="next5Hours">
+                    —
+                </strong>
+
+                <span>kWh</span>
+
+            </div>
+
+
+            <div class="short-card highlight">
+
+                <span class="short-label">
+                    NEXT 12 HOURS
+                </span>
+
+                <strong id="next12Hours">
+                    —
+                </strong>
+
+                <span>kWh</span>
+
+            </div>
+
+
+            <div class="short-card">
+
+                <span class="short-label">
+                    FORECAST RANGE
+                </span>
+
+                <strong id="forecastHours">
+                    —
+                </strong>
+
+                <span>hours</span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         GENERATION CHART
+         ================================================= -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    AI PREDICTION CURVE
+                </div>
+
+                <h2>Hourly Solar Generation</h2>
+
+                <p>
+                    Predicted generation across the 168-hour forecast period.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="chart-wrapper">
+
+            <canvas id="forecastChart"></canvas>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         WEATHER CONDITIONS
+         ================================================= -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    WEATHER INPUTS
+                </div>
+
+                <h2>Forecast Weather Conditions</h2>
+
+                <p>
+                    Weather variables used by the AI forecasting model.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="weather-grid">
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">🌡</div>
+
+                <div>
+
+                    <span>Temperature</span>
+
+                    <strong id="weatherTemperature">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">💧</div>
+
+                <div>
+
+                    <span>Humidity</span>
+
+                    <strong id="weatherHumidity">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">☀</div>
+
+                <div>
+
+                    <span>Solar Radiation</span>
+
+                    <strong id="weatherRadiation">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">〽</div>
+
+                <div>
+
+                    <span>Wind Speed</span>
+
+                    <strong id="weatherWind">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">◉</div>
+
+                <div>
+
+                    <span>Pressure</span>
+
+                    <strong id="weatherPressure">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-card">
+
+                <div class="weather-icon">↗</div>
+
+                <div>
+
+                    <span>Wind Direction</span>
+
+                    <strong id="weatherDirection">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         HOURLY FORECAST TABLE
+         ================================================= -->
+
+    <section class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <div class="section-eyebrow">
+                    168-HOUR DATA
+                </div>
+
+                <h2>Detailed Forecast</h2>
+
+                <p>
+                    Hour-by-hour weather and generation prediction.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Date & Time</th>
+
+                        <th>Temperature</th>
+
+                        <th>Humidity</th>
+
+                        <th>Solar Radiation</th>
+
+                        <th>Wind Speed</th>
+
+                        <th>Predicted Generation</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="forecastTableBody"></tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+<script>
+
+/* =========================================================
+   RAYSENSE AI FORECAST
+   ========================================================= */
+
+
+/* ---------------------------------------------------------
+   API REQUEST
+   --------------------------------------------------------- */
+
+async function forecastApiFetch(url) {
+
+    const token =
+        localStorage.getItem("raysense_token");
+
+
+    if (!token) {
+
+        window.location.href = "/login/";
+
+        throw new Error(
+            "Authentication token not found."
+        );
+
+    }
+
+
+    const response = await fetch(url, {
+
+        method: "GET",
+
+        headers: {
+
+            "Authorization":
+                "Token " + token,
+
+            "Content-Type":
+                "application/json"
+
+        }
+
+    });
+
+
+    if (response.status === 401) {
+
+        localStorage.removeItem(
+            "raysense_token"
+        );
+
+        localStorage.removeItem(
+            "raysense_user"
+        );
+
+        window.location.href = "/login/";
+
+        throw new Error(
+            "Authentication expired."
+        );
+
+    }
+
+
+    return response;
+
+}
+
+
+/* ---------------------------------------------------------
+   FORMAT DATE
+   --------------------------------------------------------- */
+
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "—";
+    }
+
+
+    const date =
+        new Date(dateString + "T00:00:00");
+
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+
+    return date.toLocaleDateString([], {
+
+        day: "2-digit",
+
+        month: "short",
+
+        year: "numeric"
+
+    });
+
+}
+
+
+/* ---------------------------------------------------------
+   FORMAT HOURLY TIME
+   --------------------------------------------------------- */
+
+function formatDateTime(dateString) {
+
+    if (!dateString) {
+        return "—";
+    }
+
+
+    const date =
+        new Date(dateString);
+
+
+    if (Number.isNaN(date.getTime())) {
+        return dateString;
+    }
+
+
+    return date.toLocaleString([], {
+
+        day: "2-digit",
+
+        month: "short",
+
+        hour: "2-digit",
+
+        minute: "2-digit"
+
+    });
+
+}
+
+
+/* ---------------------------------------------------------
+   DISPLAY NUMBER
+   --------------------------------------------------------- */
+
+function numberValue(value, decimals = 2) {
+
+    const number =
+        Number(value);
+
+
+    if (!Number.isFinite(number)) {
+        return "—";
+    }
+
+
+    return number.toFixed(decimals);
+
+}
+
+
+/* ---------------------------------------------------------
+   LOAD FORECAST
+   --------------------------------------------------------- */
+
+async function loadForecast() {
+
+    const loadingState =
+        document.getElementById(
+            "loadingState"
+        );
+
+
+    const errorState =
+        document.getElementById(
+            "errorState"
+        );
+
+
+    const forecastContent =
+        document.getElementById(
+            "forecastContent"
+        );
+
+
+    loadingState.style.display =
+        "block";
+
+
+    errorState.style.display =
+        "none";
+
+
+    forecastContent.style.display =
+        "none";
+
+
+    try {
+
+        const response =
+            await forecastApiFetch(
+                "/api/forecasting/weather-predict/"
+            );
+
+
+        if (!response.ok) {
+
+            let message =
+                "Forecast API returned HTTP " +
+                response.status;
+
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+
+                if (errorData.detail) {
+
+                    message =
+                        errorData.detail;
+
+                }
+
+            }
+
+            catch (ignored) {}
+
+
+            throw new Error(message);
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        console.log(
+            "RaySense AI Forecast:",
+            data
+        );
+
+
+        renderForecast(data);
+
+
+        loadingState.style.display =
+            "none";
+
+
+        forecastContent.style.display =
+            "block";
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Forecast loading error:",
+            error
+        );
+
+
+        loadingState.style.display =
+            "none";
+
+
+        errorState.style.display =
+            "flex";
+
+
+        document.getElementById(
+            "errorMessage"
+        ).textContent =
+            error.message ||
+            "Unable to load the AI forecast.";
+
+    }
+
+}
+
+
+/* ---------------------------------------------------------
+   RENDER FORECAST
+   --------------------------------------------------------- */
+
+function renderForecast(data) {
+
+
+    /* System */
+
+    document.getElementById(
+        "systemName"
+    ).textContent =
+        data.system_name || "—";
+
+
+    document.getElementById(
+        "systemLocation"
+    ).textContent =
+        data.system_location || "—";
+
+
+    document.getElementById(
+        "systemCapacity"
+    ).textContent =
+        Number.isFinite(
+            Number(data.system_capacity_kw)
+        )
+
+            ? Number(
+                data.system_capacity_kw
+            ).toFixed(2) + " kW"
+
+            : "—";
+
+
+    document.getElementById(
+        "modelName"
+    ).textContent =
+        data.model || "—";
+
+
+    /* Summary */
+
+    document.getElementById(
+        "todayDate"
+    ).textContent =
+        formatDate(
+            data.today?.date
+        );
+
+
+    document.getElementById(
+        "tomorrowDate"
+    ).textContent =
+        formatDate(
+            data.tomorrow?.date
+        );
+
+
+    document.getElementById(
+        "dayAfterDate"
+    ).textContent =
+        formatDate(
+            data.day_after_tomorrow?.date
+        );
+
+
+    document.getElementById(
+        "todayGeneration"
+    ).textContent =
+        numberValue(
+            data.today?.generation_kwh
+        );
+
+
+    document.getElementById(
+        "tomorrowGeneration"
+    ).textContent =
+        numberValue(
+            data.tomorrow?.generation_kwh
+        );
+
+
+    document.getElementById(
+        "dayAfterGeneration"
+    ).textContent =
+        numberValue(
+            data.day_after_tomorrow?.generation_kwh
+        );
+
+
+    /* Short term */
+
+    document.getElementById(
+        "next1Hour"
+    ).textContent =
+        numberValue(
+            data.next_1_hour?.generation_kwh
+        );
+
+
+    document.getElementById(
+        "next5Hours"
+    ).textContent =
+        numberValue(
+            data.next_5_hours?.generation_kwh
+        );
+
+
+    document.getElementById(
+        "next12Hours"
+    ).textContent =
+        numberValue(
+            data.next_12_hours?.generation_kwh
+        );
+
+
+    document.getElementById(
+        "forecastHours"
+    ).textContent =
+        data.forecast_hours || "—";
+
+
+    /* Weather */
+
+    const predictions =
+        Array.isArray(data.predictions)
+            ? data.predictions
+            : [];
+
+
+    if (predictions.length > 0) {
+
+        const first =
+            predictions[0];
+
+
+        document.getElementById(
+            "weatherTemperature"
+        ).textContent =
+            numberValue(
+                first.temperature,
+                1
+            ) + " °C";
+
+
+        document.getElementById(
+            "weatherHumidity"
+        ).textContent =
+            numberValue(
+                first.humidity,
+                0
+            ) + " %";
+
+
+        document.getElementById(
+            "weatherRadiation"
+        ).textContent =
+            numberValue(
+                first.solar_radiation,
+                1
+            ) + " W/m²";
+
+
+        document.getElementById(
+            "weatherWind"
+        ).textContent =
+            numberValue(
+                first.wind_speed,
+                1
+            ) + " m/s";
+
+
+        document.getElementById(
+            "weatherPressure"
+        ).textContent =
+            numberValue(
+                first.pressure,
+                2
+            ) + " kPa";
+
+
+        document.getElementById(
+            "weatherDirection"
+        ).textContent =
+            numberValue(
+                first.wind_direction,
+                0
+            ) + "°";
+
+    }
+
+
+    /* Chart */
+
+    renderForecastChart(
+        predictions
+    );
+
+
+    /* Table */
+
+    renderForecastTable(
+        predictions
+    );
+
+}
+
+
+/* ---------------------------------------------------------
+   FORECAST CHART
+   --------------------------------------------------------- */
+
+function renderForecastChart(predictions) {
+
+    const canvas =
+        document.getElementById(
+            "forecastChart"
+        );
+
+
+    if (!canvas || predictions.length === 0) {
+        return;
+    }
+
+
+    const labels =
+        predictions.map(item => {
+
+            const date =
+                new Date(item.time);
+
+
+            return date.toLocaleString([], {
+
+                day: "2-digit",
+
+                month: "short",
+
+                hour: "2-digit"
+
+            });
+
+        });
+
+
+    const values =
+        predictions.map(item => {
+
+            const value =
+                Number(
+                    item.predicted_generation_kwh
+                );
+
+
+            return Number.isFinite(value)
+                ? value
+                : 0;
+
+        });
+
+
+    new Chart(canvas, {
+
+        type: "line",
+
+
+        data: {
+
+            labels: labels,
+
+
+            datasets: [{
+
+                label:
+                    "Predicted Generation (kWh)",
+
+                data: values,
+
+                tension: 0.3,
+
+                fill: true,
+
+                pointRadius: 0,
+
+                pointHoverRadius: 5
+
+            }]
+
+        },
+
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+
+            interaction: {
+
+                intersect: false,
+
+                mode: "index"
+
+            },
+
+
+            plugins: {
+
+                legend: {
+
+                    display: true
+
+                },
+
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function(context) {
+
+                            return (
+                                " " +
+                                Number(
+                                    context.parsed.y
+                                ).toFixed(2) +
+                                " kWh"
+                            );
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    title: {
+
+                        display: true,
+
+                        text:
+                            "Predicted Generation (kWh)"
+
+                    }
+
+                },
+
+
+                x: {
+
+                    ticks: {
+
+                        maxTicksLimit: 14
+
+                    }
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+
+
+/* ---------------------------------------------------------
+   FORECAST TABLE
+   --------------------------------------------------------- */
+
+function renderForecastTable(predictions) {
+
+    const tbody =
+        document.getElementById(
+            "forecastTableBody"
+        );
+
+
+    tbody.innerHTML = "";
+
+
+    predictions.forEach(item => {
+
+        const row =
+            document.createElement("tr");
+
+
+        row.innerHTML = `
+
+            <td>
+                ${formatDateTime(item.time)}
+            </td>
+
+            <td>
+                ${numberValue(item.temperature, 1)} °C
+            </td>
+
+            <td>
+                ${numberValue(item.humidity, 0)} %
+            </td>
+
+            <td>
+                ${numberValue(item.solar_radiation, 0)}
+                W/m²
+            </td>
+
+            <td>
+                ${numberValue(item.wind_speed, 1)}
+                m/s
+            </td>
+
+            <td class="prediction-value">
+                ${numberValue(item.predicted_generation_kwh, 2)}
+                kWh
+            </td>
+
+        `;
+
+
+        tbody.appendChild(row);
+
+    });
+
+}
+
+
+/* ---------------------------------------------------------
+   INITIALIZE
+   --------------------------------------------------------- */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        loadForecast();
+
+    }
+);
+
+</script>
+
+
+<style>
+
+/* =========================================================
+   PAGE HEADER
+   ========================================================= */
+
+.page-header {
+
+    margin-bottom: 28px;
+
+}
+
+
+.eyebrow,
+.section-eyebrow {
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    letter-spacing: 1.5px;
+
+    color: #b4933a;
+
+    margin-bottom: 8px;
+
+}
+
+
+.page-header h1 {
+
+    margin: 0;
+
+    font-size: 32px;
+
+}
+
+
+.page-header p {
+
+    margin: 8px 0 0;
+
+    opacity: 0.65;
+
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.loading-card {
+
+    min-height: 360px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+}
+
+
+.loader {
+
+    width: 44px;
+
+    height: 44px;
+
+    border-radius: 50%;
+
+    border: 4px solid rgba(255,193,7,0.2);
+
+    border-top-color: #ffc107;
+
+    animation:
+        forecastSpin 0.9s linear infinite;
+
+    margin-bottom: 20px;
+
+}
+
+
+@keyframes forecastSpin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+.loading-card h3 {
+
+    margin: 0 0 8px;
+
+}
+
+
+.loading-card p {
+
+    margin: 0;
+
+    opacity: 0.6;
+
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.error-card {
+
+    padding: 24px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    border-radius: 18px;
+
+    background:
+        rgba(180,40,40,0.08);
+
+    border:
+        1px solid rgba(180,40,40,0.2);
+
+    margin-bottom: 24px;
+
+}
+
+
+.error-icon {
+
+    width: 48px;
+
+    height: 48px;
+
+    min-width: 48px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 50%;
+
+    font-size: 24px;
+
+    font-weight: 800;
+
+    background:
+        rgba(180,40,40,0.12);
+
+}
+
+
+.error-card h3 {
+
+    margin: 0 0 6px;
+
+}
+
+
+.error-card p {
+
+    margin: 0 0 14px;
+
+    opacity: 0.65;
+
+}
+
+
+.retry-button {
+
+    border: 0;
+
+    border-radius: 9px;
+
+    padding: 9px 16px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    background: #ffc107;
+
+    color: #111;
+
+}
+
+
+/* =========================================================
+   INFORMATION CARDS
+   ========================================================= */
+
+.info-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 24px;
+
+}
+
+
+.info-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+}
+
+
+.info-icon {
+
+    width: 46px;
+
+    height: 46px;
+
+    min-width: 46px;
+
+    border-radius: 14px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    background:
+        rgba(255,193,7,0.12);
+
+    font-size: 20px;
+
+}
+
+
+.info-card span {
+
+    display: block;
+
+    font-size: 12px;
+
+    opacity: 0.6;
+
+    margin-bottom: 5px;
+
+}
+
+
+.info-card strong {
+
+    display: block;
+
+    font-size: 16px;
+
+}
+
+
+.ai-card {
+
+    border-color:
+        rgba(255,193,7,0.25);
+
+}
+
+
+/* =========================================================
+   PANELS
+   ========================================================= */
+
+.panel {
+
+    margin-bottom: 24px;
+
+    padding: 24px;
+
+    border-radius: 20px;
+
+    background:
+        rgba(255,255,255,0.035);
+
+    border:
+        1px solid rgba(255,255,255,0.08);
+
+}
+
+
+.panel-header {
+
+    display: flex;
+
+    align-items: flex-start;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    margin-bottom: 24px;
+
+}
+
+
+.panel-header h2 {
+
+    margin: 0;
+
+    font-size: 21px;
+
+}
+
+
+.panel-header p {
+
+    margin: 6px 0 0;
+
+    opacity: 0.6;
+
+    font-size: 13px;
+
+}
+
+
+.forecast-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding: 9px 13px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+    background:
+        rgba(255,193,7,0.1);
+
+}
+
+
+.badge-dot {
+
+    width: 7px;
+
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #ffc107;
+
+}
+
+
+/* =========================================================
+   FORECAST SUMMARY
+   ========================================================= */
+
+.forecast-summary-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 18px;
+
+}
+
+
+.forecast-day {
+
+    padding: 24px;
+
+    border-radius: 18px;
+
+    text-align: center;
+
+    background:
+        rgba(255,255,255,0.025);
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+}
+
+
+.forecast-day.today {
+
+    border-color:
+        rgba(255,193,7,0.3);
+
+    background:
+        rgba(255,193,7,0.055);
+
+}
+
+
+.day-label {
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: 1.2px;
+
+    opacity: 0.65;
+
+}
+
+
+.date-label {
+
+    margin-top: 5px;
+
+    font-size: 13px;
+
+    opacity: 0.55;
+
+}
+
+
+.day-icon {
+
+    font-size: 30px;
+
+    margin: 18px 0 8px;
+
+}
+
+
+.forecast-day strong {
+
+    display: block;
+
+    font-size: 32px;
+
+}
+
+
+.forecast-day > span {
+
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 12px;
+
+    opacity: 0.55;
+
+}
+
+
+/* =========================================================
+   SHORT TERM
+   ========================================================= */
+
+.short-term-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 16px;
+
+}
+
+
+.short-card {
+
+    padding: 20px;
+
+    border-radius: 16px;
+
+    background:
+        rgba(255,255,255,0.025);
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+}
+
+
+.short-card.highlight {
+
+    border-color:
+        rgba(255,193,7,0.3);
+
+}
+
+
+.short-label {
+
+    display: block;
+
+    font-size: 11px;
+
+    font-weight: 700;
+
+    letter-spacing: 0.8px;
+
+    opacity: 0.55;
+
+    margin-bottom: 10px;
+
+}
+
+
+.short-card strong {
+
+    font-size: 27px;
+
+}
+
+
+.short-card > span:last-child {
+
+    font-size: 12px;
+
+    opacity: 0.55;
+
+    margin-left: 4px;
+
+}
+
+
+/* =========================================================
+   CHART
+   ========================================================= */
+
+.chart-wrapper {
+
+    position: relative;
+
+    height: 390px;
+
+}
+
+
+/* =========================================================
+   WEATHER
+   ========================================================= */
+
+.weather-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 16px;
+
+}
+
+
+.weather-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 18px;
+
+    border-radius: 15px;
+
+    background:
+        rgba(255,255,255,0.025);
+
+    border:
+        1px solid rgba(255,255,255,0.07);
+
+}
+
+
+.weather-icon {
+
+    font-size: 22px;
+
+}
+
+
+.weather-card span {
+
+    display: block;
+
+    font-size: 12px;
+
+    opacity: 0.55;
+
+    margin-bottom: 5px;
+
+}
+
+
+.weather-card strong {
+
+    font-size: 17px;
+
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.table-wrapper {
+
+    overflow-x: auto;
+
+    max-height: 600px;
+
+}
+
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    min-width: 800px;
+
+}
+
+
+th,
+td {
+
+    padding: 13px 12px;
+
+    text-align: left;
+
+    border-bottom:
+        1px solid rgba(255,255,255,0.07);
+
+}
+
+
+th {
+
+    position: sticky;
+
+    top: 0;
+
+    font-size: 11px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.6px;
+
+    opacity: 0.6;
+
+    background: #fff;
+
+}
+
+
+td {
+
+    font-size: 13px;
+
+}
+
+
+.prediction-value {
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+    .info-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .short-term-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .weather-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+}
+
+
+@media (max-width: 750px) {
+
+    .forecast-summary-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .panel-header {
+
+        flex-direction: column;
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .info-grid,
+
+    .short-term-grid,
+
+    .weather-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .panel {
+
+        padding: 18px;
+
+    }
+
+
+    .page-header h1 {
+
+        font-size: 27px;
+
+    }
+
+
+    .chart-wrapper {
+
+        height: 300px;
+
+    }
+
+}
+
+</style>
+
+{% endblock %}

@@ -24,9 +24,75 @@ Thumbs.db
 # RaySense generated ML datasets and model files
 data/*.csv
 data/*.pkl
+!data/xgboost_model.pkl
 data/*.h5
 data/raw/*.csv
 data/raw/*.h5
 data/weather/*.csv
 data/weather/yearly/*.csv
 data/metadata/*.geojson
+
+# Secrets and environment configuration
+.env
+.env.*
+!.env.example
+
+# Database backups and exports
+*.sql
+*.sqlite
+*.sqlite3
+*.dump
+
+# Project backups and patch files
+backups/
+*.backup
+*.bak
+*.patch
+*.before*
+*_backup*
+raysense_backup*
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local media uploads
+media/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Database backups
+*.sql
+*.dump
+*.sqlite
+*.sqlite3
+
+# Local project backups
+backups/
+*_backup*
+*.backup
+*.bak
+*.patch
+*.before*
+
+# Local uploads
+media/
+
+# Deployment and build artifacts
+staticfiles/
+
+
+# Local settings backups
+config/settings_before_deployment.py
+
+
+
+# Template and stylesheet backup files
+*.backup_*
+*.sidebar-backup
+*_before_*.py
+*_before_*.html
+*_before_*.txt

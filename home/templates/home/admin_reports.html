@@ -1,0 +1,639 @@
+﻿{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Analytics &amp; Reports | RaySense Admin</title>
+
+    <style>
+        /* =====================================================
+           RAYSENSE ADMIN REPORTS
+           Clean layout matching the working User Management page
+           ===================================================== */
+
+        :root {
+            --bg: #f5f6fa;
+            --sidebar: #080808;
+            --gold: #ffd166;
+            --text: #171717;
+            --muted: #777;
+            --border: #ececec;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            min-height: 100%;
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* =====================================================
+           SIDEBAR
+           ===================================================== */
+
+        .layout {
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+
+            width: 250px;
+            height: 100vh;
+            padding: 27px 17px;
+
+            display: flex;
+            flex-direction: column;
+
+            overflow-x: hidden;
+            overflow-y: auto;
+
+            background: var(--sidebar);
+            color: #ffffff;
+
+            z-index: 1000;
+        }
+
+        /* RaySense branding */
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            width: 100%;
+            padding: 0 10px 30px;
+
+            border-bottom: 1px solid #292929;
+
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+
+            flex: 0 0 43px;
+            width: 43px;
+            height: 43px;
+
+            border-radius: 13px;
+
+            color: #080808;
+            background: linear-gradient(135deg, #ffe082, #ffb703);
+
+            font-size: 23px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .brand > span:last-child {
+            display: block;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .brand h2 {
+            margin: 0;
+            padding: 0;
+
+            color: #ffffff;
+
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.3;
+        }
+
+        .brand p {
+            margin: 4px 0 0;
+
+            color: #aaaaaa;
+
+            font-size: 11px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        /* Sidebar section headings */
+
+        .section-label {
+            padding: 27px 12px 12px;
+
+            color: #777777;
+
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            line-height: 1.4;
+        }
+
+        /* Navigation */
+
+        .nav {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 6px;
+
+            width: 100%;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            width: 100%;
+            min-height: 44px;
+            padding: 13px 14px;
+
+            border-radius: 10px;
+
+            color: #c5c5c5;
+            background: transparent;
+
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.4;
+
+            text-decoration: none;
+            white-space: nowrap;
+
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .nav .icon {
+            display: inline-block;
+
+            flex: 0 0 20px;
+            width: 20px;
+
+            font-size: 17px;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            color: var(--gold);
+            background: rgba(255, 209, 102, 0.10);
+        }
+
+        /* Account links remain at the bottom */
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding-top: 15px;
+
+            border-top: 1px solid #292929;
+        }
+
+        .sidebar-bottom a {
+            display: block;
+
+            width: 100%;
+            padding: 12px;
+
+            color: #bbbbbb;
+
+            font-size: 13px;
+            line-height: 1.4;
+
+            text-decoration: none;
+            white-space: nowrap;
+
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .sidebar-bottom a:hover {
+            color: var(--gold);
+            background: #20201b;
+        }
+
+        /* =====================================================
+           MAIN CONTENT
+           ===================================================== */
+
+        .main {
+            min-height: 100vh;
+
+            width: calc(100% - 250px);
+            margin-left: 250px;
+        }
+
+        /* Top header */
+
+        .topbar {
+            min-height: 76px;
+            padding: 16px 34px;
+
+            display: flex;
+            align-items: center;
+            gap: 15px;
+
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .topbar strong {
+            font-weight: 700;
+        }
+
+        /* Page content */
+
+        .content {
+            padding: 30px 34px 40px;
+        }
+
+        .eyebrow {
+            color: #9b7a3c;
+
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 7px 0 8px;
+
+            font-size: 29px;
+            font-weight: 750;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        /* =====================================================
+           REPORT STATISTICS
+           ===================================================== */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 17px;
+
+            margin-top: 25px;
+        }
+
+        .card {
+            min-width: 0;
+            padding: 23px;
+
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            box-shadow: 0 4px 16px rgba(25, 25, 25, 0.025);
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .value {
+            margin: 18px 0 10px;
+
+            color: var(--text);
+
+            font-size: 29px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.3;
+
+            overflow-wrap: anywhere;
+        }
+
+        /* =====================================================
+           PLATFORM SUMMARY
+           ===================================================== */
+
+        .panel {
+            margin-top: 23px;
+            padding: 25px;
+
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            box-shadow: 0 4px 16px rgba(25, 25, 25, 0.025);
+        }
+
+        .panel h2 {
+            margin: 0 0 12px;
+
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .button {
+            display: inline-block;
+
+            margin-top: 17px;
+            padding: 11px 16px;
+
+            border-radius: 9px;
+
+            background: var(--gold);
+            color: #171717;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            text-decoration: none;
+
+            transition: filter 0.2s;
+        }
+
+        .button:hover {
+            filter: brightness(0.96);
+        }
+
+        /* =====================================================
+           RESPONSIVE LAYOUT
+           ===================================================== */
+
+        @media (max-width: 1100px) {
+            .cards {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .content {
+                padding: 27px 25px 35px;
+            }
+
+            .topbar {
+                padding: 16px 25px;
+            }
+        }
+
+        @media (max-width: 650px) {
+            .sidebar {
+                position: relative;
+                inset: auto;
+
+                width: 100%;
+                height: auto;
+                min-height: 0;
+
+                overflow: visible;
+            }
+
+            .sidebar-bottom {
+                margin-top: 25px;
+            }
+
+            .main {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .topbar {
+                padding: 16px 20px;
+            }
+
+            .content {
+                padding: 22px 18px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .card,
+            .panel {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+            <a href="/admin-dashboard/" class="brand">
+                <span class="brand-icon">☀</span>
+
+                <span>
+                    <h2>RaySense</h2>
+                    <p>ADMINISTRATION CONSOLE</p>
+                </span>
+            </a>
+
+            <div class="section-label">ADMINISTRATION</div>
+
+            <nav class="nav">
+                <a href="/admin-dashboard/">
+                    <span class="icon">▦</span>
+                    Overview
+                </a>
+
+                <a href="/admin-users/">
+                    <span class="icon">♙</span>
+                    User Management
+                </a>
+
+                <a href="/admin-systems/">
+                    <span class="icon">☀</span>
+                    Solar Systems
+                </a>
+
+                <a href="/admin-ml/">
+                    <span class="icon">◈</span>
+                    ML Comparison
+                </a>
+
+                <a href="/admin-alerts/">
+                    <span class="icon">♧</span>
+                    Platform Alerts
+                </a>
+
+                <a class="active" href="/admin-reports/" aria-current="page">
+                    <span class="icon">▤</span>
+                    Analytics &amp; Reports
+                </a>
+            </nav>
+
+            <div class="section-label">ACCOUNT</div>
+
+            <nav class="nav">
+                <a href="/admin/">
+                    <span class="icon">⚙</span>
+                    Django Admin
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a class="public-site-link" href="/">
+                    ↗ Public Website
+                </a>
+
+                <a href="/dashboard/">
+                    ◉ User Dashboard
+                </a>
+
+                <a href="/login/" id="logoutLink">
+                    ↪ Sign out
+                </a>
+            </div>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main">
+
+            <header class="topbar">
+                RaySense / <strong>Analytics &amp; Reports</strong>
+            </header>
+
+            <section class="content">
+
+                <div class="eyebrow">PLATFORM INSIGHTS</div>
+
+                <h1>Analytics &amp; Reports</h1>
+
+                <p class="muted">
+                    Review registered users, solar infrastructure, generation,
+                    forecasts, and platform alerts.
+                </p>
+
+                <!-- STATISTICS -->
+                <div class="cards">
+
+                    <article class="card">
+                        <div class="label">Registered Users</div>
+
+                        <div class="value">
+                            {{ users_count }}
+                        </div>
+
+                        <div class="muted">
+                            Excludes superuser accounts
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="label">Solar Systems</div>
+
+                        <div class="value">
+                            {{ systems_count }}
+                        </div>
+
+                        <div class="muted">
+                            Registered systems
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="label">Installed Capacity</div>
+
+                        <div class="value">
+                            {{ total_capacity|floatformat:2 }} kW
+                        </div>
+
+                        <div class="muted">
+                            Combined system capacity
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="label">Recorded Generation</div>
+
+                        <div class="value">
+                            {{ total_generation|floatformat:2 }} kWh
+                        </div>
+
+                        <div class="muted">
+                            Sum of stored generation records
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="label">Forecast Records</div>
+
+                        <div class="value">
+                            {{ forecast_count }}
+                        </div>
+
+                        <div class="muted">
+                            Saved ML forecasts
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <div class="label">Total Alerts</div>
+
+                        <div class="value">
+                            {{ total_alerts }}
+                        </div>
+
+                        <div class="muted">
+                            Unresolved: {{ unresolved_alerts }}
+                        </div>
+                    </article>
+
+                </div>
+
+                <!-- PLATFORM SUMMARY -->
+                <section class="panel">
+
+                    <h2>Platform Summary</h2>
+
+                    <p class="muted">
+                        These statistics are calculated from the current
+                        RaySense database. They update whenever this report
+                        page is loaded.
+                    </p>
+
+                    <a class="button" href="/admin-dashboard/">
+                        Back to Overview
+                    </a>
+
+                </section>
+
+            </section>
+
+        </main>
+
+    </div>
+</body>
+</html>

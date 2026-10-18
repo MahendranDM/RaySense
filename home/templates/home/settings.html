@@ -1,0 +1,1449 @@
+{% extends "home/base_dashboard.html" %}
+
+{% block content %}
+
+<style>
+
+/* ============================================================
+   SETTINGS PAGE
+   ============================================================ */
+
+.settings-page {
+    max-width: 1250px;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.settings-header {
+    margin-bottom: 30px;
+}
+
+.settings-header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.settings-header p {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+
+/* ============================================================
+   GRID
+   ============================================================ */
+
+.settings-grid {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+    gap: 22px;
+}
+
+
+/* ============================================================
+   CARD
+   ============================================================ */
+
+.settings-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+        0 4px 20px rgba(15, 23, 42, 0.04);
+}
+
+.settings-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.card-header {
+    padding: 21px 24px;
+    border-bottom: 1px solid #eef1f4;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+}
+
+.card-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff7e6;
+    font-size: 19px;
+}
+
+.card-header-text h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 17px;
+    font-weight: 750;
+}
+
+.card-header-text p {
+    margin: 4px 0 0;
+    color: #94a3b8;
+    font-size: 12px;
+}
+
+.card-body {
+    padding: 23px 24px;
+}
+
+
+/* ============================================================
+   INFORMATION ROW
+   ============================================================ */
+
+.info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.info-row:first-child {
+    padding-top: 0;
+}
+
+.info-row:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.info-label {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.info-value {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: right;
+    max-width: 65%;
+    word-break: break-word;
+}
+
+.info-value.muted {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+
+/* ============================================================
+   STATUS
+   ============================================================ */
+
+.status-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 15px;
+    background: #f0fdf4;
+    border: 1px solid #dcfce7;
+    border-radius: 11px;
+    margin-bottom: 18px;
+}
+
+.status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 0 4px #dcfce7;
+}
+
+.status-text {
+    color: #166534;
+    font-size: 13px;
+    font-weight: 650;
+}
+
+
+/* ============================================================
+   SYSTEM CARD
+   ============================================================ */
+
+.system-highlight {
+    padding: 18px;
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 14px;
+    margin-bottom: 18px;
+}
+
+.system-name {
+    color: #111827;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.system-location {
+    margin-top: 5px;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.system-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.system-item {
+    padding: 14px;
+    border-radius: 11px;
+    background: #f8fafc;
+}
+
+.system-item-label {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.system-item-value {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+
+/* ============================================================
+   MODEL CARD
+   ============================================================ */
+
+.model-box {
+    padding: 20px;
+    background: #111827;
+    border-radius: 14px;
+    color: #ffffff;
+}
+
+.model-label {
+    color: #9ca3af;
+    font-size: 11px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+
+.model-name {
+    margin-top: 6px;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.model-description {
+    margin-top: 8px;
+    color: #cbd5e1;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+
+/* ============================================================
+   READ ONLY NOTICE
+   ============================================================ */
+
+.readonly-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px 17px;
+    margin-bottom: 22px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.notice-icon {
+    font-size: 17px;
+}
+
+.notice-text {
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.notice-text strong {
+    color: #334155;
+}
+
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+
+.security-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.logout-btn {
+    border: 1px solid #fecaca;
+    background: #fff5f5;
+    color: #dc2626;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+
+/* ============================================================
+   LOADING
+   ============================================================ */
+
+.loading-state {
+    text-align: center;
+    padding: 55px 20px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 14px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #f5b800;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.error-state {
+    padding: 15px 17px;
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 12px;
+    font-size: 13px;
+    margin-bottom: 22px;
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 850px) {
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-card.full-width {
+        grid-column: auto;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .settings-header h1 {
+        font-size: 30px;
+    }
+
+    .card-body {
+        padding: 19px;
+    }
+
+    .system-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .info-value {
+        max-width: 100%;
+        text-align: left;
+    }
+
+}
+
+</style>
+
+
+<div class="settings-page">
+
+
+    <!-- ========================================================
+         HEADER
+         ======================================================== -->
+
+    <div class="settings-header">
+
+        <h1>Settings</h1>
+
+        <p>
+            View your RaySense account, solar system and
+            application configuration.
+        </p>
+
+    </div>
+
+
+    <!-- ========================================================
+         ERROR
+         ======================================================== -->
+
+    <div
+        id="settingsError"
+        style="display:none;"
+    ></div>
+
+
+    <!-- ========================================================
+         LOADING
+         ======================================================== -->
+
+    <div
+        id="settingsLoading"
+        class="loading-state"
+    >
+
+        <div class="loading-spinner"></div>
+
+        Loading account settings...
+
+    </div>
+
+
+    <!-- ========================================================
+         SETTINGS CONTENT
+         ======================================================== -->
+
+    <div
+        id="settingsContent"
+        class="settings-grid"
+        style="display:none;"
+    >
+
+
+        <!-- ====================================================
+             ACCOUNT
+             ==================================================== -->
+
+        <section class="settings-card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    👤
+                </div>
+
+                <div class="card-header-text">
+
+                    <h2>
+                        Account
+                    </h2>
+
+                    <p>
+                        Your RaySense account information
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="info-list">
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Username
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="username"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Email
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="email"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            User ID
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="userId"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Account Status
+                        </span>
+
+                        <span class="info-value">
+
+                            <span
+                                class="status-badge"
+                                style="
+                                    display:inline-flex;
+                                    padding:5px 9px;
+                                    border-radius:999px;
+                                    background:#ecfdf5;
+                                    color:#15803d;
+                                    font-size:11px;
+                                    font-weight:700;
+                                "
+                            >
+                                Active
+                            </span>
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             PROFILE
+             ==================================================== -->
+
+        <section class="settings-card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    📍
+                </div>
+
+                <div class="card-header-text">
+
+                    <h2>
+                        Profile
+                    </h2>
+
+                    <p>
+                        Personal profile information
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="info-list">
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            First Name
+                        </span>
+
+                        <span
+                            class="info-value muted"
+                            id="firstName"
+                        >
+                            Not provided
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Last Name
+                        </span>
+
+                        <span
+                            class="info-value muted"
+                            id="lastName"
+                        >
+                            Not provided
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Phone
+                        </span>
+
+                        <span
+                            class="info-value muted"
+                            id="phone"
+                        >
+                            Not provided
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Location
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="profileLocation"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             READ ONLY NOTICE
+             ==================================================== -->
+
+        <section class="settings-card full-width">
+
+            <div class="card-body">
+
+                <div class="readonly-notice">
+
+                    <div class="notice-icon">
+                        ℹ️
+                    </div>
+
+                    <div class="notice-text">
+
+                        <strong>
+                            Configuration information
+                        </strong>
+                        <br>
+
+                        These settings are currently displayed
+                        from your RaySense account and solar
+                        system configuration. Editing is not
+                        enabled because the current backend does
+                        not provide profile-update endpoints.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             SOLAR SYSTEM
+             ==================================================== -->
+
+        <section class="settings-card full-width">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    ☀️
+                </div>
+
+                <div class="card-header-text">
+
+                    <h2>
+                        Solar System
+                    </h2>
+
+                    <p>
+                        Registered solar installation
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div
+                    id="solarSystemContainer"
+                >
+
+                    <!-- Filled by JavaScript -->
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             RAYSENSE AI
+             ==================================================== -->
+
+        <section class="settings-card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    🤖
+                </div>
+
+                <div class="card-header-text">
+
+                    <h2>
+                        RaySense AI
+                    </h2>
+
+                    <p>
+                        Forecasting configuration
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="model-box">
+
+                    <div class="model-label">
+                        Forecasting Model
+                    </div>
+
+                    <div
+                        class="model-name"
+                        id="modelName"
+                    >
+                        XGBoost
+                    </div>
+
+                    <div class="model-description">
+
+                        RaySense uses machine learning and
+                        weather parameters to estimate future
+                        solar energy generation.
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             SECURITY
+             ==================================================== -->
+
+        <section class="settings-card">
+
+            <div class="card-header">
+
+                <div class="card-icon">
+                    🔐
+                </div>
+
+                <div class="card-header-text">
+
+                    <h2>
+                        Security
+                    </h2>
+
+                    <p>
+                        Authentication and session
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="status-row">
+
+                    <div class="status-dot"></div>
+
+                    <div class="status-text">
+                        You are securely authenticated
+                    </div>
+
+                </div>
+
+
+                <div class="security-actions">
+
+                    <button
+                        type="button"
+                        class="logout-btn"
+                        id="settingsLogout"
+                    >
+                        🚪 Logout
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function formatNumber(
+    value,
+    decimals = 2
+) {
+
+    const number =
+        Number(value);
+
+    if (Number.isNaN(number)) {
+        return "0.00";
+    }
+
+    return number.toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }
+    );
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return value;
+    }
+
+    return date.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+
+}
+
+
+/* ============================================================
+   LOAD SETTINGS
+   ============================================================ */
+
+async function loadSettings() {
+
+    const loading =
+        document.getElementById(
+            "settingsLoading"
+        );
+
+    const content =
+        document.getElementById(
+            "settingsContent"
+        );
+
+    const error =
+        document.getElementById(
+            "settingsError"
+        );
+
+
+    loading.style.display =
+        "block";
+
+    content.style.display =
+        "none";
+
+    error.style.display =
+        "none";
+
+
+    try {
+
+        /*
+         * apiFetch() already returns JSON.
+         */
+
+        const data =
+            await apiFetch(
+                "/api/users/me/"
+            );
+
+
+        renderUser(
+            data.user || {}
+        );
+
+
+        renderProfile(
+            data.profile || {}
+        );
+
+
+        renderSolarSystems(
+            data.solar_systems || []
+        );
+
+
+        loading.style.display =
+            "none";
+
+        content.style.display =
+            "grid";
+
+
+    } catch (err) {
+
+        console.error(
+            "Settings loading error:",
+            err
+        );
+
+
+        loading.style.display =
+            "none";
+
+
+        error.style.display =
+            "block";
+
+
+        error.className =
+            "error-state";
+
+
+        error.textContent =
+            "Unable to load your account settings. Please refresh and try again.";
+
+    }
+
+}
+
+
+/* ============================================================
+   USER
+   ============================================================ */
+
+function renderUser(user) {
+
+    document.getElementById(
+        "username"
+    ).textContent =
+        user.username || "—";
+
+
+    document.getElementById(
+        "email"
+    ).textContent =
+        user.email || "—";
+
+
+    document.getElementById(
+        "userId"
+    ).textContent =
+        user.id !== undefined
+            ? user.id
+            : "—";
+
+
+    const firstName =
+        document.getElementById(
+            "firstName"
+        );
+
+
+    const lastName =
+        document.getElementById(
+            "lastName"
+        );
+
+
+    if (user.first_name) {
+
+        firstName.textContent =
+            user.first_name;
+
+        firstName.classList.remove(
+            "muted"
+        );
+
+    }
+
+
+    if (user.last_name) {
+
+        lastName.textContent =
+            user.last_name;
+
+        lastName.classList.remove(
+            "muted"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+
+function renderProfile(profile) {
+
+    const phone =
+        document.getElementById(
+            "phone"
+        );
+
+
+    const location =
+        document.getElementById(
+            "profileLocation"
+        );
+
+
+    if (profile.phone) {
+
+        phone.textContent =
+            profile.phone;
+
+        phone.classList.remove(
+            "muted"
+        );
+
+    } else {
+
+        phone.textContent =
+            "Not provided";
+
+    }
+
+
+    location.textContent =
+        profile.location
+            || "Not provided";
+
+}
+
+
+/* ============================================================
+   SOLAR SYSTEMS
+   ============================================================ */
+
+function renderSolarSystems(
+    systems
+) {
+
+    const container =
+        document.getElementById(
+            "solarSystemContainer"
+        );
+
+
+    if (!systems.length) {
+
+        container.innerHTML = `
+
+            <div
+                class="loading-state"
+                style="
+                    padding:25px 0;
+                "
+            >
+                No solar system is registered
+                with this account.
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        systems.map(
+            function(system) {
+
+                return `
+
+                    <div
+                        class="system-highlight"
+                    >
+
+                        <div
+                            class="system-name"
+                        >
+                            ${escapeHTML(
+                                system.system_name
+                            )}
+                        </div>
+
+
+                        <div
+                            class="system-location"
+                        >
+                            📍
+                            ${escapeHTML(
+                                system.location
+                            )}
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        class="system-grid"
+                    >
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Capacity
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${formatNumber(
+                                    system.capacity_kw
+                                )}
+                                kW
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Panel Count
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${formatNumber(
+                                    system.panel_count,
+                                    0
+                                )}
+                                panels
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Panel Type
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${escapeHTML(
+                                    system.panel_type
+                                    || "Not specified"
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Installation Date
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${formatDate(
+                                    system.installation_date
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Latitude
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${formatNumber(
+                                    system.latitude,
+                                    6
+                                )}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            class="system-item"
+                        >
+
+                            <div
+                                class="system-item-label"
+                            >
+                                Longitude
+                            </div>
+
+                            <div
+                                class="system-item-value"
+                            >
+                                ${formatNumber(
+                                    system.longitude,
+                                    6
+                                )}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            }
+        ).join("");
+
+}
+
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+
+const logoutButton =
+    document.getElementById(
+        "settingsLogout"
+    );
+
+
+if (logoutButton) {
+
+    logoutButton.addEventListener(
+        "click",
+        async function() {
+
+            const confirmed =
+                window.confirm(
+                    "Are you sure you want to logout?"
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            try {
+
+                await apiFetch(
+                    "/api/users/logout/",
+                    {
+                        method: "POST"
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+            } finally {
+
+                localStorage.removeItem(
+                    "raysense_token"
+                );
+
+                localStorage.removeItem(
+                    "raysense_user"
+                );
+
+                window.location.href =
+                    "/login/";
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+
+loadSettings();
+
+</script>
+
+{% endblock %}

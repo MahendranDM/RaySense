@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -19,9 +20,17 @@ from .ml_prediction import predict_generation as ml_predict_generation
 
 class ForecastPredictionView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
 
-        system = SolarSystem.objects.first()
+        # ------------------------------------------------
+        # Get the logged-in user's solar system
+        # ------------------------------------------------
+
+        system = SolarSystem.objects.filter(
+            user=request.user
+        ).first()
 
         if system is None:
             return Response(
@@ -144,6 +153,8 @@ class ForecastPredictionView(APIView):
 # ============================================================
 
 class MLForecastPredictionView(APIView):
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
 
@@ -284,15 +295,19 @@ class MLForecastPredictionView(APIView):
 
 class WeatherMLForecastView(APIView):
 
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
 
         try:
 
             # ------------------------------------------------
-            # Get the solar system from database
+            # Get the logged-in user's solar system
             # ------------------------------------------------
 
-            system = SolarSystem.objects.first()
+            system = SolarSystem.objects.filter(
+                user=request.user
+            ).first()
 
             if system is None:
 
@@ -577,7 +592,9 @@ class WeatherMLForecastView(APIView):
 
             ForecastRecord.objects.update_or_create(
                 solar_system=system,
+
                 forecast_date=current_date,
+
                 defaults={
                     "predicted_generation_kwh":
                         today_generation,
@@ -600,7 +617,9 @@ class WeatherMLForecastView(APIView):
 
             ForecastRecord.objects.update_or_create(
                 solar_system=system,
+
                 forecast_date=tomorrow_date,
+
                 defaults={
                     "predicted_generation_kwh":
                         tomorrow_generation,
@@ -623,7 +642,9 @@ class WeatherMLForecastView(APIView):
 
             ForecastRecord.objects.update_or_create(
                 solar_system=system,
+
                 forecast_date=day_after_tomorrow_date,
+
                 defaults={
                     "predicted_generation_kwh":
                         day_after_tomorrow_generation,
@@ -798,9 +819,16 @@ class ForecastRecordViewSet(
     viewsets.ModelViewSet
 ):
 
-    queryset = (
-        ForecastRecord.objects.all()
-        .order_by("-forecast_date")
-    )
-
     serializer_class = ForecastRecordSerializer
+
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+
+        return (
+            ForecastRecord.objects
+            .filter(
+                solar_system__user=self.request.user
+            )
+            .order_by("-forecast_date")
+        )

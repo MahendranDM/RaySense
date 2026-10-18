@@ -1,0 +1,2228 @@
+{% extends "home/base_dashboard.html" %}
+
+{% block content %}
+
+<style>
+
+/* ============================================================
+   REPORT PAGE
+   ============================================================ */
+
+.report-page {
+    max-width: 1450px;
+    margin: 0 auto;
+}
+
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.report-header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+
+.report-header p {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 15px;
+}
+
+.report-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.report-btn {
+    border: 1px solid #dbe1e8;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 11px;
+    padding: 11px 17px;
+    font-size: 13px;
+    font-weight: 650;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.report-btn:hover {
+    border-color: #f5b800;
+    background: #fffaf0;
+    transform: translateY(-1px);
+}
+
+.report-btn.primary {
+    background: #111827;
+    color: #ffffff;
+    border-color: #111827;
+}
+
+.report-btn.primary:hover {
+    background: #1f2937;
+}
+
+
+/* ============================================================
+   REPORT META
+   ============================================================ */
+
+.report-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.meta-badge strong {
+    color: #111827;
+}
+
+
+/* ============================================================
+   REPORT CARD
+   ============================================================ */
+
+.report-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    box-shadow:
+        0 4px 20px rgba(15, 23, 42, 0.04);
+    margin-bottom: 22px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 21px 24px;
+    border-bottom: 1px solid #eef1f4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.card-header h2 {
+    margin: 0;
+    color: #111827;
+    font-size: 18px;
+    font-weight: 750;
+}
+
+.card-header p {
+    margin: 5px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+.card-body {
+    padding: 24px;
+}
+
+
+/* ============================================================
+   SYSTEM OVERVIEW
+   ============================================================ */
+
+.system-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.system-item {
+    padding: 17px;
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 13px;
+}
+
+.system-label {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 7px;
+}
+
+.system-value {
+    color: #111827;
+    font-size: 15px;
+    font-weight: 750;
+    word-break: break-word;
+}
+
+
+/* ============================================================
+   KPI GRID
+   ============================================================ */
+
+.kpi-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.kpi-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    padding: 20px;
+    background: #ffffff;
+}
+
+.kpi-label {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.kpi-value {
+    margin-top: 11px;
+    color: #111827;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+.kpi-unit {
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.kpi-note {
+    margin-top: 8px;
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+
+/* ============================================================
+   FORECAST TABLE
+   ============================================================ */
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table th {
+    padding: 13px 14px;
+    text-align: left;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.report-table td {
+    padding: 15px 14px;
+    color: #334155;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.report-table tr:last-child td {
+    border-bottom: none;
+}
+
+.report-table td strong {
+    color: #111827;
+}
+
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.status-pending {
+    background: #fff7e6;
+    color: #b45309;
+}
+
+.status-good {
+    background: #ecfdf5;
+    color: #15803d;
+}
+
+.status-warning {
+    background: #fff7e6;
+    color: #b45309;
+}
+
+.status-poor {
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+.status-critical {
+    background: #fff1f2;
+    color: #dc2626;
+}
+
+.status-info {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.status-resolved {
+    background: #ecfdf5;
+    color: #15803d;
+}
+
+.status-active {
+    background: #fff7ed;
+    color: #c2410c;
+}
+
+
+/* ============================================================
+   TWO COLUMN SECTION
+   ============================================================ */
+
+.two-column {
+    display: grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+    gap: 22px;
+}
+
+
+/* ============================================================
+   PERFORMANCE
+   ============================================================ */
+
+.performance-layout {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    gap: 24px;
+    align-items: center;
+}
+
+.performance-score {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: #f8fafc;
+    border: 10px solid #f5b800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.performance-score-value {
+    color: #111827;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.performance-score-label {
+    color: #94a3b8;
+    font-size: 11px;
+    margin-top: 3px;
+}
+
+.performance-details {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.performance-item {
+    padding: 14px;
+    background: #f8fafc;
+    border-radius: 11px;
+}
+
+.performance-item span {
+    display: block;
+    color: #94a3b8;
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.performance-item strong {
+    color: #111827;
+    font-size: 14px;
+}
+
+
+/* ============================================================
+   ALERTS
+   ============================================================ */
+
+.alert-summary {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    margin-bottom: 18px;
+}
+
+.alert-stat {
+    padding: 15px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.alert-stat-label {
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.alert-stat-value {
+    margin-top: 5px;
+    color: #111827;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.alert-row {
+    padding: 14px 0;
+    border-bottom: 1px solid #eef1f4;
+}
+
+.alert-row:last-child {
+    border-bottom: none;
+}
+
+.alert-row-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert-title {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 750;
+}
+
+.alert-message {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+
+/* ============================================================
+   EMPTY / LOADING
+   ============================================================ */
+
+.loading-state {
+    text-align: center;
+    padding: 55px 20px;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.loading-spinner {
+    width: 30px;
+    height: 30px;
+    margin: 0 auto 14px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #f5b800;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+
+    to {
+        transform: rotate(360deg);
+    }
+
+}
+
+.empty-state {
+    text-align: center;
+    padding: 30px 15px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.error-state {
+    padding: 16px;
+    background: #fff5f5;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    border-radius: 12px;
+    margin-bottom: 22px;
+    font-size: 13px;
+}
+
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+
+@media print {
+
+    body {
+        background: #ffffff !important;
+    }
+
+    .sidebar,
+    .topbar,
+    .report-actions {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .report-page {
+        max-width: none;
+    }
+
+    .report-card {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1100px) {
+
+    .system-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .kpi-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+@media (max-width: 800px) {
+
+    .report-header {
+        flex-direction: column;
+    }
+
+    .two-column {
+        grid-template-columns: 1fr;
+    }
+
+    .performance-layout {
+        grid-template-columns: 1fr;
+        justify-items: center;
+    }
+
+    .performance-details {
+        width: 100%;
+    }
+
+}
+
+@media (max-width: 600px) {
+
+    .system-grid,
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .alert-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .card-body {
+        padding: 18px;
+    }
+
+}
+
+</style>
+
+
+<div class="report-page">
+
+
+    <!-- ========================================================
+         HEADER
+         ======================================================== -->
+
+    <div class="report-header">
+
+        <div>
+
+            <h1>Reports</h1>
+
+            <p>
+                Consolidated overview of your solar system,
+                AI forecasts, performance and alerts.
+            </p>
+
+        </div>
+
+
+        <div class="report-actions">
+
+            <button
+                type="button"
+                class="report-btn"
+                id="refreshReportBtn"
+            >
+                ↻ Refresh
+            </button>
+
+            <button
+                type="button"
+                class="report-btn primary"
+                onclick="window.print()"
+            >
+                🖨 Print Report
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================
+         META
+         ======================================================== -->
+
+    <div class="report-meta">
+
+        <div class="meta-badge">
+            ⚡
+            System:
+            <strong id="metaSystem">
+                Loading...
+            </strong>
+        </div>
+
+        <div class="meta-badge">
+            🤖
+            Model:
+            <strong id="metaModel">
+                XGBoost
+            </strong>
+        </div>
+
+        <div class="meta-badge">
+            🕒
+            Generated:
+            <strong id="metaGenerated">
+                Loading...
+            </strong>
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================
+         ERROR
+         ======================================================== -->
+
+    <div
+        id="reportError"
+        style="display:none;"
+    ></div>
+
+
+    <!-- ========================================================
+         SOLAR SYSTEM OVERVIEW
+         ======================================================== -->
+
+    <section class="report-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>Solar System Overview</h2>
+
+                <p>
+                    Configuration and installation details
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div
+                class="system-grid"
+                id="systemGrid"
+            >
+
+                <div class="loading-state">
+                    Loading system information...
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         KEY METRICS
+         ======================================================== -->
+
+    <section class="report-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>Key Metrics</h2>
+
+                <p>
+                    Current summary from RaySense
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div class="kpi-grid">
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-label">
+                        Total Recorded Generation
+                    </div>
+
+                    <div
+                        class="kpi-value"
+                        id="totalGeneration"
+                    >
+                        —
+                    </div>
+
+                    <div class="kpi-unit">
+                        kWh
+                    </div>
+
+                    <div class="kpi-note" id="generationMetricNote">
+                        Includes available generation records
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-label">
+                        Today's AI Forecast
+                    </div>
+
+                    <div
+                        class="kpi-value"
+                        id="todayForecast"
+                    >
+                        0.00
+                    </div>
+
+                    <div class="kpi-unit">
+                        kWh
+                    </div>
+
+                    <div class="kpi-note">
+                        XGBoost prediction
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-label">
+                        Forecast Achievement
+                    </div>
+
+                    <div
+                        class="kpi-value"
+                        id="performanceValue"
+                    >
+                        —
+                    </div>
+
+                    <div class="kpi-unit">
+                        %
+                    </div>
+
+                    <div class="kpi-note" id="performanceMetricNote">
+                        Recorded generation compared with forecast
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-label">
+                        Active Alerts
+                    </div>
+
+                    <div
+                        class="kpi-value"
+                        id="activeAlerts"
+                    >
+                        0
+                    </div>
+
+                    <div class="kpi-unit">
+                        alerts
+                    </div>
+
+                    <div class="kpi-note">
+                        Requiring attention
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         AI FORECAST
+         ======================================================== -->
+
+    <section class="report-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>AI Forecast Summary</h2>
+
+                <p>
+                    Solar generation predictions from the
+                    RaySense XGBoost model
+                </p>
+
+            </div>
+
+            <span
+                class="status-badge status-info"
+                id="forecastModelBadge"
+            >
+                XGBoost
+            </span>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div
+                class="table-wrapper"
+                id="forecastTableWrapper"
+            >
+
+                <div class="loading-state">
+                    Loading forecast information...
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ========================================================
+         TWO COLUMN
+         ======================================================== -->
+
+    <div class="two-column">
+
+
+        <!-- ====================================================
+             PERFORMANCE
+             ==================================================== -->
+
+        <section class="report-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Performance Analysis</h2>
+
+                    <p>
+                        Latest solar performance evaluation
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div
+                    id="performanceContainer"
+                >
+
+                    <div class="loading-state">
+                        Loading performance...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ====================================================
+             ALERTS
+             ==================================================== -->
+
+        <section class="report-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>Alert Summary</h2>
+
+                    <p>
+                        System events requiring attention
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div
+                    id="alertContainer"
+                >
+
+                    <div class="loading-state">
+                        Loading alerts...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </div>
+
+
+    <!-- ========================================================
+         GENERATION RECORDS
+         ======================================================== -->
+
+    <section class="report-card">
+
+        <div class="card-header">
+
+            <div>
+
+                <h2>Generation Records</h2>
+
+                <p>
+                    Recorded solar energy production
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="card-body">
+
+            <div
+                id="generationContainer"
+            >
+
+                <div class="loading-state">
+                    Loading generation records...
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+
+{% endblock %}
+
+
+{% block extra_scripts %}
+
+<script>
+
+
+/* ============================================================
+   REPORT DATA
+   ============================================================ */
+
+let reportData = {
+
+    system: null,
+
+    generation: [],
+
+    forecasts: [],
+
+    performance: [],
+
+    todayPerformance: null,
+
+    alerts: []
+
+};
+
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+
+function escapeHTML(value) {
+
+    if (
+        value === null ||
+        value === undefined
+    ) {
+        return "";
+    }
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function formatNumber(
+    value,
+    decimals = 2
+) {
+
+    const number =
+        Number(value);
+
+    if (Number.isNaN(number)) {
+        return "0.00";
+    }
+
+    return number.toLocaleString(
+        "en-IN",
+        {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+        }
+    );
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return value;
+    }
+
+    return date.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+
+}
+
+
+function formatDateTime(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return value;
+    }
+
+    return date.toLocaleString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+}
+
+
+function showError(message) {
+
+    const container =
+        document.getElementById(
+            "reportError"
+        );
+
+    container.style.display =
+        "block";
+
+    container.className =
+        "error-state";
+
+    container.textContent =
+        message;
+
+}
+
+
+function clearError() {
+
+    const container =
+        document.getElementById(
+            "reportError"
+        );
+
+    container.style.display =
+        "none";
+
+    container.innerHTML = "";
+
+}
+
+
+/* ============================================================
+   LOAD REPORT
+   ============================================================ */
+
+async function loadReport() {
+    clearError();
+
+    const endpoints = [
+        "/api/solar/systems/",
+        "/api/solar/generation/",
+        "/api/forecasting/records/",
+        "/api/performance/records/",
+        "/api/performance/today/",
+        "/api/alerts/records/"
+    ];
+
+    // Load each endpoint independently.
+    const results = await Promise.allSettled(
+        endpoints.map(endpoint => apiFetch(endpoint))
+    );
+
+    const getResult = (index, fallback) => {
+        const result = results[index];
+
+        if (result.status === "fulfilled") {
+            return result.value;
+        }
+
+        console.error(
+            `Report API failed: ${endpoints[index]}`,
+            result.reason
+        );
+
+        return fallback;
+    };
+
+    const systems = getResult(0, []);
+    reportData.system = Array.isArray(systems)
+        ? (systems[0] || null)
+        : null;
+
+    const generation = getResult(1, []);
+    reportData.generation = Array.isArray(generation)
+        ? generation
+        : [];
+
+    const forecasts = getResult(2, []);
+    reportData.forecasts = Array.isArray(forecasts)
+        ? forecasts
+        : [];
+
+    const performance = getResult(3, []);
+    reportData.performance = Array.isArray(performance)
+        ? performance
+        : [];
+
+    const todayPerformance = getResult(4, null);
+    reportData.todayPerformance = todayPerformance;
+
+    const alerts = getResult(5, []);
+    reportData.alerts = Array.isArray(alerts)
+        ? alerts
+        : [];
+
+    // Render every section even if another endpoint failed.
+    renderSystem();
+    renderMetrics();
+    renderForecasts();
+    renderPerformance();
+    renderAlerts();
+    renderGeneration();
+    updateMeta();
+
+    const failedCount = results.filter(
+        result => result.status === "rejected"
+    ).length;
+
+    if (failedCount > 0) {
+        showError(
+            `${failedCount} report data request(s) failed. ` +
+            "Some sections may be incomplete. Please refresh or check your connection."
+        );
+    }
+}
+
+
+/* ============================================================
+   SYSTEM
+   ============================================================ */
+
+function renderSystem() {
+
+    const container =
+        document.getElementById(
+            "systemGrid"
+        );
+
+
+    const system =
+        reportData.system;
+
+
+    if (!system) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                No solar system information available.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML = `
+
+        <div class="system-item">
+
+            <div class="system-label">
+                System Name
+            </div>
+
+            <div class="system-value">
+                ${escapeHTML(
+                    system.system_name
+                )}
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Location
+            </div>
+
+            <div class="system-value">
+                ${escapeHTML(
+                    system.location
+                )}
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Capacity
+            </div>
+
+            <div class="system-value">
+                ${formatNumber(
+                    system.capacity_kw
+                )}
+                kW
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Panel Count
+            </div>
+
+            <div class="system-value">
+                ${formatNumber(
+                    system.panel_count,
+                    0
+                )}
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Panel Type
+            </div>
+
+            <div class="system-value">
+                ${escapeHTML(
+                    system.panel_type
+                )}
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Installation Date
+            </div>
+
+            <div class="system-value">
+                ${formatDate(
+                    system.installation_date
+                )}
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Electricity Rate
+            </div>
+
+            <div class="system-value">
+                ₹${formatNumber(
+                    system.electricity_rate
+                )}
+                / kWh
+            </div>
+
+        </div>
+
+
+        <div class="system-item">
+
+            <div class="system-label">
+                Coordinates
+            </div>
+
+            <div class="system-value">
+                ${formatNumber(
+                    system.latitude,
+                    4
+                )},
+                ${formatNumber(
+                    system.longitude,
+                    4
+                )}
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ============================================================
+   METRICS
+   ============================================================ */
+
+function renderMetrics() {
+
+    const records = Array.isArray(reportData.generation)
+        ? reportData.generation
+        : [];
+
+    const validGenerationRecords = records.filter(record => {
+        const value = Number(record.energy_generated_kwh);
+        return Number.isFinite(value) && value >= 0;
+    });
+
+    const generationTotal = validGenerationRecords.reduce(
+        (total, record) => total + Number(record.energy_generated_kwh),
+        0
+    );
+
+    const hasGenerationRecords = validGenerationRecords.length > 0;
+
+    const todayString = getTodayString();
+    const todayForecast = reportData.forecasts.find(
+        forecast => String(forecast.forecast_date || "").slice(0, 10) === todayString
+    );
+
+    const performance = reportData.todayPerformance ||
+        (reportData.performance.length ? reportData.performance[0] : null);
+
+    const activeAlerts = reportData.alerts.filter(
+        alert => !Boolean(alert.is_resolved)
+    ).length;
+
+    const totalGenerationElement = document.getElementById("totalGeneration");
+    if (totalGenerationElement) {
+        totalGenerationElement.textContent = hasGenerationRecords
+            ? formatNumber(generationTotal)
+            : "—";
+    }
+
+    const generationNote = document.getElementById("generationMetricNote");
+    if (generationNote) {
+        const hasSimulated = validGenerationRecords.some(
+            record => String(record.data_source || "").toUpperCase() === "SIMULATED"
+        );
+        const hasActual = validGenerationRecords.some(
+            record => String(record.data_source || "").toUpperCase() === "ACTUAL"
+        );
+
+        if (!hasGenerationRecords) {
+            generationNote.textContent = "No generation records available";
+        } else if (hasSimulated && hasActual) {
+            generationNote.textContent = "Includes ACTUAL and SIMULATED records";
+        } else if (hasSimulated) {
+            generationNote.textContent = "Simulated records; not verified production";
+        } else if (hasActual) {
+            generationNote.textContent = "Records marked ACTUAL by the data source";
+        } else {
+            generationNote.textContent = "Data source is not confirmed";
+        }
+    }
+
+    const forecastElement = document.getElementById("todayForecast");
+    if (forecastElement) {
+        forecastElement.textContent = todayForecast &&
+            todayForecast.predicted_generation_kwh !== null &&
+            todayForecast.predicted_generation_kwh !== undefined &&
+            Number.isFinite(Number(todayForecast.predicted_generation_kwh))
+                ? formatNumber(todayForecast.predicted_generation_kwh)
+                : "—";
+    }
+
+    const activeAlertsElement = document.getElementById("activeAlerts");
+    if (activeAlertsElement) {
+        activeAlertsElement.textContent = activeAlerts;
+    }
+
+    // The performance KPI uses the same uncapped achievement metric
+    // as the detailed performance section.
+    const performanceValueElement = document.getElementById("performanceValue");
+    const performanceNoteElement = document.getElementById("performanceMetricNote");
+
+    if (!performance) {
+        if (performanceValueElement) performanceValueElement.textContent = "—";
+        if (performanceNoteElement) {
+            performanceNoteElement.textContent = "No performance evaluation available";
+        }
+        return;
+    }
+
+    const actual = Number(performance.actual_generation_kwh);
+    const predicted = Number(performance.predicted_generation_kwh);
+    const rawPercentage = performance.forecast_achievement_percentage ??
+        performance.performance_percentage;
+    const percentage = Number(rawPercentage);
+    const hasData = performance.generation_data_available !== false &&
+        Number.isFinite(actual) && actual >= 0 &&
+        Number.isFinite(predicted) && predicted > 0 &&
+        Number.isFinite(percentage);
+
+    const isSimulated = performance.is_simulated === true ||
+        String(performance.data_source || "").toUpperCase() === "SIMULATED" ||
+        String(performance.status || "").toUpperCase() === "SIMULATED";
+
+    if (performanceValueElement) {
+        performanceValueElement.textContent = hasData
+            ? formatNumber(percentage)
+            : "—";
+    }
+
+    if (performanceNoteElement) {
+        if (!hasData) {
+            performanceNoteElement.textContent =
+                "Insufficient data to calculate forecast achievement";
+        } else if (isSimulated) {
+            performanceNoteElement.textContent =
+                "Simulated generation compared with forecast";
+        } else if (String(performance.data_source || "").toUpperCase() === "ACTUAL") {
+            performanceNoteElement.textContent =
+                "Records marked ACTUAL by the data source";
+        } else {
+            performanceNoteElement.textContent =
+                "Generation compared with forecast; source not confirmed";
+        }
+    }
+
+}
+
+
+/* ============================================================
+   TODAY STRING
+   ============================================================ */
+
+function getTodayString() {
+
+    const now =
+        new Date();
+
+    const year =
+        now.getFullYear();
+
+    const month =
+        String(
+            now.getMonth() + 1
+        ).padStart(2, "0");
+
+    const day =
+        String(
+            now.getDate()
+        ).padStart(2, "0");
+
+
+    return `${year}-${month}-${day}`;
+
+}
+
+
+/* ============================================================
+   FORECASTS
+   ============================================================ */
+
+function renderForecasts() {
+
+    const container =
+        document.getElementById(
+            "forecastTableWrapper"
+        );
+
+
+    const forecasts =
+        [...reportData.forecasts]
+            .sort(
+                (a, b) =>
+                    String(
+                        a.forecast_date
+                    ).localeCompare(
+                        String(
+                            b.forecast_date
+                        )
+                    )
+            );
+
+
+    if (!forecasts.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                No forecast records available.
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML = `
+
+        <table class="report-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Date
+                    </th>
+
+                    <th>
+                        Predicted Generation
+                    </th>
+
+                    <th>
+                        Model
+                    </th>
+
+                    <th>
+                        Confidence
+                    </th>
+
+                    <th>
+                        Created
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${
+                    forecasts.map(
+                        forecast => `
+
+                            <tr>
+
+                                <td>
+                                    <strong>
+                                        ${formatDate(
+                                            forecast.forecast_date
+                                        )}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    ${formatNumber(
+                                        forecast.predicted_generation_kwh
+                                    )}
+                                    kWh
+                                </td>
+
+                                <td>
+                                    <span
+                                        class="status-badge status-info"
+                                    >
+                                        ${escapeHTML(
+                                            forecast.model_name
+                                            || "XGBoost"
+                                        )}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ${
+                                        forecast.confidence_score !== null &&
+                                        forecast.confidence_score !== undefined &&
+                                        Number.isFinite(Number(forecast.confidence_score))
+                                            ? formatNumber(forecast.confidence_score) + "%"
+                                            : "Not available"
+                                    }
+                                </td>
+
+                                <td>
+                                    ${formatDateTime(
+                                        forecast.created_at
+                                    )}
+                                </td>
+
+                            </tr>
+
+                        `
+                    ).join("")
+                }
+
+            </tbody>
+
+        </table>
+
+    `;
+
+
+    const model =
+        forecasts[0]
+        && forecasts[0].model_name
+            ? forecasts[0].model_name
+            : "XGBoost";
+
+
+    document.getElementById(
+        "forecastModelBadge"
+    ).textContent =
+        model;
+
+}
+
+
+/* ============================================================
+   PERFORMANCE
+   ============================================================ */
+
+function renderPerformance() {
+
+    const container = document.getElementById("performanceContainer");
+    if (!container) return;
+
+    const performance = reportData.todayPerformance ||
+        (reportData.performance.length ? reportData.performance[0] : null);
+
+    if (!performance) {
+        container.innerHTML = `
+            <div class="empty-state">
+                No performance analysis is available.
+            </div>
+        `;
+        return;
+    }
+
+    const actual = Number(performance.actual_generation_kwh);
+    const predicted = Number(performance.predicted_generation_kwh);
+    const rawPercentage = performance.forecast_achievement_percentage ??
+        performance.performance_percentage;
+    const percentage = Number(rawPercentage);
+
+    const hasGeneration = performance.generation_data_available !== false &&
+        Number.isFinite(actual) && actual >= 0;
+    const hasForecast = Number.isFinite(predicted) && predicted > 0;
+    const canCalculate = hasGeneration && hasForecast && Number.isFinite(percentage);
+
+    const isSimulated = performance.is_simulated === true ||
+        String(performance.data_source || "").toUpperCase() === "SIMULATED" ||
+        String(performance.status || "").toUpperCase() === "SIMULATED";
+
+    const source = String(performance.data_source || "").toUpperCase();
+    const dataSource = isSimulated
+        ? "SIMULATED"
+        : source === "ACTUAL"
+            ? "ACTUAL"
+            : "SOURCE NOT CONFIRMED";
+
+    const statusText = isSimulated
+    ? "DEMO DATA"
+    : String(performance.status || "Pending");
+
+    const lowerStatus = statusText.toLowerCase();
+    let statusClass = "status-pending";
+
+    if (lowerStatus === "excellent" || lowerStatus === "good") {
+        statusClass = "status-good";
+    } else if (lowerStatus === "warning") {
+        statusClass = "status-warning";
+    } else if (lowerStatus === "poor" || lowerStatus === "critical") {
+        statusClass = "status-poor";
+    }
+
+    const sourceClass = isSimulated
+    ? "status-warning"
+    : source === "ACTUAL"
+        ? "status-good"
+        : "status-pending";
+
+    const deviation = Number(performance.deviation_kwh);
+    const deviationText = Number.isFinite(deviation)
+        ? `${deviation > 0 ? "+" : ""}${formatNumber(deviation)} kWh`
+        : "—";
+
+    const evaluationDate = formatDate(
+        performance.evaluation_date || performance.date
+    );
+
+    let sourceExplanation;
+    if (isSimulated) {
+        sourceExplanation =
+            "Demonstration data only. This is not verified real-world production.";
+    } else if (source === "ACTUAL") {
+        sourceExplanation =
+            "Based on records marked ACTUAL by the data source; the label alone does not independently verify the physical measurement.";
+    } else {
+        sourceExplanation =
+            "The data source has not been confirmed. Do not interpret this result as verified actual production.";
+    }
+
+    container.innerHTML = `
+        <div class="performance-layout">
+
+            <div class="performance-score">
+                <div class="performance-score-value">
+                    ${canCalculate ? `${formatNumber(percentage)}%` : "—"}
+                </div>
+                <div class="performance-score-label">
+                    Forecast Achievement
+                </div>
+            </div>
+
+            <div>
+                <div style="margin-bottom: 12px;">
+                    <span class="status-badge ${statusClass}">
+                        ${escapeHTML(statusText)}
+                    </span>
+                    <span class="status-badge ${sourceClass}" style="margin-left: 5px;">
+                        ${escapeHTML(dataSource)}
+                    </span>
+                </div>
+
+                <div class="performance-details">
+                    <div class="performance-item">
+                        <span>Recorded Generation</span>
+                        <strong>${hasGeneration ? `${formatNumber(actual)} kWh` : "Not available"}</strong>
+                    </div>
+
+                    <div class="performance-item">
+                        <span>Predicted Generation</span>
+                        <strong>${hasForecast ? `${formatNumber(predicted)} kWh` : "Not available"}</strong>
+                    </div>
+
+                    <div class="performance-item">
+                        <span>Deviation</span>
+                        <strong>${deviationText}</strong>
+                    </div>
+
+                    <div class="performance-item">
+                        <span>Evaluation Date</span>
+                        <strong>${escapeHTML(evaluationDate)}</strong>
+                    </div>
+                </div>
+
+                <p style="margin-top: 14px; font-size: 12px; color: #64748b; line-height: 1.6;">
+                    ${escapeHTML(sourceExplanation)}
+                </p>
+            </div>
+        </div>
+    `;
+
+}
+
+
+/* ============================================================
+   ALERTS
+   ============================================================ */
+
+function renderAlerts() {
+
+    const container =
+        document.getElementById(
+            "alertContainer"
+        );
+
+
+    const alerts =
+        reportData.alerts;
+
+
+    const total =
+        alerts.length;
+
+
+    const active =
+        alerts.filter(
+            alert =>
+                !Boolean(
+                    alert.is_resolved
+                )
+        ).length;
+
+
+    const resolved =
+        alerts.filter(
+            alert =>
+                Boolean(
+                    alert.is_resolved
+                )
+        ).length;
+
+
+    container.innerHTML = `
+
+        <div class="alert-summary">
+
+            <div class="alert-stat">
+
+                <div class="alert-stat-label">
+                    Total
+                </div>
+
+                <div class="alert-stat-value">
+                    ${total}
+                </div>
+
+            </div>
+
+
+            <div class="alert-stat">
+
+                <div class="alert-stat-label">
+                    Active
+                </div>
+
+                <div class="alert-stat-value">
+                    ${active}
+                </div>
+
+            </div>
+
+
+            <div class="alert-stat">
+
+                <div class="alert-stat-label">
+                    Resolved
+                </div>
+
+                <div class="alert-stat-value">
+                    ${resolved}
+                </div>
+
+            </div>
+
+        </div>
+
+
+        ${
+            alerts.length
+                ? alerts.slice(0, 5).map(
+                    alert => {
+
+                        const severity =
+                            String(
+                                alert.severity
+                                || "Info"
+                            ).toLowerCase();
+
+
+                        const badgeClass =
+                            severity === "critical"
+                                ? "status-critical"
+                                : severity === "warning"
+                                    ? "status-warning"
+                                    : "status-info";
+
+
+                        return `
+
+                            <div class="alert-row">
+
+                                <div
+                                    class="alert-row-top"
+                                >
+
+                                    <div
+                                        class="alert-title"
+                                    >
+                                        ${escapeHTML(
+                                            alert.title
+                                            || "System Alert"
+                                        )}
+                                    </div>
+
+                                    <span
+                                        class="status-badge ${badgeClass}"
+                                    >
+                                        ${escapeHTML(
+                                            alert.severity
+                                            || "Info"
+                                        )}
+                                    </span>
+
+                                </div>
+
+
+                                <p
+                                    class="alert-message"
+                                >
+                                    ${escapeHTML(
+                                        alert.message
+                                        || ""
+                                    )}
+                                </p>
+
+                            </div>
+
+                        `;
+
+                    }
+                ).join("")
+
+                : `
+
+                    <div class="empty-state">
+                        No alerts available.
+                    </div>
+
+                  `
+        }
+
+    `;
+
+}
+
+
+/* ============================================================
+   GENERATION
+   ============================================================ */
+
+function renderGeneration() {
+
+    const container = document.getElementById("generationContainer");
+    const records = Array.isArray(reportData.generation)
+        ? reportData.generation
+        : [];
+
+    if (records.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                No generation records are available
+                for this solar system yet.
+            </div>
+        `;
+        return;
+    }
+
+    const sorted = [...records].sort((a, b) =>
+        String(b.recorded_at || "").localeCompare(
+            String(a.recorded_at || "")
+        )
+    );
+
+    container.innerHTML = `
+        <div class="table-wrapper">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Recorded At</th>
+                        <th>Energy Generated</th>
+                        <th>Data Source</th>
+                        <th>Power Output</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sorted.slice(0, 10).map(record => {
+                        const source = String(
+                            record.data_source || "UNKNOWN"
+                        ).toUpperCase();
+
+                        const sourceClass = source === "SIMULATED"
+                            ? "status-warning"
+                            : source === "ACTUAL"
+                                ? "status-good"
+                                : "status-info";
+
+                        return `
+                            <tr>
+                                <td>${formatDateTime(record.recorded_at)}</td>
+                                <td>
+                                    <strong>${formatNumber(
+                                        record.energy_generated_kwh
+                                    )}</strong> kWh
+                                </td>
+                                <td>
+                                    <span class="status-badge ${sourceClass}">
+                                        ${escapeHTML(source)}
+                                    </span>
+                                </td>
+                                <td>${formatNumber(
+                                    record.power_output_kw
+                                )} kW</td>
+                            </tr>
+                        `;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>
+    `;
+}
+
+
+/* ============================================================
+   META
+   ============================================================ */
+
+function updateMeta() {
+
+    const system =
+        reportData.system;
+
+
+    document.getElementById(
+        "metaSystem"
+    ).textContent =
+        system
+            ? system.system_name
+            : "No system";
+
+
+    const forecast =
+        reportData.forecasts[0];
+
+
+    document.getElementById(
+        "metaModel"
+    ).textContent =
+        forecast
+        && forecast.model_name
+            ? forecast.model_name
+            : "XGBoost";
+
+
+    document.getElementById(
+        "metaGenerated"
+    ).textContent =
+        new Date().toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+}
+
+
+/* ============================================================
+   REFRESH
+   ============================================================ */
+
+const refreshButton =
+    document.getElementById(
+        "refreshReportBtn"
+    );
+
+
+if (refreshButton) {
+
+    refreshButton.addEventListener(
+        "click",
+        async function() {
+
+            refreshButton.disabled =
+                true;
+
+            refreshButton.textContent =
+                "↻ Refreshing...";
+
+
+            try {
+
+                await loadReport();
+
+            } finally {
+
+                refreshButton.disabled =
+                    false;
+
+                refreshButton.textContent =
+                    "↻ Refresh";
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+
+loadReport();
+
+</script>
+
+{% endblock %}

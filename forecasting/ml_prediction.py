@@ -6,7 +6,10 @@ import pandas as pd
 # LOAD TRAINED XGBOOST MODEL
 # --------------------------------
 
-MODEL_PATH = "data/xgboost_model.pkl"
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "data" / "xgboost_model.pkl"
 
 model = joblib.load(MODEL_PATH)
 

@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RaySense | AI-Powered Solar Intelligence</title>
+
+    <meta
+        name="description"
+        content="RaySense is an AI-powered solar energy monitoring, forecasting and performance analysis platform."
+    >
+
+    <style>
+
+        /* =========================================================
+           RAYSENSE — SOLAR GOLD / BLACK THEME
+           ========================================================= */
+
+        :root {
+            --black: #050505;
+            --black-soft: #0b0b0b;
+            --black-card: #111111;
+            --black-card-2: #151515;
+
+            --gold: #ffd166;
+            --gold-bright: #ffca28;
+            --yellow: #ffe082;
+            --amber: #ffb703;
+
+            --white: #ffffff;
+            --text: #f7f7f7;
+            --muted: #a5a5a5;
+            --muted-light: #c2c2c2;
+
+            --border: rgba(255, 209, 102, 0.16);
+            --border-light: rgba(255, 255, 255, 0.09);
+
+            --gold-glow: rgba(255, 193, 7, 0.20);
+            --gold-glow-strong: rgba(255, 193, 7, 0.35);
+        }
+
+
+        /* =========================================================
+           RESET
+           ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: var(--black);
+            color: var(--text);
+
+            line-height: 1.6;
+
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+
+        /* =========================================================
+           GLOBAL BACKGROUND
+           ========================================================= */
+
+        body::before {
+            content: "";
+            position: fixed;
+
+            width: 650px;
+            height: 650px;
+
+            top: -300px;
+            right: -200px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 193, 7, 0.16) 0%,
+                    rgba(255, 193, 7, 0.06) 35%,
+                    transparent 70%
+                );
+
+            pointer-events: none;
+            z-index: -1;
+
+            filter: blur(10px);
+        }
+
+        body::after {
+            content: "";
+
+            position: fixed;
+
+            width: 500px;
+            height: 500px;
+
+            bottom: -250px;
+            left: -180px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 183, 3, 0.08) 0%,
+                    transparent 70%
+                );
+
+            pointer-events: none;
+            z-index: -1;
+        }
+
+
+        /* =========================================================
+           CONTAINER
+           ========================================================= */
+
+        .container {
+            width: min(1180px, 92%);
+            margin: auto;
+        }
+
+
+        /* =========================================================
+           NAVBAR
+           ========================================================= */
+
+        nav {
+            position: sticky;
+            top: 0;
+
+            z-index: 1000;
+
+            background: rgba(5, 5, 5, 0.88);
+
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+
+            border-bottom:
+                1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .nav-inner {
+            min-height: 76px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 25px;
+        }
+
+
+        /* LOGO */
+
+        .logo {
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            font-size: 1.4rem;
+            font-weight: 800;
+
+            letter-spacing: -0.6px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+
+            display: grid;
+            place-items: center;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffe082,
+                    #ffb703
+                );
+
+            color: #080808;
+
+            font-size: 1.35rem;
+
+            box-shadow:
+                0 0 25px
+                rgba(255, 193, 7, 0.28);
+        }
+
+
+        /* NAV LINKS */
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+
+            gap: 30px;
+
+            color: var(--muted);
+
+            font-size: 0.94rem;
+        }
+
+        .nav-links a {
+            transition: 0.25s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--gold);
+        }
+
+
+        /* NAV ACTIONS */
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        /* =========================================================
+           BUTTONS
+           ========================================================= */
+
+        .btn {
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            min-height: 46px;
+
+            padding: 0 21px;
+
+            border-radius: 12px;
+
+            font-weight: 750;
+
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease,
+                border-color 0.25s ease,
+                background 0.25s ease;
+
+            cursor: pointer;
+        }
+
+
+        .btn-outline {
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.16);
+
+            color: var(--white);
+
+            background:
+                rgba(255, 255, 255, 0.025);
+        }
+
+        .btn-outline:hover {
+            transform: translateY(-2px);
+
+            border-color:
+                rgba(255, 209, 102, 0.65);
+
+            color: var(--gold);
+
+            background:
+                rgba(255, 193, 7, 0.05);
+        }
+
+
+        .btn-primary {
+            color: #090909;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffe082 0%,
+                    #ffd166 40%,
+                    #ffb703 100%
+                );
+
+            box-shadow:
+                0 10px 35px
+                rgba(255, 183, 3, 0.18);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+
+            box-shadow:
+                0 16px 45px
+                rgba(255, 183, 3, 0.32);
+        }
+
+
+        /* =========================================================
+           HERO
+           ========================================================= */
+
+        .hero {
+            position: relative;
+
+            overflow: hidden;
+
+            padding:
+                105px 0
+                90px;
+        }
+
+
+        /* SUN GLOW */
+
+        .hero::before {
+            content: "";
+
+            position: absolute;
+
+            width: 650px;
+            height: 650px;
+
+            right: -280px;
+            top: -260px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 193, 7, 0.19) 0%,
+                    rgba(255, 183, 3, 0.09) 30%,
+                    transparent 68%
+                );
+
+            filter: blur(5px);
+
+            pointer-events: none;
+        }
+
+
+        /* SUN RAYS */
+
+        .hero::after {
+            content: "";
+
+            position: absolute;
+
+            width: 900px;
+            height: 900px;
+
+            right: -450px;
+            top: -380px;
+
+            border-radius: 50%;
+
+            background:
+                repeating-conic-gradient(
+                    from 0deg,
+                    rgba(255, 209, 102, 0.025) 0deg,
+                    rgba(255, 209, 102, 0.025) 4deg,
+                    transparent 4deg,
+                    transparent 18deg
+                );
+
+            opacity: 0.8;
+
+            pointer-events: none;
+        }
+
+
+        .hero-grid {
+            position: relative;
+            z-index: 2;
+
+            display: grid;
+
+            grid-template-columns:
+                1.02fr
+                0.98fr;
+
+            align-items: center;
+
+            gap: 70px;
+        }
+
+
+        /* EYEBROW */
+
+        .eyebrow {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding:
+                8px 14px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(255, 193, 7, 0.07);
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.22);
+
+            color: var(--gold);
+
+            font-size: 0.82rem;
+
+            font-weight: 750;
+
+            margin-bottom: 24px;
+
+            box-shadow:
+                0 0 25px
+                rgba(255, 193, 7, 0.06);
+        }
+
+
+        /* HERO TITLE */
+
+        .hero h1 {
+            font-size:
+                clamp(
+                    2.8rem,
+                    6vw,
+                    5.4rem
+                );
+
+            line-height: 0.96;
+
+            letter-spacing: -3.5px;
+
+            max-width: 720px;
+
+            margin-bottom: 28px;
+        }
+
+        .hero h1 span {
+            display: block;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ffe082,
+                    #ffd166,
+                    #ffb703
+                );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+        }
+
+
+        .hero p {
+            max-width: 620px;
+
+            color: var(--muted-light);
+
+            font-size: 1.08rem;
+
+            line-height: 1.75;
+
+            margin-bottom: 32px;
+        }
+
+
+        /* HERO BUTTONS */
+
+        .hero-buttons {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            margin-bottom: 42px;
+        }
+
+
+        /* HERO STATS */
+
+        .hero-stats {
+            display: flex;
+
+            flex-wrap: wrap;
+
+            gap: 38px;
+        }
+
+        .stat strong {
+            display: block;
+
+            font-size: 1.35rem;
+
+            color: var(--white);
+        }
+
+        .stat span {
+            color: #777;
+
+            font-size: 0.84rem;
+        }
+
+
+        /* =========================================================
+           DASHBOARD PREVIEW
+           ========================================================= */
+
+        .dashboard-card {
+            position: relative;
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.15);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.055),
+                    rgba(255, 255, 255, 0.018)
+                );
+
+            border-radius: 26px;
+
+            padding: 18px;
+
+            box-shadow:
+                0 35px 100px
+                rgba(0, 0, 0, 0.65),
+
+                0 0 70px
+                rgba(255, 193, 7, 0.07);
+
+            overflow: hidden;
+        }
+
+
+        .dashboard-card::before {
+            content: "";
+
+            position: absolute;
+
+            width: 250px;
+            height: 250px;
+
+            right: -100px;
+            top: -100px;
+
+            border-radius: 50%;
+
+            background:
+                radial-gradient(
+                    circle,
+                    rgba(255, 193, 7, 0.12),
+                    transparent 70%
+                );
+
+            pointer-events: none;
+        }
+
+
+        .window-bar {
+            display: flex;
+
+            gap: 6px;
+
+            margin-bottom: 17px;
+        }
+
+        .window-dot {
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #575757;
+        }
+
+
+        .dashboard-top {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 10px;
+
+            margin-bottom: 10px;
+        }
+
+
+        .metric {
+            background:
+                rgba(255, 255, 255, 0.045);
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.045);
+
+            border-radius: 15px;
+
+            padding: 16px;
+        }
+
+        .metric small {
+            color: #858585;
+
+            font-size: 0.78rem;
+        }
+
+        .metric strong {
+            display: block;
+
+            font-size: 1.25rem;
+
+            margin-top: 5px;
+        }
+
+        .metric.gold strong {
+            color: var(--gold);
+        }
+
+
+        /* CHART */
+
+        .chart {
+            height: 275px;
+
+            border-radius: 17px;
+
+            padding: 20px;
+
+            background:
+                linear-gradient(
+                    rgba(255, 255, 255, 0.035) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255, 255, 255, 0.035) 1px,
+                    transparent 1px
+                ),
+                rgba(255, 255, 255, 0.018);
+
+            background-size: 45px 45px;
+
+            position: relative;
+
+            overflow: hidden;
+        }
+
+
+        .chart::before {
+            content: "SOLAR GENERATION";
+
+            position: absolute;
+
+            top: 15px;
+            left: 18px;
+
+            font-size: 0.65rem;
+
+            letter-spacing: 1.5px;
+
+            color: #676767;
+        }
+
+
+        .chart-line {
+            position: absolute;
+
+            left: 5%;
+            right: 5%;
+
+            bottom: 28px;
+
+            height: 170px;
+        }
+
+        .chart-line svg {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        /* =========================================================
+           SECTIONS
+           ========================================================= */
+
+        section {
+            padding: 100px 0;
+        }
+
+
+        .section-heading {
+            max-width: 720px;
+
+            margin-bottom: 48px;
+        }
+
+        .section-heading .label {
+            color: var(--gold);
+
+            font-size: 0.78rem;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+        }
+
+        .section-heading h2 {
+            font-size:
+                clamp(
+                    2rem,
+                    4vw,
+                    3.25rem
+                );
+
+            line-height: 1.04;
+
+            margin: 11px 0 16px;
+
+            letter-spacing: -1.7px;
+        }
+
+        .section-heading p {
+            color: #929292;
+
+            line-height: 1.75;
+        }
+
+
+        /* =========================================================
+           FEATURES
+           ========================================================= */
+
+        .features {
+            background:
+                linear-gradient(
+                    180deg,
+                    #090909,
+                    #0d0d0d
+                );
+
+            border-top:
+                1px solid
+                rgba(255, 255, 255, 0.04);
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.04);
+        }
+
+
+        .feature-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 18px;
+        }
+
+
+        .feature-card {
+            position: relative;
+
+            padding: 30px;
+
+            border-radius: 21px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.045),
+                    rgba(255, 255, 255, 0.018)
+                );
+
+            transition:
+                transform 0.25s ease,
+                border-color 0.25s ease,
+                box-shadow 0.25s ease;
+
+            overflow: hidden;
+        }
+
+
+        .feature-card::after {
+            content: "";
+
+            position: absolute;
+
+            width: 100px;
+            height: 100px;
+
+            right: -55px;
+            top: -55px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255, 193, 7, 0.08);
+
+            filter: blur(12px);
+        }
+
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+
+            border-color:
+                rgba(255, 209, 102, 0.32);
+
+            box-shadow:
+                0 20px 50px
+                rgba(0, 0, 0, 0.35);
+        }
+
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 15px;
+
+            background:
+                rgba(255, 193, 7, 0.09);
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.12);
+
+            color: var(--gold);
+
+            font-size: 1.35rem;
+
+            margin-bottom: 20px;
+        }
+
+
+        .feature-card h3 {
+            margin-bottom: 9px;
+
+            font-size: 1.08rem;
+        }
+
+        .feature-card p {
+            color: #888;
+
+            font-size: 0.92rem;
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================================================
+           HOW IT WORKS
+           ========================================================= */
+
+        .steps {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+
+        .step {
+            padding: 28px;
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            border-radius: 0 18px 18px 0;
+
+            border-left:
+                2px solid
+                var(--gold);
+        }
+
+
+        .step-number {
+            color: var(--gold);
+
+            font-size: 0.78rem;
+
+            font-weight: 800;
+
+            letter-spacing: 1.2px;
+
+            margin-bottom: 11px;
+        }
+
+        .step h3 {
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: #888;
+
+            font-size: 0.92rem;
+
+            line-height: 1.7;
+        }
+
+
+        /* =========================================================
+           ABOUT
+           ========================================================= */
+
+        .about-content {
+            max-width: 850px;
+        }
+
+
+        /* =========================================================
+           CTA
+           ========================================================= */
+
+        .cta {
+            padding:
+                80px 0
+                100px;
+        }
+
+
+        .cta-box {
+            position: relative;
+
+            text-align: center;
+
+            padding:
+                80px 30px;
+
+            border-radius: 30px;
+
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    circle at 50% 0%,
+                    rgba(255, 193, 7, 0.13),
+                    transparent 55%
+                ),
+                linear-gradient(
+                    145deg,
+                    #111111,
+                    #090909
+                );
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.17);
+
+            box-shadow:
+                0 30px 90px
+                rgba(0, 0, 0, 0.5);
+        }
+
+
+        .cta-box::before {
+            content: "☀";
+
+            position: absolute;
+
+            font-size: 12rem;
+
+            color:
+                rgba(255, 193, 7, 0.025);
+
+            right: 5%;
+            top: -45px;
+
+            pointer-events: none;
+        }
+
+
+        .cta-box h2 {
+            position: relative;
+
+            font-size:
+                clamp(
+                    2rem,
+                    4vw,
+                    3.3rem
+                );
+
+            margin-bottom: 15px;
+        }
+
+
+        .cta-box p {
+            position: relative;
+
+            color: #929292;
+
+            max-width: 620px;
+
+            margin:
+                0 auto
+                28px;
+
+            line-height: 1.7;
+        }
+
+
+        .cta-box .btn {
+            position: relative;
+        }
+
+
+        /* =========================================================
+           FOOTER
+           ========================================================= */
+
+        footer {
+            border-top:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+
+            padding: 30px 0;
+
+            color: #686868;
+
+            font-size: 0.84rem;
+        }
+
+
+        .footer-inner {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 20px;
+        }
+
+
+        .footer-brand {
+            color: #9a9a9a;
+        }
+
+
+        .footer-brand strong {
+            color: var(--gold);
+        }
+
+
+        /* =========================================================
+           RESPONSIVE — TABLET
+           ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .hero {
+                padding-top: 80px;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+
+                gap: 55px;
+            }
+
+            .hero h1 {
+                max-width: 650px;
+            }
+
+            .feature-grid,
+            .steps {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+        }
+
+
+        /* =========================================================
+           RESPONSIVE — MOBILE
+           ========================================================= */
+
+        @media (max-width: 600px) {
+
+            .nav-inner {
+                min-height: 68px;
+            }
+
+            .logo {
+                font-size: 1.18rem;
+            }
+
+            .logo-icon {
+                width: 36px;
+                height: 36px;
+            }
+
+
+            .nav-actions .btn-outline {
+                display: none;
+            }
+
+            .nav-actions .btn-primary {
+                min-height: 40px;
+
+                padding:
+                    0 14px;
+
+                font-size: 0.85rem;
+            }
+
+
+            .hero {
+                padding:
+                    65px 0
+                    70px;
+            }
+
+
+            .hero h1 {
+                font-size:
+                    clamp(
+                        2.6rem,
+                        14vw,
+                        4rem
+                    );
+
+                letter-spacing: -2.5px;
+            }
+
+
+            .hero p {
+                font-size: 0.98rem;
+            }
+
+
+            .hero-buttons {
+                flex-direction: column;
+
+                align-items: stretch;
+            }
+
+
+            .hero-buttons .btn {
+                width: 100%;
+            }
+
+
+            .hero-stats {
+                gap: 22px;
+            }
+
+
+            .dashboard-top {
+                grid-template-columns: 1fr;
+            }
+
+
+            .chart {
+                height: 230px;
+            }
+
+
+            .feature-grid,
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+
+            section {
+                padding:
+                    75px 0;
+            }
+
+
+            .section-heading {
+                margin-bottom: 35px;
+            }
+
+
+            .cta {
+                padding:
+                    60px 0
+                    75px;
+            }
+
+
+            .cta-box {
+                padding:
+                    65px 22px;
+            }
+
+
+            .footer-inner {
+                flex-direction: column;
+
+                text-align: center;
+            }
+
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     NAVIGATION
+     ========================================================= -->
+
+<nav>
+
+    <div class="container nav-inner">
+
+        <a href="/" class="logo">
+
+            <span class="logo-icon">
+                ☀
+            </span>
+
+            <span>
+                RaySense
+            </span>
+
+        </a>
+
+
+        <div class="nav-links">
+
+            <a href="#features">
+                Features
+            </a>
+
+            <a href="#how-it-works">
+                How It Works
+            </a>
+
+            <a href="#about">
+                About
+            </a>
+
+        </div>
+
+
+        <div class="nav-actions">
+
+            <!-- FIXED: Web login page -->
+
+            <a
+                href="/login/"
+                class="btn btn-outline"
+            >
+                Login
+            </a>
+
+
+            <!-- FIXED: Web registration page -->
+
+            <a
+                href="/register/"
+                class="btn btn-primary"
+            >
+                Get Started
+            </a>
+
+        </div>
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     HERO
+     ========================================================= -->
+
+<header class="hero">
+
+    <div class="container hero-grid">
+
+
+        <!-- HERO TEXT -->
+
+        <div>
+
+            <div class="eyebrow">
+
+                ☀
+
+                AI-Powered Solar Intelligence
+
+            </div>
+
+
+            <h1>
+
+                Smarter Solar.
+
+                <span>
+                    Better Decisions.
+                </span>
+
+            </h1>
+
+
+            <p>
+
+                RaySense brings solar monitoring,
+                weather intelligence, AI-powered
+                generation forecasting and performance
+                analysis into one intelligent platform.
+
+            </p>
+
+
+            <div class="hero-buttons">
+
+                <!-- FIXED -->
+
+                <a
+                    href="/register/"
+                    class="btn btn-primary"
+                >
+                    Start Monitoring →
+                </a>
+
+
+                <a
+                    href="#features"
+                    class="btn btn-outline"
+                >
+                    Explore RaySense
+                </a>
+
+            </div>
+
+
+            <div class="hero-stats">
+
+                <div class="stat">
+
+                    <strong>
+                        AI
+                    </strong>
+
+                    <span>
+                        Forecasting
+                    </span>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <strong>
+                        24/7
+                    </strong>
+
+                    <span>
+                        Monitoring
+                    </span>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <strong>
+                        Real-time
+                    </strong>
+
+                    <span>
+                        Insights
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             DASHBOARD PREVIEW
+             ================================================= -->
+
+        <div class="dashboard-card">
+
+
+            <div class="window-bar">
+
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+                <span class="window-dot"></span>
+
+            </div>
+
+
+            <div class="dashboard-top">
+
+
+                <div class="metric gold">
+
+                    <small>
+                        Today's Generation
+                    </small>
+
+                    <strong>
+                        24.8 kWh
+                    </strong>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <small>
+                        AI Forecast
+                    </small>
+
+                    <strong>
+                        31.4 kWh
+                    </strong>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <small>
+                        System
+                    </small>
+
+                    <strong>
+                        5.0 kW
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="chart">
+
+
+                <div class="chart-line">
+
+                    <svg
+                        viewBox="0 0 600 180"
+                        preserveAspectRatio="none"
+                    >
+
+                        <polyline
+
+                            points="
+                                0,165
+                                45,150
+                                90,120
+                                135,105
+                                180,80
+                                225,65
+                                270,40
+                                315,25
+                                360,42
+                                405,65
+                                450,95
+                                495,120
+                                540,145
+                                600,165
+                            "
+
+                            fill="none"
+
+                            stroke="#ffd166"
+
+                            stroke-width="5"
+
+                            stroke-linecap="round"
+
+                            stroke-linejoin="round"
+
+                        />
+
+                    </svg>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     FEATURES
+     ========================================================= -->
+
+<section
+    class="features"
+    id="features"
+>
+
+    <div class="container">
+
+
+        <div class="section-heading">
+
+            <div class="label">
+                Platform
+            </div>
+
+
+            <h2>
+                Everything you need to understand your solar system.
+            </h2>
+
+
+            <p>
+                RaySense combines monitoring, forecasting,
+                weather intelligence and performance analysis
+                to give you a complete view of your solar energy.
+            </p>
+
+        </div>
+
+
+
+        <div class="feature-grid">
+
+
+            <!-- FEATURE 1 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ☀
+                </div>
+
+                <h3>
+                    Solar Monitoring
+                </h3>
+
+                <p>
+                    Track solar generation and system
+                    information through a centralized
+                    dashboard.
+                </p>
+
+            </div>
+
+
+            <!-- FEATURE 2 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ◈
+                </div>
+
+                <h3>
+                    AI Forecasting
+                </h3>
+
+                <p>
+                    Use weather information and
+                    machine-learning models to estimate
+                    future solar generation.
+                </p>
+
+            </div>
+
+
+            <!-- FEATURE 3 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ↗
+                </div>
+
+                <h3>
+                    Performance Analysis
+                </h3>
+
+                <p>
+                    Understand system performance and
+                    identify changes in solar generation.
+                </p>
+
+            </div>
+
+
+            <!-- FEATURE 4 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ☁
+                </div>
+
+                <h3>
+                    Weather Intelligence
+                </h3>
+
+                <p>
+                    Connect weather conditions with
+                    expected solar energy production.
+                </p>
+
+            </div>
+
+
+            <!-- FEATURE 5 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    ⚡
+                </div>
+
+                <h3>
+                    Energy Insights
+                </h3>
+
+                <p>
+                    Turn solar generation data into
+                    useful information for better
+                    energy decisions.
+                </p>
+
+            </div>
+
+
+            <!-- FEATURE 6 -->
+
+            <div class="feature-card">
+
+                <div class="feature-icon">
+                    🔔
+                </div>
+
+                <h3>
+                    Smart Alerts
+                </h3>
+
+                <p>
+                    Receive important notifications
+                    about your solar system and
+                    its performance.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     HOW IT WORKS
+     ========================================================= -->
+
+<section id="how-it-works">
+
+    <div class="container">
+
+
+        <div class="section-heading">
+
+            <div class="label">
+                How It Works
+            </div>
+
+
+            <h2>
+                From solar data to intelligent insights.
+            </h2>
+
+
+            <p>
+                RaySense brings multiple data sources
+                together to provide a clear view of
+                solar performance and future generation.
+            </p>
+
+        </div>
+
+
+
+        <div class="steps">
+
+
+            <!-- STEP 1 -->
+
+            <div class="step">
+
+                <div class="step-number">
+                    01 — CONNECT
+                </div>
+
+
+                <h3>
+                    Add your solar system
+                </h3>
+
+
+                <p>
+                    Enter your solar system details,
+                    capacity and location to create
+                    your RaySense profile.
+                </p>
+
+            </div>
+
+
+
+            <!-- STEP 2 -->
+
+            <div class="step">
+
+                <div class="step-number">
+                    02 — ANALYZE
+                </div>
+
+
+                <h3>
+                    Understand your data
+                </h3>
+
+
+                <p>
+                    RaySense combines generation,
+                    weather and system information
+                    for analysis.
+                </p>
+
+            </div>
+
+
+
+            <!-- STEP 3 -->
+
+            <div class="step">
+
+                <div class="step-number">
+                    03 — PREDICT
+                </div>
+
+
+                <h3>
+                    Forecast future generation
+                </h3>
+
+
+                <p>
+                    Machine-learning forecasting
+                    helps estimate future solar
+                    energy generation.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     ABOUT
+     ========================================================= -->
+
+<section
+    id="about"
+    class="features"
+>
+
+    <div class="container">
+
+        <div class="section-heading about-content">
+
+            <div class="label">
+                About RaySense
+            </div>
+
+
+            <h2>
+                Making solar energy easier to understand.
+            </h2>
+
+
+            <p>
+                RaySense is an intelligent solar-energy
+                monitoring and forecasting platform designed
+                to combine renewable-energy data with modern
+                machine-learning techniques.
+            </p>
+
+
+            <p style="margin-top: 18px;">
+
+                By combining solar generation,
+                weather information, forecasting,
+                performance analysis and alerts,
+                RaySense helps transform raw solar data
+                into meaningful energy insights.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     CTA
+     ========================================================= -->
+
+<section class="cta">
+
+    <div class="container">
+
+        <div class="cta-box">
+
+
+            <h2>
+                Ready to understand your solar energy better?
+            </h2>
+
+
+            <p>
+                Create your RaySense account and start
+                exploring your solar system through
+                intelligent monitoring and forecasting.
+            </p>
+
+
+            <!-- FIXED -->
+
+            <a
+                href="/register/"
+                class="btn btn-primary"
+            >
+                Create RaySense Account →
+            </a>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<!-- =========================================================
+     FOOTER
+     ========================================================= -->
+
+<footer>
+
+    <div class="container footer-inner">
+
+
+        <div class="footer-brand">
+
+            © 2026
+
+            <strong>
+                RaySense
+            </strong>
+
+            · Smart Solar Energy Intelligence.
+
+        </div>
+
+
+        <div>
+
+            ☀ AI
+            · Monitoring
+            · Forecasting
+            · Performance
+
+        </div>
+
+
+    </div>
+
+</footer>
+
+
+</body>
+
+</html>

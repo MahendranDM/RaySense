@@ -1,0 +1,1611 @@
+﻿/* ==========================================
+   RAYSENSE ADMINISTRATION — UNIFIED DESIGN
+   ========================================== */
+
+:root {
+    --rs-sidebar-width: 250px !important;
+    --rs-sidebar-bg: #0b0b0c;
+    --rs-gold: #ffd166;
+    --rs-gold-hover: #ffbf24;
+    --rs-page-bg: #f4f6fa;
+    --rs-card-bg: #ffffff;
+    --rs-text: #17191f;
+    --rs-muted: #748094;
+    --rs-border: #e5e8ef;
+}
+
+/* Global typography */
+
+html,
+body,
+body * {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+html,
+body {
+    margin: 0;
+    color: var(--rs-text);
+    background: var(--rs-page-bg);
+}
+
+body {
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6,
+button, input, select, textarea {
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+h1, h2, h3, h4 {
+    color: var(--rs-text);
+    letter-spacing: -0.35px;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* ==========================================
+   STANDARD SIDEBAR
+   ========================================== */
+
+aside.sidebar,
+.sidebar {
+    box-sizing: border-box !important;
+    width: var(--rs-sidebar-width) !important;
+    min-width: var(--rs-sidebar-width) !important;
+    flex: 0 0 var(--rs-sidebar-width) !important;
+    background: var(--rs-sidebar-bg) !important;
+    color: #f8fafc;
+    border-right: 1px solid #252525;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #0b0b0c;
+}
+
+/* Preserve the existing sidebar placement while
+   standardizing the width across all pages. */
+
+aside.sidebar,
+.sidebar {
+    padding-left: 24px;
+    padding-right: 20px;
+}
+
+/* Branding */
+
+aside.sidebar .brand,
+.sidebar .brand {
+    color: #ffffff;
+}
+
+aside.sidebar .brand h2,
+aside.sidebar .brand h2 a,
+.sidebar .brand h2,
+.sidebar .brand h2 a {
+    color: #ffffff;
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+}
+
+aside.sidebar .brand p,
+aside.sidebar .brand small,
+.sidebar .brand p,
+.sidebar .brand small {
+    color: #a4a9b3;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+}
+
+/* Sidebar section labels */
+
+aside.sidebar .section-label,
+aside.sidebar .nav-title,
+aside.sidebar .section,
+.sidebar .section-label,
+.sidebar .nav-title,
+.sidebar .section {
+    color: #969ba6;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+}
+
+/* Navigation links */
+
+aside.sidebar nav.nav a,
+aside.sidebar nav a,
+.sidebar nav.nav a,
+.sidebar nav a {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 45px;
+    padding: 11px 13px;
+    margin: 3px 0;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #d5d9e1;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-decoration: none;
+    transition:
+        background 0.18s ease,
+        color 0.18s ease,
+        border-color 0.18s ease;
+}
+
+aside.sidebar nav.nav a:hover,
+aside.sidebar nav a:hover,
+.sidebar nav.nav a:hover,
+.sidebar nav a:hover {
+    color: var(--rs-gold);
+    background: #191919;
+}
+
+aside.sidebar nav.nav a.active,
+aside.sidebar nav a.active,
+.sidebar nav.nav a.active,
+.sidebar nav a.active {
+    color: var(--rs-gold);
+    background: rgba(255, 209, 102, 0.11);
+    border-color: rgba(255, 209, 102, 0.12);
+    box-shadow: inset 3px 0 0 var(--rs-gold);
+}
+
+aside.sidebar .icon,
+.sidebar .icon {
+    flex: 0 0 20px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Django Admin shortcut */
+
+aside.sidebar a.django-admin-link,
+.sidebar a.django-admin-link {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-height: 43px;
+    padding: 10px 13px;
+    margin: 5px 0;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    color: #d5d9e1;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+aside.sidebar a.django-admin-link:hover,
+.sidebar a.django-admin-link:hover {
+    color: var(--rs-gold);
+    background: #191919;
+}
+
+/* Sidebar footer */
+
+aside.sidebar .sidebar-bottom,
+.sidebar .sidebar-bottom {
+    border-top: 1px solid #292929;
+    padding-top: 14px;
+}
+
+aside.sidebar .sidebar-bottom a,
+.sidebar .sidebar-bottom a {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 10px 13px;
+    border-radius: 9px;
+    color: #c4c7ce;
+    font-size: 13px;
+}
+
+aside.sidebar .sidebar-bottom a:hover,
+.sidebar .sidebar-bottom a:hover {
+    color: var(--rs-gold);
+    background: #191919;
+}
+
+/* ==========================================
+   CONSISTENT CONTENT AND CARDS
+   ========================================== */
+
+main,
+.main,
+.content {
+    box-sizing: border-box;
+}
+
+header.topbar,
+.topbar {
+    box-sizing: border-box;
+    background: #ffffff;
+    border-bottom: 1px solid var(--rs-border);
+}
+
+.card,
+.stat,
+.panel,
+.quick-card,
+.model-card,
+.alert-card,
+.report-card {
+    box-sizing: border-box;
+    border-radius: 16px;
+}
+
+button,
+input,
+select,
+textarea {
+    font-size: 14px;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+/* ==========================================
+   RESPONSIVE LAYOUT
+   ========================================== */
+
+@media (max-width: 760px) {
+    aside.sidebar,
+    .sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: 0 0 100% !important;
+    }
+}
+
+/* ===== EMERGENCY ALERTS PAGE LAYOUT FIX ===== */
+body .layout {
+    display: flex !important;
+    align-items: stretch !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+}
+
+body .layout > aside.sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    height: 100vh !important;
+    padding: 28px 17px !important;
+    overflow-y: auto !important;
+    background: #0b0b0c !important;
+    color: #ffffff !important;
+    box-sizing: border-box !important;
+    z-index: 1000 !important;
+}
+
+body .layout > main.main {
+    display: block !important;
+    position: relative !important;
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+    max-width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    padding: 30px 35px 45px !important;
+    box-sizing: border-box !important;
+}
+
+body .layout > aside.sidebar .brand {
+    color: #ffffff !important;
+    font-size: 25px !important;
+    font-weight: 800 !important;
+}
+
+body .layout > aside.sidebar .brand small {
+    display: block !important;
+    color: #a4a9b3 !important;
+    font-size: 11px !important;
+}
+
+body .layout > aside.sidebar .nav a {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding: 12px !important;
+    color: #e4e4e7 !important;
+    text-decoration: none !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+}
+
+body .layout > aside.sidebar .nav a.active {
+    background: #292416 !important;
+    color: #ffd166 !important;
+}
+
+body .layout > aside.sidebar a.django-admin-link {
+    display: flex !important;
+    width: 100% !important;
+    padding: 12px !important;
+    color: #e4e4e7 !important;
+    background: #171717 !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 650px) {
+    body .layout > aside.sidebar {
+        position: relative !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body .layout > main.main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 20px !important;
+    }
+}
+
+
+/* ==========================================================
+   RAYSENSE ADMIN SIDEBAR — FINAL VISUAL CONSISTENCY FIX
+   Match the User Management and Solar Systems sidebar.
+   ========================================================== */
+
+/* Sidebar dimensions and appearance */
+body aside.sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 290px !important;
+    min-width: 290px !important;
+    max-width: 290px !important;
+    height: 100vh !important;
+    min-height: 100vh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 30px 23px 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: #0a0a0a !important;
+    color: #f8fafc !important;
+    border-right: 1px solid #252525 !important;
+    z-index: 1000 !important;
+}
+
+/* Compact brand layout */
+body aside.sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 13px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 28px !important;
+    padding: 0 0 25px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
+
+/* Yellow rounded brand icon */
+body aside.sidebar .brand-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    border-radius: 14px !important;
+    background: #ffd166 !important;
+    color: #111111 !important;
+    font-size: 27px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+/* Brand title */
+body aside.sidebar .brand h2 {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+    font-size: 23px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+}
+
+/* Brand subtitle */
+body aside.sidebar .brand p {
+    display: block !important;
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+    color: #a4a9b3 !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.5px !important;
+    line-height: 1.4 !important;
+}
+
+/* Navigation section headings */
+body aside.sidebar .section-label,
+body aside.sidebar .nav-title,
+body aside.sidebar .section {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 13px 12px !important;
+    color: #969ba6 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.4px !important;
+    line-height: 1.5 !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+}
+
+/* Navigation groups */
+body aside.sidebar nav.nav,
+body aside.sidebar nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 0 23px !important;
+    padding: 0 !important;
+    gap: 3px !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+/* Navigation links */
+body aside.sidebar nav.nav a,
+body aside.sidebar nav a,
+body aside.sidebar > a:not(.brand):not(.django-admin-link) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 11px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 45px !important;
+    margin: 0 !important;
+    padding: 11px 13px !important;
+    box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    white-space: normal !important;
+    transition: background 0.18s ease, color 0.18s ease !important;
+}
+
+/* Icons */
+body aside.sidebar .icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: inherit !important;
+    font-size: 15px !important;
+    text-align: center !important;
+}
+
+/* Active link */
+body aside.sidebar nav.nav a.active,
+body aside.sidebar nav a.active,
+body aside.sidebar > a.active {
+    background: #292416 !important;
+    color: #ffd166 !important;
+    border-color: #292416 !important;
+    box-shadow: inset 3px 0 0 #ffd166 !important;
+}
+
+/* Hover */
+body aside.sidebar nav.nav a:hover,
+body aside.sidebar nav a:hover,
+body aside.sidebar > a:not(.brand):hover {
+    background: #191919 !important;
+    color: #ffd166 !important;
+}
+
+/* Django Admin */
+body aside.sidebar a.django-admin-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 11px !important;
+    width: 100% !important;
+    min-height: 45px !important;
+    margin: 0 0 10px !important;
+    padding: 11px 13px !important;
+    box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+body aside.sidebar a.django-admin-link:hover {
+    background: #191919 !important;
+    color: #ffd166 !important;
+}
+
+/* Sign-out area */
+body aside.sidebar .sidebar-bottom {
+    display: block !important;
+    width: 100% !important;
+    margin-top: auto !important;
+    padding: 14px 0 0 !important;
+    border-top: 1px solid #292929 !important;
+    color: #a4a9b3 !important;
+    font-size: 12px !important;
+    line-height: 1.8 !important;
+    box-sizing: border-box !important;
+}
+
+body aside.sidebar .sidebar-bottom a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 10px 13px !important;
+    border-radius: 9px !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+    box-sizing: border-box !important;
+}
+
+body aside.sidebar .sidebar-bottom a:hover {
+    background: #191919 !important;
+    color: #ffd166 !important;
+}
+
+/* Main content must start after the sidebar */
+body .layout > main.main {
+    margin-left: 290px !important;
+    width: calc(100% - 290px) !important;
+    max-width: calc(100% - 290px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Reports template uses a plain main element */
+body > main,
+body main:not(.main) {
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Prevent cards and tables from forcing the entire page wider */
+body .main,
+body main.main,
+body .main-content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 760px) {
+    body aside.sidebar {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    body .layout > main.main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+
+/* ===== RAYSENSE ADMIN SIDEBAR: CORRECTED SELECTORS ===== */
+
+body .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 290px !important;
+    min-width: 290px !important;
+    max-width: 290px !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    padding: 30px 23px 20px !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #0a0a0a !important;
+    color: #f8fafc !important;
+    z-index: 1000 !important;
+}
+
+/* Brand row */
+body .sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 13px !important;
+    width: 100% !important;
+    margin: 0 0 28px !important;
+    padding: 0 0 25px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    background: transparent !important;
+    font-size: 14px !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    box-sizing: border-box !important;
+}
+
+/* Prevent oversized logo and title */
+body .sidebar .brand-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    border-radius: 14px !important;
+    background: #ffd166 !important;
+    color: #111 !important;
+}
+
+body .sidebar .brand h2,
+body .sidebar .brand h1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 23px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.2 !important;
+}
+
+body .sidebar .brand p {
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+    color: #a4a9b3 !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.5px !important;
+    line-height: 1.4 !important;
+}
+
+/* Navigation headings */
+body .sidebar .nav-title,
+body .sidebar .section-label {
+    margin: 0 !important;
+    padding: 0 13px 12px !important;
+    color: #969ba6 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1.4px !important;
+    text-transform: uppercase !important;
+}
+
+/* Navigation spacing */
+body .sidebar nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 3px !important;
+    width: 100% !important;
+    margin: 0 0 23px !important;
+    padding: 0 !important;
+}
+
+/* Navigation links */
+body .sidebar nav a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 11px !important;
+    width: 100% !important;
+    min-height: 45px !important;
+    margin: 0 !important;
+    padding: 11px 13px !important;
+    box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+/* Active navigation item */
+body .sidebar nav a.active,
+body .sidebar nav a[aria-current="page"] {
+    background: #292416 !important;
+    color: #ffd166 !important;
+    border-color: #292416 !important;
+    box-shadow: inset 3px 0 0 #ffd166 !important;
+}
+
+/* Hover state */
+body .sidebar nav a:hover {
+    background: #191919 !important;
+    color: #ffd166 !important;
+}
+
+/* Django Admin link */
+body .sidebar a.django-admin-link {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 45px !important;
+    padding: 11px 13px !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+/* Sidebar footer */
+body .sidebar .sidebar-bottom {
+    margin-top: auto !important;
+    padding-top: 14px !important;
+    border-top: 1px solid #292929 !important;
+}
+
+body .sidebar .sidebar-bottom a {
+    display: flex !important;
+    align-items: center !important;
+    min-height: 42px !important;
+    padding: 10px 13px !important;
+    border-radius: 9px !important;
+    color: #f1f3f6 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+/* Main content offset */
+body .layout > .main,
+body .layout > main,
+body .main-content {
+    margin-left: 290px !important;
+    width: calc(100% - 290px) !important;
+    max-width: calc(100% - 290px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 760px) {
+    body .sidebar {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body .layout > .main,
+    body .layout > main,
+    body .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+
+/* ===== FINAL ALERTS SIDEBAR ALIGNMENT ===== */
+/* Match the working Solar Systems sidebar. */
+
+body .layout > aside.sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    height: 100vh !important;
+    padding: 27px 17px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+    background: #080808 !important;
+    color: #ffffff !important;
+    z-index: 1000 !important;
+}
+
+/* Compact RaySense brand */
+body .layout > aside.sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 10px 30px !important;
+    border-bottom: 1px solid #292929 !important;
+    font-size: 14px !important;
+    letter-spacing: normal !important;
+    box-sizing: border-box !important;
+}
+
+body .layout > aside.sidebar .brand-icon {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 43px !important;
+    width: 43px !important;
+    min-width: 43px !important;
+    height: 43px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg, #ffe082, #ffb703) !important;
+    color: #080808 !important;
+    font-size: 23px !important;
+    line-height: 1 !important;
+}
+
+body .layout > aside.sidebar .brand h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.3px !important;
+    line-height: 1.2 !important;
+}
+
+body .layout > aside.sidebar .brand p {
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    color: #aaaaaa !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+}
+
+/* Match Solar Systems navigation */
+body .layout > aside.sidebar .section-label {
+    padding: 27px 12px 12px !important;
+    color: #777777 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+}
+
+body .layout > aside.sidebar nav.nav {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: 100% !important;
+}
+
+body .layout > aside.sidebar nav.nav a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 45px !important;
+    padding: 13px 14px !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    box-sizing: border-box !important;
+    color: #c5c5c5 !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+body .layout > aside.sidebar nav.nav a.active,
+body .layout > aside.sidebar nav.nav a[aria-current="page"] {
+    color: #ffd166 !important;
+    background: rgba(255, 209, 102, 0.10) !important;
+    box-shadow: none !important;
+}
+
+body .layout > aside.sidebar nav.nav a:hover {
+    color: #ffd166 !important;
+    background: rgba(255, 209, 102, 0.10) !important;
+}
+
+body .layout > aside.sidebar nav.nav .icon {
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    text-align: center !important;
+    font-size: 17px !important;
+}
+
+/* Main content starts immediately after the 250px sidebar */
+body .layout > main.main {
+    position: relative !important;
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+    max-width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Responsive layout */
+@media (max-width: 760px) {
+    body .layout > aside.sidebar {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body .layout > main.main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ===== RAYSENSE SIDEBAR NORMALIZATION V2 ===== */
+/* Scoped only to Overview, ML Comparison and Reports. */
+
+body.admin-sidebar-normalized {
+    overflow-x: hidden !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar {
+    position: fixed !important;
+    inset: 0 auto 0 0 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    padding: 27px 17px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: #0b0b0c !important;
+    color: #f8fafc !important;
+    border-right: 1px solid #292929 !important;
+    z-index: 1000 !important;
+}
+
+/* Match the working User Management brand layout. */
+body.admin-sidebar-normalized aside.sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 0 0 !important;
+    padding: 0 10px 30px !important;
+    box-sizing: border-box !important;
+    border: 0 !important;
+    border-bottom: 1px solid #292929 !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+    text-decoration: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand-icon {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 43px !important;
+    width: 43px !important;
+    min-width: 43px !important;
+    height: 43px !important;
+    border-radius: 13px !important;
+    background: linear-gradient(135deg, #ffe082, #ffb703) !important;
+    color: #080808 !important;
+    font-size: 23px !important;
+    font-weight: 900 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand h2 {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    letter-spacing: normal !important;
+    line-height: 1.2 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand p {
+    display: block !important;
+    margin: 4px 0 0 !important;
+    padding: 0 !important;
+    color: #aaaaaa !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+}
+
+/* Navigation section headings. */
+body.admin-sidebar-normalized aside.sidebar .section-label {
+    display: block !important;
+    margin: 0 !important;
+    padding: 27px 12px 12px !important;
+    color: #777777 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    line-height: 1.4 !important;
+    text-transform: uppercase !important;
+}
+
+/* Restore full-width navigation links and spacing. */
+body.admin-sidebar-normalized aside.sidebar nav.nav {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 13px 14px !important;
+    box-sizing: border-box !important;
+    border: 0 !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #e4e4e7 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+    white-space: normal !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a .icon {
+    display: inline-block !important;
+    flex: 0 0 20px !important;
+    width: 20px !important;
+    min-width: 20px !important;
+    font-size: 17px !important;
+    text-align: center !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a:hover {
+    background: #20201b !important;
+    color: #ffd166 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a.active,
+body.admin-sidebar-normalized aside.sidebar nav.nav a[aria-current="page"] {
+    background: #292416 !important;
+    color: #ffd166 !important;
+    box-shadow: inset 3px 0 0 #ffd166 !important;
+}
+
+/* Keep the sign-out area at the bottom, like User Management. */
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom {
+    display: block !important;
+    margin-top: auto !important;
+    padding: 15px 0 0 !important;
+    border-top: 1px solid #292929 !important;
+    color: #bbbbbb !important;
+    font-size: 13px !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+    border-radius: 9px !important;
+    background: transparent !important;
+    color: #bbbbbb !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom a:hover {
+    background: #20201b !important;
+    color: #ffd166 !important;
+}
+
+/* Correct the content offset for all three page structures. */
+body.admin-sidebar-normalized .layout > .main,
+body.admin-sidebar-normalized .layout > main,
+body.admin-sidebar-normalized main.main,
+body.admin-sidebar-normalized body > main,
+body.admin-sidebar-normalized > main,
+body.admin-sidebar-normalized .main-content {
+    display: block !important;
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    max-width: calc(100% - 260px) !important;
+    min-width: 0 !important;
+    min-height: 100vh !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 760px) {
+    body.admin-sidebar-normalized aside.sidebar {
+        position: relative !important;
+        inset: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body.admin-sidebar-normalized .layout > .main,
+    body.admin-sidebar-normalized .layout > main,
+    body.admin-sidebar-normalized main.main,
+    body.admin-sidebar-normalized > main,
+    body.admin-sidebar-normalized .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ===== RAYSENSE ADMIN: FINAL SHARED SIDEBAR ALIGNMENT ===== */
+
+body .sidebar,
+body aside.sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-shrink: 0 !important;
+    padding: 27px 17px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    background: #0b0b0c !important;
+    color: #f8fafc !important;
+    border-right: 1px solid #292929 !important;
+    z-index: 1000 !important;
+}
+
+/* Keep the RaySense logo and title in one compact row. */
+body .sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    width: 100% !important;
+    margin: 0 0 20px !important;
+    padding: 0 10px 25px !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid #292929 !important;
+    background: transparent !important;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+}
+
+body .sidebar .brand-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    height: 48px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    background: #ffd166 !important;
+    color: #111 !important;
+    font-size: 23px !important;
+}
+
+body .sidebar .brand h2,
+body .sidebar .brand h1 {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fff !important;
+    font-size: 21px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.2 !important;
+}
+
+body .sidebar .brand p,
+body .sidebar .brand small {
+    display: block !important;
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+    color: #aaa !important;
+    font-size: 11px !important;
+    font-weight: 400 !important;
+    letter-spacing: normal !important;
+    line-height: 1.4 !important;
+}
+
+/* Consistent section labels. */
+body .sidebar .section-label,
+body .sidebar .nav-title {
+    display: block !important;
+    margin: 0 !important;
+    padding: 14px 12px 12px !important;
+    color: #888 !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 1.5px !important;
+    line-height: 1.4 !important;
+    text-transform: uppercase !important;
+}
+
+/* Consistent navigation layout. */
+body .sidebar nav,
+body .sidebar .nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 4px !important;
+    width: 100% !important;
+    margin: 0 0 15px !important;
+    padding: 0 !important;
+}
+
+body .sidebar nav a,
+body .sidebar .nav a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+    min-height: 45px !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    box-sizing: border-box !important;
+    border: 1px solid transparent !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #e4e4e7 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    text-align: left !important;
+    text-decoration: none !important;
+}
+
+body .sidebar nav a.active,
+body .sidebar .nav a.active,
+body .sidebar nav a[aria-current="page"] {
+    background: #292416 !important;
+    color: #ffd166 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+body .sidebar nav a:hover,
+body .sidebar .nav a:hover {
+    background: #20201b !important;
+    color: #ffd166 !important;
+}
+
+/* Django Admin and account links. */
+body .sidebar a.django-admin-link {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 45px !important;
+    margin: 0 !important;
+    padding: 12px 14px !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+    background: transparent !important;
+    color: #e4e4e7 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+body .sidebar .sidebar-bottom {
+    display: block !important;
+    margin-top: auto !important;
+    padding: 15px 0 0 !important;
+    border-top: 1px solid #292929 !important;
+}
+
+body .sidebar .sidebar-bottom a {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    box-sizing: border-box !important;
+    color: #bbb !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+/* Align page content with the same 250px sidebar. */
+body .layout > .main,
+body .layout > main,
+body .main,
+body main.main,
+body .main-content,
+body main.main-content,
+body > main {
+    margin-left: 250px !important;
+    width: calc(100% - 250px) !important;
+    max-width: calc(100% - 250px) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Restore responsive stacking on small screens. */
+@media (max-width: 760px) {
+    body .sidebar,
+    body aside.sidebar {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body .layout > .main,
+    body .layout > main,
+    body .main,
+    body main.main,
+    body .main-content,
+    body main.main-content,
+    body > main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+
+/* ===== END SHARED SIDEBAR ALIGNMENT ===== */
+
+/* ===== RAYSENSE ADMIN: CANONICAL OVERVIEW LAYOUT ===== */
+body.admin-sidebar-normalized {
+    --rs-admin-sidebar-width: 260px;
+    overflow-x: hidden !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: var(--rs-admin-sidebar-width) !important;
+    min-width: var(--rs-admin-sidebar-width) !important;
+    max-width: var(--rs-admin-sidebar-width) !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 1000 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 14px !important;
+    width: 100% !important;
+    text-decoration: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand h2,
+body.admin-sidebar-normalized aside.sidebar .brand p {
+    text-decoration: none !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand-icon {
+    flex: 0 0 48px !important;
+    width: 48px !important;
+    height: 48px !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar nav.nav a.active {
+    background: #292416 !important;
+    color: #ffd166 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom {
+    margin-top: auto !important;
+}
+
+body.admin-sidebar-normalized .layout > main,
+body.admin-sidebar-normalized .layout > .main,
+body.admin-sidebar-normalized > main,
+body.admin-sidebar-normalized main.main,
+body.admin-sidebar-normalized main:not(.sidebar),
+body.admin-sidebar-normalized .main-content {
+    margin-left: var(--rs-admin-sidebar-width) !important;
+    width: calc(100% - var(--rs-admin-sidebar-width)) !important;
+    max-width: calc(100% - var(--rs-admin-sidebar-width)) !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+body.admin-sidebar-normalized .layout {
+    display: block !important;
+    min-width: 0 !important;
+}
+
+body.admin-sidebar-normalized main > *,
+body.admin-sidebar-normalized .main > * {
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+    body.admin-sidebar-normalized aside.sidebar {
+        position: relative !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body.admin-sidebar-normalized .layout > main,
+    body.admin-sidebar-normalized .layout > .main,
+    body.admin-sidebar-normalized > main,
+    body.admin-sidebar-normalized main.main,
+    body.admin-sidebar-normalized main:not(.sidebar),
+    body.admin-sidebar-normalized .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+/* ===== END CANONICAL OVERVIEW LAYOUT ===== */
+
+/* FINAL REPORTS SIDEBAR ALIGNMENT FIX */
+body.admin-sidebar-normalized aside.sidebar {
+    width: 312px !important;
+    min-width: 312px !important;
+    max-width: 312px !important;
+    padding: 27px 17px !important;
+    box-sizing: border-box !important;
+}
+
+body.admin-sidebar-normalized > .layout > main.main,
+body.admin-sidebar-normalized .layout > main.main {
+    margin-left: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+}
+
+body.admin-sidebar-normalized .layout {
+    display: flex !important;
+    min-height: 100vh !important;
+    width: 100% !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand {
+    display: flex !important;
+    align-items: center !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+    padding-bottom: 30px !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand h2 {
+    margin: 0 !important;
+    font-size: 21px !important;
+    line-height: 1.2 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .brand p {
+    margin-top: 4px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+}
+
+body.admin-sidebar-normalized aside.sidebar .sidebar-bottom {
+    margin-top: auto !important;
+}
+
+@media (max-width: 760px) {
+    body.admin-sidebar-normalized aside.sidebar {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+    }
+}
+/* END FINAL REPORTS SIDEBAR ALIGNMENT FIX */

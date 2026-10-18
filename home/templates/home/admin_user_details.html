@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Details | RaySense Admin</title>
+    <style>
+        :root {
+            --bg: #f5f6fa;
+            --sidebar: #080808;
+            --gold: #ffd166;
+            --text: #171717;
+            --muted: #777;
+            --border: #ececec;
+            --green: #16865c;
+            --red: #d64545;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 250px;
+            background: var(--sidebar);
+            color: white;
+            padding: 27px 17px;
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 10px 30px;
+            border-bottom: 1px solid #292929;
+        }
+
+        .brand-icon {
+            width: 43px;
+            height: 43px;
+            border-radius: 13px;
+            display: grid;
+            place-items: center;
+            color: #080808;
+            background: linear-gradient(135deg,#ffe082,#ffb703);
+            font-size: 23px;
+            font-weight: 900;
+        }
+
+        .brand h2 { font-size: 21px; }
+        .brand p { color: #aaa; font-size: 11px; margin-top: 4px; }
+
+        .section-label {
+            color: #777;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            padding: 27px 12px 12px;
+        }
+
+        .nav { display: grid; gap: 6px; }
+
+        .nav a {
+            padding: 13px 14px;
+            border-radius: 10px;
+            color: #c5c5c5;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav a:hover, .nav a.active {
+            color: var(--gold);
+            background: rgba(255,209,102,.10);
+        }
+
+        .nav .icon { width: 20px; text-align: center; font-size: 17px; }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid #292929;
+            padding-top: 15px;
+        }
+
+        .sidebar-bottom a {
+            display: block;
+            padding: 12px;
+            color: #bbb;
+            font-size: 13px;
+        }
+
+        .main { margin-left: 250px; min-height: 100vh; }
+
+        .topbar {
+            min-height: 76px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 34px;
+            gap: 15px;
+        }
+
+        .breadcrumb { color: var(--muted); font-size: 12px; }
+        .breadcrumb strong { color: var(--text); }
+
+        .admin-pill {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .avatar {
+            width: 37px;
+            height: 37px;
+            border-radius: 12px;
+            background: #fff1c7;
+            display: grid;
+            place-items: center;
+            color: #765300;
+            font-weight: 900;
+        }
+
+        .content {
+            padding: 34px;
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        .welcome {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 27px;
+        }
+
+        .eyebrow {
+            color: #a47700;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 1.7px;
+            margin-bottom: 10px;
+        }
+
+        h1 { font-size: clamp(25px,3vw,34px); letter-spacing: -.8px; }
+
+        .subtitle {
+            color: var(--muted);
+            margin-top: 9px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .back-btn, .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #111;
+            color: var(--gold);
+            border: 0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .error {
+            color: #b42318;
+            background: #fff1f0;
+            border: 1px solid #ffd5d2;
+            border-radius: 10px;
+            padding: 13px 16px;
+            margin-bottom: 18px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .profile {
+            background: #111;
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        .profile-main { display: flex; align-items: center; gap: 17px; }
+
+        .profile-avatar {
+            width: 62px;
+            height: 62px;
+            border-radius: 17px;
+            display: grid;
+            place-items: center;
+            background: var(--gold);
+            color: #111;
+            font-size: 25px;
+            font-weight: 900;
+        }
+
+        .profile h2 { font-size: 22px; overflow-wrap: anywhere; }
+        .profile p { color: #bbb; font-size: 12px; margin-top: 6px; overflow-wrap: anywhere; }
+
+        .profile-id {
+            display: inline-block;
+            color: var(--gold);
+            background: #292929;
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-top: 9px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3,minmax(0,1fr));
+            gap: 16px;
+            margin-bottom: 23px;
+        }
+
+        .stat {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 21px;
+            min-width: 0;
+        }
+
+        .stat-label { color: var(--muted); font-size: 12px; font-weight: 600; }
+        .stat-value { font-size: 28px; font-weight: 800; margin-top: 12px; overflow-wrap: anywhere; }
+        .stat-note { color: #888; font-size: 11px; margin-top: 7px; }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 22px;
+        }
+
+        .panel-head {
+            padding: 21px 23px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-head h2 { font-size: 17px; }
+        .panel-head p { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+        .panel-body { padding: 22px; }
+
+        .system-grid {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+            gap: 16px;
+        }
+
+        .system-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 19px;
+            min-width: 0;
+        }
+
+        .system-card h3 { font-size: 16px; overflow-wrap: anywhere; }
+        .system-card .location { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2,minmax(0,1fr));
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .detail {
+            background: #fafafa;
+            border-radius: 9px;
+            padding: 12px;
+            min-width: 0;
+        }
+
+        .detail-label {
+            color: var(--muted);
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 6px;
+            overflow-wrap: anywhere;
+        }
+
+        .system-section { margin-top: 20px; }
+        .system-section h4 { font-size: 13px; margin-bottom: 10px; }
+
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            text-align: left;
+            padding: 13px 16px;
+            color: #777;
+            background: #fafafa;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .7px;
+        }
+
+        td {
+            padding: 13px 16px;
+            border-top: 1px solid #f0f0f0;
+            font-size: 12px;
+            vertical-align: top;
+        }
+
+        tbody tr:hover { background: #fffdf6; }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            background: #fff4d4;
+            color: #795800;
+        }
+
+        .badge.good { background: #e8f7ef; color: #16865c; }
+        .badge.bad { background: #fff0f0; color: #b54141; }
+
+        .message {
+            padding: 25px 18px;
+            text-align: center;
+            color: #777;
+            font-size: 13px;
+        }
+
+        .empty {
+            border: 1px dashed #ddd;
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 23px;
+            color: #777;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .footer {
+            padding: 24px 0 5px;
+            text-align: center;
+            color: #999;
+            font-size: 11px;
+        }
+
+        @media(max-width:1100px) {
+            .stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+            .system-grid { grid-template-columns: 1fr; }
+        }
+
+        @media(max-width:900px) {
+            .sidebar { width: 205px; }
+            .main { margin-left: 205px; }
+            .content { padding: 24px 18px; }
+            .topbar { padding: 15px 20px; }
+        }
+
+        @media(max-width:650px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                min-height: auto;
+                padding: 15px;
+            }
+
+            .brand { padding-bottom: 14px; }
+            .section-label { padding-top: 15px; }
+            .nav { grid-template-columns: 1fr 1fr; }
+            .sidebar-bottom { margin-top: 12px; }
+            .main { margin-left: 0; }
+            .topbar { min-height: 60px; }
+            .content { padding: 20px 13px; }
+            .welcome { flex-direction: column; }
+            .stats { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat { padding: 16px; }
+            .stat-value { font-size: 23px; }
+            .profile { padding: 19px; }
+            .profile h2 { font-size: 18px; }
+            .profile-avatar { width: 50px; height: 50px; }
+            .details-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+<!-- RAYSENSE SHARED ADMIN LAYOUT START -->
+<style>
+/* Shared RaySense admin layout */
+html,
+body {
+    margin: 0;
+    min-height: 100%;
+}
+
+body .sidebar,
+body aside.sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 260px !important;
+    height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    box-sizing: border-box !important;
+    background: #0b0b0c !important;
+    color: #f8fafc !important;
+    border-right: 1px solid #292929 !important;
+    z-index: 1000 !important;
+}
+
+/* Main content for the different existing template structures */
+body .main,
+body main.main,
+body .main-content,
+body > main,
+body .layout > main {
+    display: block;
+    box-sizing: border-box !important;
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    max-width: calc(100% - 260px) !important;
+    min-width: 0 !important;
+    min-height: 100vh;
+}
+
+/* Sidebar branding */
+body .sidebar .brand,
+body aside.sidebar .brand {
+    color: #ffffff !important;
+}
+
+/* Navigation links */
+body .sidebar nav a,
+body .sidebar .nav a {
+    box-sizing: border-box !important;
+    width: 100%;
+    color: #e4e4e7;
+    text-decoration: none;
+    border-radius: 10px;
+}
+
+body .sidebar nav a:hover,
+body .sidebar .nav a:hover {
+    background: #20201b !important;
+    color: #ffd166 !important;
+}
+
+body .sidebar nav a.active,
+body .sidebar .nav a.active,
+body .sidebar nav a[aria-current="page"] {
+    background: #292416 !important;
+    color: #ffd166 !important;
+}
+
+/* Django Admin link */
+body .sidebar a.django-admin-link {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box !important;
+    padding: 12px !important;
+    margin-top: 8px;
+    border-radius: 10px;
+    background: #171717 !important;
+    color: #e4e4e7 !important;
+    text-decoration: none !important;
+}
+
+body .sidebar a.django-admin-link:hover {
+    background: #292416 !important;
+    color: #ffd166 !important;
+}
+
+/* Prevent content and tables from forcing horizontal overflow */
+body .main,
+body main.main,
+body .main-content,
+body > main,
+body .layout > main {
+    overflow-wrap: anywhere;
+}
+
+body table {
+    max-width: 100%;
+}
+
+body .table-wrap,
+body .table-container,
+body .table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* Mobile layout */
+@media (max-width: 650px) {
+    body .sidebar,
+    body aside.sidebar {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        bottom: auto !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+
+    body .main,
+    body main.main,
+    body .main-content,
+    body > main,
+    body .layout > main {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+}
+</style>
+<!-- RAYSENSE SHARED ADMIN LAYOUT END -->
+</head>
+
+<body>
+<aside class="sidebar">
+    <div class="brand">
+        <div class="brand-icon">☀</div>
+        <div>
+            <h2>RaySense</h2>
+            <p>ADMIN CONSOLE</p>
+        </div>
+    </div>
+
+    <div class="section-label">ADMINISTRATION</div>
+    <nav class="nav">
+        <a href="/admin-dashboard/"><span class="icon">▦</span>Overview</a>
+        <a class="active" href="/admin-users/"><span class="icon">♙</span>User Management</a>
+        <a href="/admin-systems/"><span class="icon">☀</span>Solar Systems</a>
+        <a href="/admin-ml/"><span class="icon">◈</span>ML Comparison</a>
+        <a href="/admin-alerts/"><span class="icon">♧</span>Platform Alerts</a>
+    </nav>
+
+    <div class="section-label">ACCOUNT</div>
+    <nav class="nav">
+        <a href="/admin/"><span class="icon">⚙</span>Django Admin</a>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+        <a href="/login/" id="logoutLink">↪ Sign out</a>
+    </div>
+</aside>
+
+<main class="main">
+    <header class="topbar">
+        <div class="breadcrumb">
+            RaySense / Administration / User Management / <strong>User Details</strong>
+        </div>
+        <div class="admin-pill">
+            <div class="avatar">A</div>
+            <span>Administrator</span>
+        </div>
+    </header>
+
+    <div class="content">
+        <section class="welcome">
+            <div>
+                <div class="eyebrow">ACCOUNT INSPECTION</div>
+                <h1>User Details</h1>
+                <p class="subtitle">Inspect the selected user's solar systems and associated RaySense records.</p>
+            </div>
+            <a class="back-btn" href="/admin-users/">← Back to Users</a>
+        </section>
+
+        <div class="error" id="errorBox" role="alert"></div>
+
+        <section class="profile">
+            <div class="profile-main">
+                <div class="profile-avatar" id="profileAvatar">?</div>
+                <div>
+                    <h2 id="username">Loading user...</h2>
+                    <p id="email">Retrieving account information</p>
+                    <span class="profile-id" id="userId">User ID: —</span>
+                </div>
+            </div>
+            <span class="badge" id="accountStatus">Loading</span>
+        </section>
+
+        <section class="stats">
+            <article class="stat">
+                <div class="stat-label">Solar Systems</div>
+                <div class="stat-value" id="totalSystems">—</div>
+                <div class="stat-note">Belonging to this user</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Generation Records</div>
+                <div class="stat-value" id="totalGeneration">—</div>
+                <div class="stat-note">Recorded energy production entries</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Weather Records</div>
+                <div class="stat-value" id="totalWeather">—</div>
+                <div class="stat-note">Stored weather observations</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Forecast Records</div>
+                <div class="stat-value" id="totalForecasts">—</div>
+                <div class="stat-note">Stored generation predictions</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Performance Records</div>
+                <div class="stat-value" id="totalPerformance">—</div>
+                <div class="stat-note">Forecast evaluation entries</div>
+            </article>
+            <article class="stat">
+                <div class="stat-label">Alerts</div>
+                <div class="stat-value" id="totalAlerts">—</div>
+                <div class="stat-note">Alerts for this user's systems</div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Solar Systems</h2>
+                <p>Specifications and records grouped by the selected user's system.</p>
+            </div>
+            <div class="panel-body">
+                <div id="systemsContainer" class="system-grid">
+                    <div class="message">Loading solar systems...</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer">RaySense · Solar Intelligence Platform · Administration</div>
+    </div>
+</main>
+
+<script>
+(() => {
+    "use strict";
+
+    const token = localStorage.getItem("raysense_token");
+    const errorBox = document.getElementById("errorBox");
+    const systemsContainer = document.getElementById("systemsContainer");
+
+    const match = window.location.pathname.match(/^\/admin-user-details\/(\d+)\/?$/);
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
+    }
+
+    function formatNumber(value, digits = 2) {
+        const number = Number(value);
+        return Number.isFinite(number)
+            ? number.toLocaleString(undefined, {
+                maximumFractionDigits: digits
+            })
+            : "—";
+    }
+
+    function formatDate(value, includeTime = false) {
+        if (!value) return "—";
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "—";
+
+        return date.toLocaleString(undefined, includeTime
+            ? {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+            : {
+                year: "numeric",
+                month: "short",
+                day: "numeric"
+            });
+    }
+
+    function showError(message) {
+        errorBox.textContent = message;
+        errorBox.style.display = "block";
+    }
+
+    function detail(label, value) {
+        return `
+            <div class="detail">
+                <div class="detail-label">${escapeHTML(label)}</div>
+                <div class="detail-value">${escapeHTML(value ?? "—")}</div>
+            </div>`;
+    }
+
+    function renderTable(title, records, columns, emptyMessage) {
+        const heading = `<h4>${escapeHTML(title)} (${records.length})</h4>`;
+
+        if (!records.length) {
+            return `
+                <div class="system-section">
+                    ${heading}
+                    <div class="empty">${escapeHTML(emptyMessage)}</div>
+                </div>`;
+        }
+
+        const headers = columns.map(column =>
+            `<th>${escapeHTML(column.label)}</th>`
+        ).join("");
+
+        const rows = records.map(record => `
+            <tr>
+                ${columns.map(column =>
+                    `<td>${escapeHTML(column.render(record))}</td>`
+                ).join("")}
+            </tr>
+        `).join("");
+
+        return `
+            <div class="system-section">
+                ${heading}
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr>${headers}</tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            </div>`;
+    }
+
+    function renderSystems(systems) {
+        if (!systems.length) {
+            systemsContainer.innerHTML = `
+                <div class="empty" style="grid-column:1/-1">
+                    This user has no linked solar systems.
+                </div>`;
+            return;
+        }
+
+        systemsContainer.innerHTML = systems.map(system => {
+            const generations = system.generation_records || [];
+            const weather = system.weather_records || [];
+            const forecasts = system.forecast_records || [];
+            const performances = system.performance_records || [];
+            const alerts = system.alerts || [];
+
+            const installation = system.installation_date
+                ? formatDate(system.installation_date)
+                : "Not provided";
+
+            const specifications = `
+                <div class="details-grid">
+                    ${detail("System ID", `#${system.id}`)}
+                    ${detail("Capacity", `${formatNumber(system.capacity_kw)} kW`)}
+                    ${detail("Panel count", formatNumber(system.panel_count, 0))}
+                    ${detail("Panel type", system.panel_type || "Not provided")}
+                    ${detail("Installation date", installation)}
+                    ${detail("Electricity rate", `₹${formatNumber(system.electricity_rate)} / kWh`)}
+                    ${detail("Latitude", system.latitude ?? "Not provided")}
+                    ${detail("Longitude", system.longitude ?? "Not provided")}
+                    ${detail("Created", formatDate(system.created_at, true))}
+                </div>`;
+
+            const generationTable = renderTable(
+                "Generation History",
+                generations,
+                [
+                    {label: "Recorded At", render: r => formatDate(r.recorded_at, true)},
+                    {label: "Energy (kWh)", render: r => formatNumber(r.energy_generated_kwh)},
+                    {label: "Power Output (kW)", render: r => formatNumber(r.power_output_kw)}
+                ],
+                "No generation records are stored for this system."
+            );
+
+            const weatherTable = renderTable(
+                "Weather History",
+                weather,
+                [
+                    {label: "Recorded At", render: r => formatDate(r.recorded_at, true)},
+                    {label: "Temperature (°C)", render: r => formatNumber(r.temperature)},
+                    {label: "Humidity (%)", render: r => formatNumber(r.humidity)},
+                    {label: "Cloud Cover (%)", render: r => formatNumber(r.cloud_cover)},
+                    {label: "Wind Speed", render: r => formatNumber(r.wind_speed)},
+                    {label: "Irradiance", render: r => formatNumber(r.solar_irradiance)}
+                ],
+                "No weather records are stored for this system."
+            );
+
+            const forecastTable = renderTable(
+                "Forecast History",
+                forecasts,
+                [
+                    {label: "Forecast Date", render: r => formatDate(r.forecast_date)},
+                    {label: "Predicted (kWh)", render: r => formatNumber(r.predicted_generation_kwh)},
+                    {label: "Model", render: r => r.model_name || "—"},
+                    {label: "Confidence", render: r => r.confidence_score == null ? "—" : `${formatNumber(r.confidence_score)}%`}
+                ],
+                "No forecast records are stored for this system."
+            );
+
+            const performanceTable = renderTable(
+                "Performance History",
+                performances,
+                [
+                    {label: "Evaluation Date", render: r => formatDate(r.evaluation_date)},
+                    {label: "Actual (kWh)", render: r => formatNumber(r.actual_generation_kwh)},
+                    {label: "Predicted (kWh)", render: r => formatNumber(r.predicted_generation_kwh)},
+                    {label: "Deviation (kWh)", render: r => formatNumber(r.deviation_kwh)},
+                    {label: "Performance", render: r => `${formatNumber(r.performance_percentage)}%`},
+                    {label: "Status", render: r => r.status || "—"}
+                ],
+                "No performance records are stored for this system."
+            );
+
+            const alertTable = renderTable(
+                "Alerts",
+                alerts,
+                [
+                    {label: "Date", render: r => formatDate(r.alert_date, true)},
+                    {label: "Type", render: r => r.alert_type},
+                    {label: "Severity", render: r => r.severity},
+                    {label: "Title", render: r => r.title},
+                    {label: "Message", render: r => r.message},
+                    {label: "Status", render: r => r.is_resolved ? "Resolved" : "Open"}
+                ],
+                "No alerts are stored for this system."
+            );
+
+            return `
+                <article class="system-card" style="grid-column:1/-1">
+                    <h3>${escapeHTML(system.system_name)}</h3>
+                    <p class="location">${escapeHTML(system.location || "Location not provided")}</p>
+                    ${specifications}
+                    ${generationTable}
+                    ${weatherTable}
+                    ${forecastTable}
+                    ${performanceTable}
+                    ${alertTable}
+                </article>`;
+        }).join("");
+    }
+
+    async function loadUserDetails() {
+        if (!token) {
+            window.location.replace("/login/");
+            return;
+        }
+
+        if (!match) {
+            showError("Invalid user ID in the page address.");
+            systemsContainer.innerHTML = "";
+            return;
+        }
+
+        const userId = match[1];
+        systemsContainer.innerHTML = '<div class="message">Loading user records...</div>';
+
+        try {
+            const response = await fetch(
+                `/api/admin/users/${encodeURIComponent(userId)}/details/`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Token ${token}`,
+                        "Accept": "application/json"
+                    }
+                }
+            );
+
+            if (response.status === 401 || response.status === 403) {
+                localStorage.removeItem("raysense_token");
+                localStorage.removeItem("raysense_user");
+                window.location.replace("/login/");
+                return;
+            }
+
+            if (response.status === 404) {
+                throw new Error("The selected user was not found.");
+            }
+
+            if (!response.ok) {
+                throw new Error("Unable to load the selected user's records.");
+            }
+
+            const data = await response.json();
+            const user = data.user || {};
+
+            document.title = `${user.username || "User"} | RaySense Admin`;
+            document.getElementById("username").textContent = user.username || "Unknown user";
+            document.getElementById("email").textContent = user.email || "No email provided";
+            document.getElementById("userId").textContent = `User ID: #${user.id ?? userId}`;
+            document.getElementById("profileAvatar").textContent =
+                (user.username || "?").charAt(0).toUpperCase();
+
+            const status = document.getElementById("accountStatus");
+            status.textContent = user.is_active ? "Active account" : "Inactive account";
+            status.className = user.is_active ? "badge good" : "badge bad";
+
+            document.getElementById("totalSystems").textContent = formatNumber(data.total_systems, 0);
+            document.getElementById("totalGeneration").textContent = formatNumber(data.total_generation_records, 0);
+            document.getElementById("totalWeather").textContent = formatNumber(data.total_weather_records, 0);
+            document.getElementById("totalForecasts").textContent = formatNumber(data.total_forecast_records, 0);
+            document.getElementById("totalPerformance").textContent = formatNumber(data.total_performance_records, 0);
+            document.getElementById("totalAlerts").textContent = formatNumber(data.total_alerts, 0);
+
+            renderSystems(Array.isArray(data.systems) ? data.systems : []);
+        } catch (error) {
+            showError(error.message || "An unexpected error occurred.");
+            systemsContainer.innerHTML = `
+                <div class="empty" style="grid-column:1/-1">
+                    User records could not be loaded. Check your connection and try again.
+                </div>`;
+        }
+    }
+
+    document.getElementById("logoutLink").addEventListener("click", () => {
+        localStorage.removeItem("raysense_token");
+        localStorage.removeItem("raysense_user");
+    });
+
+    loadUserDetails();
+})();
+</script>
+</body>
+</html>

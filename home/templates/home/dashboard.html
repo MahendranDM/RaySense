@@ -1,0 +1,3541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dashboard | RaySense</title>
+
+    <meta
+        name="description"
+        content="RaySense solar energy monitoring and AI forecasting dashboard."
+    >
+
+    <style>
+
+        /* =========================================================
+           RAYSENSE DASHBOARD
+           SOLAR GOLD + BLACK
+           ========================================================= */
+
+        :root {
+
+            --black: #050505;
+            --black-soft: #090909;
+            --card: #101010;
+            --card-light: #151515;
+
+            --gold: #ffd166;
+            --gold-bright: #ffca28;
+            --yellow: #ffe082;
+            --amber: #ffb703;
+
+            --white: #ffffff;
+            --text: #f5f5f5;
+            --muted: #929292;
+            --muted-light: #bdbdbd;
+
+            --green: #65d391;
+            --red: #ff6868;
+            --orange: #ffad42;
+
+            --border:
+                rgba(255, 209, 102, 0.14);
+
+            --border-white:
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        /* =========================================================
+           RESET
+           ========================================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+
+        body {
+
+            min-height: 100vh;
+
+            font-family:
+                Inter,
+                "Segoe UI",
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            color: var(--text);
+
+            background:
+                radial-gradient(
+                    circle at 85% 0%,
+                    rgba(255, 193, 7, 0.11),
+                    transparent 25%
+                ),
+
+                radial-gradient(
+                    circle at 0% 100%,
+                    rgba(255, 183, 3, 0.055),
+                    transparent 28%
+                ),
+
+                var(--black);
+
+            overflow-x: hidden;
+        }
+
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+
+        button {
+            font-family: inherit;
+        }
+
+
+        /* =========================================================
+           TOP NAVIGATION
+           ========================================================= */
+
+        .topbar {
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 1000;
+
+            height: 72px;
+
+            background:
+                rgba(5, 5, 5, 0.90);
+
+            backdrop-filter:
+                blur(18px);
+
+            border-bottom:
+                1px solid
+                rgba(255, 255, 255, 0.07);
+        }
+
+
+        .topbar-inner {
+
+            width:
+                min(1450px, 94%);
+
+            height: 100%;
+
+            margin: auto;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+
+        /* LOGO */
+
+        .logo {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-size: 1.3rem;
+
+            font-weight: 800;
+        }
+
+
+        .logo-icon {
+
+            width: 39px;
+            height: 39px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffe082,
+                    #ffb703
+                );
+
+            color: #080808;
+
+            font-size: 1.25rem;
+
+            box-shadow:
+                0 0 24px
+                rgba(255, 193, 7, 0.24);
+        }
+
+
+        /* USER AREA */
+
+        .top-actions {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+
+        .user-name {
+
+            color: #a5a5a5;
+
+            font-size: 0.88rem;
+
+            margin-right: 6px;
+        }
+
+
+        .logout-btn {
+
+            border:
+                1px solid
+                rgba(255, 255, 255, 0.11);
+
+            background:
+                rgba(255, 255, 255, 0.025);
+
+            color: #c5c5c5;
+
+            border-radius: 10px;
+
+            padding:
+                9px 14px;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+
+        .logout-btn:hover {
+
+            color: var(--gold);
+
+            border-color:
+                rgba(255, 209, 102, 0.35);
+        }
+
+
+        /* =========================================================
+           PAGE
+           ========================================================= */
+
+        .page {
+
+            width:
+                min(1450px, 94%);
+
+            margin:
+                0 auto;
+
+            padding:
+                38px 0 70px;
+        }
+
+
+        /* =========================================================
+           PAGE HEADER
+           ========================================================= */
+
+        .page-header {
+
+            display: flex;
+
+            align-items: flex-end;
+
+            justify-content: space-between;
+
+            gap: 25px;
+
+            margin-bottom: 30px;
+        }
+
+
+        .eyebrow {
+
+            color: var(--gold);
+
+            font-size: 0.75rem;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+
+            margin-bottom: 9px;
+        }
+
+
+        .page-header h1 {
+
+            font-size:
+                clamp(
+                    2rem,
+                    4vw,
+                    3.3rem
+                );
+
+            line-height: 1;
+
+            letter-spacing: -1.8px;
+        }
+
+
+        .page-header p {
+
+            color: var(--muted);
+
+            margin-top: 10px;
+
+            font-size: 0.92rem;
+        }
+
+
+        .refresh-btn {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.22);
+
+            background:
+                rgba(255, 193, 7, 0.045);
+
+            color: var(--gold);
+
+            padding:
+                11px 16px;
+
+            border-radius: 11px;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+
+        .refresh-btn:hover {
+
+            background:
+                rgba(255, 193, 7, 0.09);
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        .refresh-btn.loading {
+
+            opacity: 0.65;
+
+            pointer-events: none;
+        }
+
+
+        /* =========================================================
+           LOADING
+           ========================================================= */
+
+        .loading-bar {
+
+            display: none;
+
+            height: 2px;
+
+            width: 100%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    var(--gold),
+                    transparent
+                );
+
+            margin-bottom: 20px;
+
+            animation:
+                loading 1.2s infinite;
+        }
+
+
+        .loading-bar.show {
+            display: block;
+        }
+
+
+        @keyframes loading {
+
+            0% {
+                opacity: 0.2;
+                transform: translateX(-25%);
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.2;
+                transform: translateX(25%);
+            }
+        }
+
+
+        /* =========================================================
+           MESSAGE
+           ========================================================= */
+
+        .dashboard-message {
+
+            display: none;
+
+            padding:
+                13px 16px;
+
+            margin-bottom: 20px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255, 193, 7, 0.07);
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.20);
+
+            color: var(--yellow);
+
+            font-size: 0.88rem;
+        }
+
+
+        /* =========================================================
+           MAIN METRICS
+           ========================================================= */
+
+        .metrics-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 18px;
+        }
+
+
+        .metric-card {
+
+            position: relative;
+
+            min-height: 155px;
+
+            padding: 23px;
+
+            border-radius: 19px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.048),
+                    rgba(255, 255, 255, 0.018)
+                );
+
+            border:
+                1px solid
+                var(--border-white);
+
+            overflow: hidden;
+
+            transition:
+                transform 0.22s ease,
+                border-color 0.22s ease;
+        }
+
+
+        .metric-card:hover {
+
+            transform:
+                translateY(-3px);
+
+            border-color:
+                rgba(255, 209, 102, 0.23);
+        }
+
+
+        .metric-card::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 120px;
+            height: 120px;
+
+            right: -65px;
+            top: -65px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(255, 193, 7, 0.07);
+
+            filter: blur(10px);
+        }
+
+
+        .metric-label {
+
+            color: #818181;
+
+            font-size: 0.78rem;
+
+            margin-bottom: 13px;
+        }
+
+
+        .metric-value {
+
+            font-size: 1.9rem;
+
+            font-weight: 800;
+
+            letter-spacing: -1px;
+        }
+
+
+        .metric-value.gold {
+            color: var(--gold);
+        }
+
+
+        .metric-value.green {
+            color: var(--green);
+        }
+
+
+        .metric-value.orange {
+            color: var(--orange);
+        }
+
+
+        .metric-value.red {
+            color: var(--red);
+        }
+
+
+        .metric-bottom {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 10px;
+
+            margin-top: 10px;
+        }
+
+
+        .metric-info {
+
+            color: #676767;
+
+            font-size: 0.75rem;
+        }
+
+
+        /* =========================================================
+           DASHBOARD GRID
+           ========================================================= */
+
+        .dashboard-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1.7fr)
+                minmax(300px, 0.9fr);
+
+            gap: 18px;
+
+            margin-bottom: 18px;
+        }
+
+
+        /* =========================================================
+           CARD
+           ========================================================= */
+
+        .card {
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(255, 255, 255, 0.043),
+                    rgba(255, 255, 255, 0.016)
+                );
+
+            border:
+                1px solid
+                var(--border-white);
+
+            padding: 22px;
+
+            min-width: 0;
+        }
+
+
+        .card-header {
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card-title {
+
+            font-size: 1rem;
+
+            font-weight: 750;
+        }
+
+
+        .card-subtitle {
+
+            color: #686868;
+
+            font-size: 0.75rem;
+
+            margin-top: 3px;
+        }
+
+
+        .gold-text {
+            color: var(--gold);
+        }
+
+
+        /* =========================================================
+           GENERATION CHART
+           ========================================================= */
+
+        .chart-wrap {
+
+            width: 100%;
+
+            height: 315px;
+
+            position: relative;
+
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            background:
+                linear-gradient(
+                    rgba(255,255,255,0.035) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.035) 1px,
+                    transparent 1px
+                );
+
+            background-size:
+                48px 48px;
+        }
+
+
+        #generationChart {
+
+            width: 100%;
+            height: 100%;
+        }
+
+
+        .chart-empty {
+
+            position: absolute;
+
+            inset: 0;
+
+            display: none;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: #666;
+
+            font-size: 0.85rem;
+        }
+
+
+        /* =========================================================
+           SYSTEM CARD
+           ========================================================= */
+
+        .system-card {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 14px;
+        }
+
+
+        .system-icon {
+
+            width: 55px;
+            height: 55px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 16px;
+
+            background:
+                rgba(255, 193, 7, 0.09);
+
+            color: var(--gold);
+
+            font-size: 1.55rem;
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.13);
+        }
+
+
+        .system-name {
+
+            font-size: 1.3rem;
+
+            font-weight: 800;
+        }
+
+
+        .system-location {
+
+            color: #858585;
+
+            font-size: 0.85rem;
+        }
+
+
+        .system-details {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 10px;
+
+            margin-top: 5px;
+        }
+
+
+        .detail {
+
+            padding: 13px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,0.025);
+
+            border:
+                1px solid
+                rgba(255,255,255,0.045);
+        }
+
+
+        .detail small {
+
+            display: block;
+
+            color: #656565;
+
+            font-size: 0.7rem;
+
+            margin-bottom: 4px;
+        }
+
+
+        .detail strong {
+
+            font-size: 0.9rem;
+        }
+
+
+        /* =========================================================
+           FORECAST
+           ========================================================= */
+
+        .forecast-box {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 18px;
+
+            padding:
+                17px;
+
+            border-radius: 15px;
+
+            background:
+                rgba(255, 193, 7, 0.045);
+
+            border:
+                1px solid
+                rgba(255, 209, 102, 0.12);
+        }
+
+
+        .forecast-icon {
+
+            width: 52px;
+            height: 52px;
+
+            flex-shrink: 0;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 15px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #ffe082,
+                    #ffb703
+                );
+
+            color: #080808;
+
+            font-size: 1.35rem;
+        }
+
+
+        .forecast-value {
+
+            font-size: 1.7rem;
+
+            font-weight: 800;
+
+            color: var(--gold);
+        }
+
+
+        .forecast-label {
+
+            color: #777;
+
+            font-size: 0.75rem;
+        }
+
+
+        .model-badge {
+
+            display: inline-block;
+
+            margin-top: 12px;
+
+            padding:
+                5px 9px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,0.04);
+
+            color: #8a8a8a;
+
+            font-size: 0.68rem;
+        }
+
+
+        /* =========================================================
+           WEATHER
+           ========================================================= */
+
+        .weather-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 10px;
+        }
+
+
+        .weather-item {
+
+            padding: 14px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(255,255,255,0.025);
+
+            border:
+                1px solid
+                rgba(255,255,255,0.045);
+        }
+
+
+        .weather-item span {
+
+            display: block;
+
+            color: #666;
+
+            font-size: 0.7rem;
+
+            margin-bottom: 5px;
+        }
+
+
+        .weather-item strong {
+
+            font-size: 0.95rem;
+        }
+
+
+        /* =========================================================
+           BOTTOM GRID
+           ========================================================= */
+
+        .bottom-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                1.2fr
+                1fr;
+
+            gap: 18px;
+        }
+
+
+        /* =========================================================
+           TABLE
+           ========================================================= */
+
+        .table-container {
+
+            overflow-x: auto;
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            min-width: 500px;
+        }
+
+
+        th {
+
+            text-align: left;
+
+            color: #666;
+
+            font-size: 0.7rem;
+
+            font-weight: 700;
+
+            padding:
+                11px 8px;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,0.07);
+        }
+
+
+        td {
+
+            padding:
+                13px 8px;
+
+            font-size: 0.78rem;
+
+            color: #b0b0b0;
+
+            border-bottom:
+                1px solid
+                rgba(255,255,255,0.04);
+        }
+
+
+        td strong {
+            color: #e5e5e5;
+        }
+
+
+        .status {
+
+            display: inline-flex;
+
+            padding:
+                5px 8px;
+
+            border-radius: 999px;
+
+            font-size: 0.65rem;
+
+            font-weight: 700;
+        }
+
+
+        .status.excellent {
+
+            color: var(--green);
+
+            background:
+                rgba(101, 211, 145, 0.08);
+        }
+
+
+        .status.warning {
+
+            color: var(--orange);
+
+            background:
+                rgba(255, 173, 66, 0.08);
+        }
+
+
+        .status.critical {
+
+            color: var(--red);
+
+            background:
+                rgba(255, 104, 104, 0.08);
+        }
+
+
+        .status.pending {
+
+            color: var(--gold);
+
+            background:
+                rgba(255, 209, 102, 0.08);
+        }
+
+
+        /* =========================================================
+           ALERTS
+           ========================================================= */
+
+        .alerts {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+
+            max-height: 350px;
+
+            overflow-y: auto;
+        }
+
+
+        .alert {
+
+            padding:
+                14px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(255,255,255,0.025);
+
+            border-left:
+                3px solid
+                var(--gold);
+        }
+
+
+        .alert.warning {
+
+            border-left-color:
+                var(--orange);
+        }
+
+
+        .alert.critical {
+
+            border-left-color:
+                var(--red);
+        }
+
+
+        .alert-title {
+
+            font-size: 0.82rem;
+
+            font-weight: 750;
+
+            margin-bottom: 4px;
+        }
+
+
+        .alert-message {
+
+            color: #777;
+
+            font-size: 0.74rem;
+
+            line-height: 1.5;
+        }
+
+
+        .alert-date {
+
+            color: #505050;
+
+            font-size: 0.65rem;
+
+            margin-top: 7px;
+        }
+
+
+        .no-data {
+
+            color: #666;
+
+            text-align: center;
+
+            padding: 25px;
+
+            font-size: 0.8rem;
+        }
+
+
+        /* =========================================================
+           FOOTER
+           ========================================================= */
+
+        footer {
+
+            text-align: center;
+
+            padding:
+                25px 0;
+
+            color: #555;
+
+            font-size: 0.72rem;
+        }
+
+
+        footer strong {
+            color: var(--gold);
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+           ========================================================= */
+
+        @media (max-width: 1100px) {
+
+            .metrics-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .dashboard-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .bottom-grid {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+        @media (max-width: 700px) {
+
+            .topbar {
+
+                height: 65px;
+            }
+
+
+            .user-name {
+
+                display: none;
+            }
+
+
+            .page {
+
+                padding-top: 25px;
+            }
+
+
+            .page-header {
+
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+
+            .metrics-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .chart-wrap {
+
+                height: 250px;
+            }
+
+
+            .card {
+
+                padding: 17px;
+            }
+
+
+            .system-details {
+
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+
+        @media (max-width: 430px) {
+
+            .logo span:last-child {
+
+                display: none;
+            }
+
+
+            .weather-grid {
+
+                grid-template-columns: 1fr;
+            }
+
+
+            .system-details {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* =========================================================
+   RAYSENSE USER SIDEBAR
+   ========================================================= */
+
+.user-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1100;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 18px 18px;
+    background: #090909;
+    border-right: 1px solid rgba(255, 209, 102, 0.15);
+    overflow-y: auto;
+}
+
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 42px;
+    padding: 0 10px;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.sidebar-logo {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffe082, #ffb703);
+    color: #080808;
+    font-size: 1.5rem;
+}
+
+.sidebar-section-label {
+    margin: 18px 10px 12px;
+    color: #858585;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.sidebar-navigation {
+    display: grid;
+    gap: 7px;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    min-height: 45px;
+    padding: 11px 13px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: #bdbdbd;
+    font-size: 0.91rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-link span {
+    width: 22px;
+    color: #ffd166;
+    font-size: 1.15rem;
+    text-align: center;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    color: #ffd166;
+    background: rgba(255, 209, 102, 0.09);
+    border-color: rgba(255, 209, 102, 0.15);
+}
+
+.sidebar-bottom {
+    margin-top: auto;
+    padding-top: 28px;
+}
+
+.sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-user-icon {
+    display: grid;
+    place-items: center;
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(255, 209, 102, 0.12);
+    color: #ffd166;
+}
+
+.sidebar-user strong,
+.sidebar-user small {
+    display: block;
+    max-width: 145px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-user strong {
+    color: #fff;
+    font-size: 0.82rem;
+}
+
+.sidebar-user small {
+    margin-top: 4px;
+    color: #858585;
+    font-size: 0.7rem;
+}
+
+.sidebar-logout {
+    width: 100%;
+    padding: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9px;
+    background: transparent;
+    color: #c5c5c5;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar-logout:hover {
+    color: #ffd166;
+    border-color: rgba(255, 209, 102, 0.3);
+}
+
+/* Make room for the sidebar */
+
+.topbar,
+.page {
+    margin-left: 250px;
+}
+
+.topbar-inner,
+.page {
+    width: auto;
+    max-width: none;
+    margin-right: 35px;
+    margin-left: 285px;
+}
+
+.topbar-inner {
+    height: 100%;
+}
+
+/* Responsive layout */
+
+@media (max-width: 900px) {
+    .user-sidebar {
+        width: 220px;
+    }
+
+    .topbar,
+    .page {
+        margin-left: 220px;
+    }
+
+    .topbar-inner,
+    .page {
+        margin-left: 240px;
+        margin-right: 20px;
+    }
+}
+
+@media (max-width: 700px) {
+    .user-sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        bottom: auto;
+        padding: 15px;
+    }
+
+    .sidebar-brand {
+        margin-bottom: 15px;
+    }
+
+    .sidebar-navigation {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sidebar-bottom {
+        margin-top: 15px;
+        padding-top: 10px;
+    }
+
+    .topbar,
+    .page {
+        margin-left: 0;
+    }
+
+    .topbar-inner,
+    .page {
+        width: 94%;
+        margin: 0 auto;
+    }
+
+    .topbar-inner {
+        justify-content: flex-end;
+    }
+
+    .topbar .logo {
+        display: none;
+    }
+
+    .page {
+        padding-top: 25px;
+    }
+}
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <!-- RaySense User Sidebar -->
+<aside class="user-sidebar" id="userSidebar">
+
+    <a href="/" class="sidebar-brand">
+        <span class="sidebar-logo">☀</span>
+        <span>RaySense</span>
+    </a>
+
+    <div class="sidebar-section-label">WORKSPACE</div>
+
+    <nav class="sidebar-navigation">
+
+        <a href="{% url 'dashboard' %}" class="sidebar-link active">
+            <span>⌂</span> Dashboard
+        </a>
+
+        <a href="{% url 'generation' %}" class="sidebar-link">
+            <span>⚡</span> Generation
+        </a>
+
+        <a href="{% url 'forecast' %}" class="sidebar-link">
+            <span>◈</span> AI Forecast
+        </a>
+
+        <a href="{% url 'performance' %}" class="sidebar-link">
+            <span>▥</span> Performance
+        </a>
+
+        <a href="{% url 'weather' %}" class="sidebar-link">
+            <span>☁</span> Weather
+        </a>
+
+        <a href="{% url 'alerts' %}" class="sidebar-link">
+            <span>♢</span> Alerts
+        </a>
+
+        <a href="{% url 'reports' %}" class="sidebar-link">
+            <span>▤</span> Reports
+        </a>
+
+    </nav>
+
+    <div class="sidebar-section-label">PREFERENCES</div>
+
+    <nav class="sidebar-navigation">
+        <a href="{% url 'settings' %}" class="sidebar-link">
+            <span>⚙</span> Settings
+        </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+        <div class="sidebar-user">
+            <span class="sidebar-user-icon">●</span>
+            <div>
+                <strong id="sidebarUserName">RaySense User</strong>
+                <small>Solar Energy User</small>
+            </div>
+        </div>
+
+        <button type="button" class="sidebar-logout" id="sidebarLogoutButton">
+            ↪ Logout
+        </button>
+    </div>
+
+</aside>
+
+<!-- =========================================================
+     TOP NAVIGATION
+     ========================================================= -->
+
+<header class="topbar">
+
+    <div class="topbar-inner">
+
+
+        <a href="/" class="logo">
+
+            <span class="logo-icon">
+                ☀
+            </span>
+
+            <span>
+                RaySense
+            </span>
+
+        </a>
+
+
+        <div class="top-actions">
+
+            <span
+                class="user-name"
+                id="userName"
+            >
+                Loading...
+            </span>
+
+
+            <button
+                class="logout-btn"
+                id="logoutButton"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     PAGE
+     ========================================================= -->
+
+<main class="page">
+
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+        <div>
+
+            <div class="eyebrow">
+                Solar Intelligence
+            </div>
+
+            <h1>
+                Dashboard
+            </h1>
+
+            <p>
+                Monitor your solar system,
+                generation and AI-powered forecasts.
+            </p>
+
+        </div>
+
+
+        <button
+            class="refresh-btn"
+            id="refreshButton"
+        >
+            ↻ Refresh Data
+        </button>
+
+    </div>
+
+
+    <div
+        class="loading-bar"
+        id="loadingBar"
+    ></div>
+
+
+    <div
+        class="dashboard-message"
+        id="dashboardMessage"
+    ></div>
+
+
+
+    <!-- =====================================================
+         METRICS
+         ===================================================== -->
+
+    <section class="metrics-grid">
+
+
+        <!-- GENERATION -->
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Latest Generation
+            </div>
+
+
+            <div
+                class="metric-value gold"
+                id="generationValue"
+            >
+                —
+            </div>
+
+
+            <div class="metric-bottom">
+
+                <span
+                    class="metric-info"
+                    id="generationDate"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- FORECAST -->
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Today's AI Forecast
+            </div>
+
+
+            <div
+                class="metric-value gold"
+                id="forecastValue"
+            >
+                —
+            </div>
+
+
+            <div class="metric-bottom">
+
+                <span class="metric-info">
+                    XGBoost
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SYSTEM -->
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Installed Capacity
+            </div>
+
+
+            <div
+                class="metric-value"
+                id="capacityValue"
+            >
+                —
+            </div>
+
+
+            <div class="metric-bottom">
+
+                <span
+                    class="metric-info"
+                    id="panelValue"
+                >
+                    —
+                </span>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- PERFORMANCE -->
+
+        <div class="metric-card">
+
+            <div class="metric-label">
+                Performance
+            </div>
+
+
+            <div
+                class="metric-value"
+                id="performanceValue"
+            >
+                —
+            </div>
+
+
+            <div class="metric-bottom">
+
+                <span
+                    class="metric-info"
+                    id="performanceStatus"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         MAIN GRID
+         ===================================================== -->
+
+    <section class="dashboard-grid">
+
+
+        <!-- GENERATION CHART -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Solar Generation
+                    </div>
+
+                    <div class="card-subtitle">
+                        Recent recorded generation
+                    </div>
+
+                </div>
+
+
+                <span class="gold-text">
+                    kWh
+                </span>
+
+            </div>
+
+
+            <div class="chart-wrap">
+
+                <canvas
+                    id="generationChart"
+                ></canvas>
+
+
+                <div
+                    class="chart-empty"
+                    id="chartEmpty"
+                >
+                    No generation records available.
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- SYSTEM -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Solar System
+                    </div>
+
+                    <div class="card-subtitle">
+                        System information
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="system-card">
+
+
+                <div class="system-icon">
+                    ☀
+                </div>
+
+
+                <div>
+
+                    <div
+                        class="system-name"
+                        id="systemName"
+                    >
+                        Loading...
+                    </div>
+
+
+                    <div
+                        class="system-location"
+                        id="systemLocation"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="system-details">
+
+
+                    <div class="detail">
+
+                        <small>
+                            Capacity
+                        </small>
+
+                        <strong
+                            id="systemCapacity"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail">
+
+                        <small>
+                            Panels
+                        </small>
+
+                        <strong
+                            id="systemPanels"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail">
+
+                        <small>
+                            Panel Type
+                        </small>
+
+                        <strong
+                            id="systemPanelType"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+
+                    <div class="detail">
+
+                        <small>
+                            Installation
+                        </small>
+
+                        <strong
+                            id="systemInstallation"
+                        >
+                            —
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FORECAST + WEATHER
+         ===================================================== -->
+
+    <section class="dashboard-grid">
+
+
+        <!-- FORECAST -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        AI Generation Forecast
+                    </div>
+
+                    <div class="card-subtitle">
+                        Machine-learning prediction
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="forecast-box">
+
+                <div class="forecast-icon">
+                    ◈
+                </div>
+
+
+                <div>
+
+                    <div
+                        class="forecast-value"
+                        id="forecastMainValue"
+                    >
+                        —
+                    </div>
+
+
+                    <div class="forecast-label">
+                        Predicted solar generation
+                    </div>
+
+
+                    <span
+                        class="model-badge"
+                        id="modelBadge"
+                    >
+                        Model: —
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- WEATHER -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Latest Weather
+                    </div>
+
+                    <div class="card-subtitle">
+                        Recorded weather conditions
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="weather-grid">
+
+
+                <div class="weather-item">
+
+                    <span>
+                        Temperature
+                    </span>
+
+                    <strong id="temperature">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="weather-item">
+
+                    <span>
+                        Humidity
+                    </span>
+
+                    <strong id="humidity">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="weather-item">
+
+                    <span>
+                        Cloud Cover
+                    </span>
+
+                    <strong id="cloudCover">
+                        —
+                    </strong>
+
+                </div>
+
+
+                <div class="weather-item">
+
+                    <span>
+                        Solar Irradiance
+                    </span>
+
+                    <strong id="irradiance">
+                        —
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         BOTTOM GRID
+         ===================================================== -->
+
+    <section class="bottom-grid">
+
+
+        <!-- RECENT GENERATION -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Recent Generation
+                    </div>
+
+                    <div class="card-subtitle">
+                        Latest available records
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                DATE
+                            </th>
+
+                            <th>
+                                ENERGY
+                            </th>
+
+                            <th>
+                                POWER
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="generationTable">
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- ALERTS -->
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <div class="card-title">
+                        Solar Alerts
+                    </div>
+
+                    <div class="card-subtitle">
+                        System notifications
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="alerts"
+                id="alertsContainer"
+            >
+
+                <div class="no-data">
+                    Loading alerts...
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================================
+     FOOTER
+     ========================================================= -->
+
+<footer>
+
+    <strong>
+        RaySense
+    </strong>
+
+    · AI-Powered Solar Energy Intelligence
+
+</footer>
+
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+
+/* ============================================================
+   GLOBAL STATE
+   ============================================================ */
+
+let solarSystems = [];
+
+let generationRecords = [];
+
+let forecastRecords = [];
+
+let performanceRecords = [];
+
+let weatherRecords = [];
+
+let alerts = [];
+
+let generationChart = null;
+
+
+/* ============================================================
+   AUTHENTICATION
+   ============================================================ */
+
+const token =
+    localStorage.getItem(
+        "raysense_token"
+    );
+
+
+/*
+    If the user is not logged in,
+    return to login.
+*/
+
+if (!token) {
+
+    window.location.href =
+        "/login/";
+
+}
+
+
+/* ============================================================
+   ELEMENT HELPERS
+   ============================================================ */
+
+function $(id) {
+
+    return document.getElementById(id);
+
+}
+
+
+/* ============================================================
+   API HELPER
+   ============================================================ */
+
+async function apiFetch(
+    endpoint
+) {
+
+    const response =
+        await fetch(
+            endpoint,
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization":
+                        `Token ${token}`,
+
+                    "Content-Type":
+                        "application/json"
+                }
+            }
+        );
+
+
+    /*
+        Authentication expired.
+    */
+
+    if (
+        response.status === 401 ||
+        response.status === 403
+    ) {
+
+        localStorage.removeItem(
+            "raysense_token"
+        );
+
+        localStorage.removeItem(
+            "raysense_user"
+        );
+
+        window.location.href =
+            "/login/";
+
+        throw new Error(
+            "Authentication expired."
+        );
+    }
+
+
+    if (!response.ok) {
+
+        throw new Error(
+            `Request failed: ${response.status}`
+        );
+
+    }
+
+
+    return await response.json();
+
+}
+
+
+/* ============================================================
+   NORMALIZE API DATA
+   ============================================================ */
+
+function normalizeList(data) {
+
+    if (Array.isArray(data)) {
+        return data;
+    }
+
+
+    if (
+        data &&
+        Array.isArray(data.results)
+    ) {
+
+        return data.results;
+
+    }
+
+
+    if (
+        data &&
+        Array.isArray(data.data)
+    ) {
+
+        return data.data;
+
+    }
+
+
+    return [];
+
+}
+
+
+/* ============================================================
+   FORMAT NUMBER
+   ============================================================ */
+
+function number(
+    value,
+    decimals = 2
+) {
+
+    const parsed =
+        Number(value);
+
+
+    if (
+        !Number.isFinite(parsed)
+    ) {
+
+        return "—";
+
+    }
+
+
+    return parsed.toFixed(
+        decimals
+    );
+
+}
+
+
+/* ============================================================
+   FORMAT DATE
+   ============================================================ */
+
+function formatDate(
+    value
+) {
+
+    if (!value) {
+        return "—";
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(value);
+
+    }
+
+
+    return date.toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        }
+    );
+
+}
+
+
+/* ============================================================
+   FORMAT DATE + TIME
+   ============================================================ */
+
+function formatDateTime(
+    value
+) {
+
+    if (!value) {
+        return "—";
+    }
+
+
+    const date =
+        new Date(value);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return String(value);
+
+    }
+
+
+    return date.toLocaleString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+
+}
+
+
+/* ============================================================
+   SHOW MESSAGE
+   ============================================================ */
+
+function showMessage(
+    text
+) {
+
+    const message =
+        $("dashboardMessage");
+
+
+    message.textContent =
+        text;
+
+    message.style.display =
+        "block";
+
+}
+
+
+/* ============================================================
+   LOAD USER
+   ============================================================ */
+
+async function loadUser() {
+
+    try {
+
+        const data =
+            await apiFetch(
+                "/api/users/me/"
+            );
+
+
+        let user =
+            data.user ||
+            data;
+
+
+        const username =
+            user.username ||
+            "RaySense User";
+
+
+        $("userName").textContent =
+            username;
+
+
+    } catch (error) {
+
+        const stored =
+            localStorage.getItem(
+                "raysense_user"
+            );
+
+
+        if (stored) {
+
+            try {
+
+                const user =
+                    JSON.parse(
+                        stored
+                    );
+
+                $("userName").textContent =
+                    user.username ||
+                    "RaySense User";
+
+            } catch (_) {
+
+                $("userName").textContent =
+                    "RaySense User";
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   LOAD SOLAR SYSTEMS
+   ============================================================ */
+
+async function loadSolarSystems() {
+
+    const data =
+        await apiFetch(
+            "/api/solar/systems/"
+        );
+
+
+    solarSystems =
+        normalizeList(data);
+
+
+    if (
+        solarSystems.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    const system =
+        solarSystems[0];
+
+
+    $("systemName").textContent =
+        system.system_name ||
+        "Solar System";
+
+
+    $("systemLocation").textContent =
+        system.location ||
+        "Location unavailable";
+
+
+    $("systemCapacity").textContent =
+        system.capacity_kw != null
+            ? `${number(system.capacity_kw)} kW`
+            : "—";
+
+
+    $("systemPanels").textContent =
+        system.panel_count != null
+            ? `${system.panel_count} panels`
+            : "—";
+
+
+    $("systemPanelType").textContent =
+        system.panel_type ||
+        "—";
+
+
+    $("systemInstallation").textContent =
+        formatDate(
+            system.installation_date
+        );
+
+
+    $("capacityValue").textContent =
+        system.capacity_kw != null
+            ? `${number(system.capacity_kw)} kW`
+            : "—";
+
+
+    $("panelValue").textContent =
+        system.panel_count != null
+            ? `${system.panel_count} panels`
+            : "—";
+
+}
+
+
+/* ============================================================
+   LOAD GENERATION
+   ============================================================ */
+
+async function loadGeneration() {
+    const data = await apiFetch("/api/solar/generation/");
+    generationRecords = normalizeList(data);
+
+    // Display completed generation dates only, newest date first.
+    const now = new Date();
+    const todayKey = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    generationRecords = generationRecords.filter(record => {
+        const date = String(record.generation_date || "").slice(0, 10);
+        return /^\d{4}-\d{2}-\d{2}$/.test(date) && date < todayKey;
+    });
+
+    generationRecords.sort((a, b) => {
+        const dateA = String(a.generation_date || "").slice(0, 10);
+        const dateB = String(b.generation_date || "").slice(0, 10);
+        if (dateA !== dateB) return dateB.localeCompare(dateA);
+        return new Date(b.recorded_at || 0).getTime()
+            - new Date(a.recorded_at || 0).getTime();
+    });
+
+    if (generationRecords.length > 0) {
+        const latest = generationRecords[0];
+        $("generationValue").textContent =
+            latest.energy_generated_kwh != null
+                ? `${number(latest.energy_generated_kwh)} kWh`
+                : "—";
+        $("generationDate").textContent = formatDate(latest.generation_date);
+    } else {
+        $("generationValue").textContent = "—";
+        $("generationDate").textContent = "No completed generation records";
+    }
+
+    renderGenerationTable();
+    renderGenerationChart();
+}
+
+
+/* ============================================================
+   GENERATION TABLE
+   ============================================================ */
+
+function renderGenerationTable() {
+    const table = $("generationTable");
+    if (!table) return;
+
+    table.innerHTML = "";
+    const records = generationRecords.slice(0, 8);
+
+    if (records.length === 0) {
+        table.innerHTML = `
+            <tr><td colspan="3">No completed generation records available.</td></tr>
+        `;
+        return;
+    }
+
+    records.forEach(record => {
+        const row = document.createElement("tr");
+        const date = formatDate(record.generation_date);
+        const energy = record.energy_generated_kwh != null
+            ? `${number(record.energy_generated_kwh)} kWh` : "—";
+        const power = record.power_output_kw != null
+            ? `${number(record.power_output_kw)} kW` : "—";
+
+        row.innerHTML = `
+            <td>${date}</td>
+            <td><strong>${energy}</strong></td>
+            <td>${power}</td>
+        `;
+        table.appendChild(row);
+    });
+}
+
+
+/* ============================================================
+   GENERATION CHART
+   ============================================================ */
+
+function renderGenerationChart() {
+    const canvas = $("generationChart");
+    const empty = $("chartEmpty");
+    if (!canvas || !empty) return;
+
+    if (generationRecords.length === 0) {
+        empty.style.display = "flex";
+        empty.textContent = "No completed generation records available.";
+        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        return;
+    }
+
+    const width = canvas.parentElement.clientWidth;
+    const height = canvas.parentElement.clientHeight;
+    if (width <= 0 || height <= 0) return;
+
+    empty.style.display = "none";
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = Math.round(width * pixelRatio);
+    canvas.height = Math.round(height * pixelRatio);
+
+    const ctx = canvas.getContext("2d");
+    ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    ctx.clearRect(0, 0, width, height);
+
+    // API is newest-first; reverse the selected records for chart chronology.
+    const displayRecords = generationRecords.slice(0, 14).reverse();
+    const values = displayRecords.map(record => {
+        const value = Number(record.energy_generated_kwh);
+        return Number.isFinite(value) ? value : 0;
+    });
+
+    const max = Math.max(...values, 1);
+    const min = Math.min(...values, 0);
+    const padding = 35;
+    const chartWidth = Math.max(width - padding * 2, 1);
+    const chartHeight = Math.max(height - padding * 2, 1);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.05)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+        const y = padding + chartHeight * i / 4;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(width - padding, y);
+        ctx.stroke();
+    }
+
+    const points = values.map((value, index) => {
+        const x = padding + chartWidth * index / Math.max(values.length - 1, 1);
+        const ratio = (value - min) / Math.max(max - min, 1);
+        const y = padding + chartHeight - ratio * chartHeight;
+        return { x, y };
+    });
+
+    if (points.length > 0) {
+        ctx.beginPath();
+        points.forEach((point, index) => {
+            if (index === 0) ctx.moveTo(point.x, point.y);
+            else ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = "#ffd166";
+        ctx.lineWidth = 3.5;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.stroke();
+
+        points.forEach(point => {
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffd166";
+            ctx.fill();
+        });
+    }
+}
+
+
+/* ============================================================
+   LOAD FORECAST
+   ============================================================ */
+
+async function loadForecast() {
+
+    const data =
+        await apiFetch(
+            "/api/forecasting/records/"
+        );
+
+
+    forecastRecords =
+        normalizeList(data);
+
+
+    forecastRecords.sort(
+        (a, b) =>
+            new Date(
+                b.forecast_date
+            ) -
+            new Date(
+                a.forecast_date
+            )
+    );
+
+
+    if (
+        forecastRecords.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    /*
+        Prefer today's record.
+    */
+
+    const today =
+        new Date()
+            .toISOString()
+            .slice(
+                0,
+                10
+            );
+
+
+    const todayForecast =
+        forecastRecords.find(
+            item =>
+                String(
+                    item.forecast_date
+                )
+                .slice(0, 10) ===
+                today
+        );
+
+
+    const forecast =
+        todayForecast ||
+        forecastRecords[0];
+
+
+    const value =
+        Number(
+            forecast.predicted_generation_kwh
+        );
+
+
+    if (
+        Number.isFinite(value)
+    ) {
+
+        $("forecastValue").textContent =
+            `${value.toFixed(2)} kWh`;
+
+
+        $("forecastMainValue").textContent =
+            `${value.toFixed(2)} kWh`;
+
+    }
+
+
+    $("modelBadge").textContent =
+        `Model: ${
+            forecast.model_name ||
+            "ML Forecast"
+        }`;
+
+}
+
+
+/* ============================================================
+   LOAD PERFORMANCE
+   ============================================================ */
+
+async function loadPerformance() {
+
+    try {
+
+        const todayData =
+            await apiFetch(
+                "/api/performance/today/"
+            );
+
+
+        const performance =
+            todayData.performance ||
+            todayData;
+
+
+        updatePerformance(
+            performance
+        );
+
+
+        return;
+
+    } catch (_) {
+
+        /*
+            Fall back to performance records.
+        */
+
+    }
+
+
+    const data =
+        await apiFetch(
+            "/api/performance/records/"
+        );
+
+
+    performanceRecords =
+        normalizeList(data);
+
+
+    performanceRecords.sort(
+        (a, b) =>
+            new Date(
+                b.evaluation_date
+            ) -
+            new Date(
+                a.evaluation_date
+            )
+    );
+
+
+    if (
+        performanceRecords.length > 0
+    ) {
+
+        updatePerformance(
+            performanceRecords[0]
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   UPDATE PERFORMANCE
+   ============================================================ */
+
+function updatePerformance(
+    performance
+) {
+
+    if (!performance) {
+        return;
+    }
+
+
+    const percentage =
+        Number(
+            performance.performance_percentage
+        );
+
+
+    if (
+        Number.isFinite(
+            percentage
+        )
+    ) {
+
+        $("performanceValue").textContent =
+            `${percentage.toFixed(1)}%`;
+
+    } else {
+
+        $("performanceValue").textContent =
+            "—";
+
+    }
+
+
+    const status =
+        performance.status ||
+        "Pending";
+
+
+    $("performanceStatus").textContent =
+        status;
+
+
+    const valueElement =
+        $("performanceValue");
+
+
+    valueElement.classList.remove(
+        "green",
+        "orange",
+        "red",
+        "gold"
+    );
+
+
+    if (
+        status.toLowerCase()
+            .includes("excellent")
+    ) {
+
+        valueElement.classList.add(
+            "green"
+        );
+
+    } else if (
+        status.toLowerCase()
+            .includes("poor")
+    ) {
+
+        valueElement.classList.add(
+            "red"
+        );
+
+    } else if (
+        status.toLowerCase()
+            .includes("warning")
+    ) {
+
+        valueElement.classList.add(
+            "orange"
+        );
+
+    } else {
+
+        valueElement.classList.add(
+            "gold"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   LOAD WEATHER
+   ============================================================ */
+
+async function loadWeather() {
+    try {
+        const data = await apiFetch("/api/weather/records/");
+        weatherRecords = normalizeList(data);
+
+        if (!Array.isArray(weatherRecords) || weatherRecords.length === 0) {
+            $("temperature").textContent = "—";
+            $("humidity").textContent = "—";
+            $("cloudCover").textContent = "—";
+            $("irradiance").textContent = "—";
+            return;
+        }
+
+        const now = Date.now();
+
+        const validRecords = weatherRecords
+            .filter(record =>
+                record.recorded_at &&
+                !Number.isNaN(new Date(record.recorded_at).getTime())
+            )
+            .sort((a, b) =>
+                new Date(a.recorded_at) - new Date(b.recorded_at)
+            );
+
+        if (validRecords.length === 0) {
+            console.error("No valid weather timestamps found.");
+            return;
+        }
+
+        // Prefer the most recent weather record at or before now.
+        // If none exists, use the earliest available forecast.
+        const pastRecords = validRecords.filter(
+            record => new Date(record.recorded_at).getTime() <= now
+        );
+
+        const weather = pastRecords.length > 0
+            ? pastRecords[pastRecords.length - 1]
+            : validRecords[0];
+
+        $("temperature").textContent =
+            weather.temperature != null
+                ? `${number(weather.temperature, 1)} °C`
+                : "—";
+
+        $("humidity").textContent =
+            weather.humidity != null
+                ? `${number(weather.humidity, 0)}%`
+                : "—";
+
+        $("cloudCover").textContent =
+            weather.cloud_cover != null
+                ? `${number(weather.cloud_cover, 0)}%`
+                : "—";
+
+        $("irradiance").textContent =
+            weather.solar_irradiance != null
+                ? `${number(weather.solar_irradiance, 0)} W/m²`
+                : "—";
+
+    } catch (error) {
+        console.error("Failed to load weather:", error);
+    }
+}
+
+
+/* ============================================================
+   LOAD ALERTS
+   ============================================================ */
+
+async function loadAlerts() {
+
+    const data =
+        await apiFetch(
+            "/api/alerts/records/"
+        );
+
+
+    alerts =
+        normalizeList(data);
+
+
+    alerts.sort(
+        (a, b) =>
+            new Date(
+                b.alert_date
+            ) -
+            new Date(
+                a.alert_date
+            )
+    );
+
+
+    renderAlerts();
+
+}
+
+
+/* ============================================================
+   RENDER ALERTS
+   ============================================================ */
+
+function renderAlerts() {
+
+    const container =
+        $("alertsContainer");
+
+
+    container.innerHTML = "";
+
+
+    if (
+        alerts.length === 0
+    ) {
+
+        container.innerHTML =
+            `
+            <div class="no-data">
+                No alerts available.
+            </div>
+            `;
+
+        return;
+
+    }
+
+
+    alerts
+        .slice(0, 6)
+        .forEach(
+            alert => {
+
+                const severity =
+                    String(
+                        alert.severity ||
+                        "Info"
+                    )
+                    .toLowerCase();
+
+
+                const item =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                item.className =
+                    `alert ${
+                        severity === "critical"
+                            ? "critical"
+                            : severity === "warning"
+                                ? "warning"
+                                : ""
+                    }`;
+
+
+                item.innerHTML =
+                    `
+                    <div class="alert-title">
+                        ${
+                            alert.title ||
+                            "Solar Alert"
+                        }
+                    </div>
+
+                    <div class="alert-message">
+                        ${
+                            alert.message ||
+                            "No additional information."
+                        }
+                    </div>
+
+                    <div class="alert-date">
+                        ${
+                            formatDateTime(
+                                alert.alert_date
+                            )
+                        }
+                    </div>
+                    `;
+
+
+                container.appendChild(
+                    item
+                );
+
+            }
+        );
+
+}
+
+
+/* ============================================================
+   LOAD EVERYTHING
+   ============================================================ */
+
+async function loadDashboard() {
+
+    const loading =
+        $("loadingBar");
+
+
+    const refresh =
+        $("refreshButton");
+
+
+    loading.classList.add(
+        "show"
+    );
+
+
+    refresh.classList.add(
+        "loading"
+    );
+
+
+    try {
+
+
+        /*
+            These requests are independent,
+            so they can load together.
+        */
+
+        await Promise.all([
+
+            loadUser(),
+
+            loadSolarSystems(),
+
+            loadGeneration(),
+
+            loadForecast(),
+
+            loadPerformance(),
+
+            loadWeather(),
+
+            loadAlerts()
+
+        ]);
+
+
+        $("dashboardMessage")
+            .style.display =
+            "none";
+
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard error:",
+            error
+        );
+
+
+        showMessage(
+            "Some dashboard data could not be loaded. Please refresh and try again."
+        );
+
+    }
+
+
+    finally {
+
+        loading.classList.remove(
+            "show"
+        );
+
+
+        refresh.classList.remove(
+            "loading"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   REFRESH
+   ============================================================ */
+
+$("refreshButton")
+    .addEventListener(
+        "click",
+        loadDashboard
+    );
+
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+
+$("logoutButton")
+    .addEventListener(
+        "click",
+        async function() {
+
+            try {
+
+                await fetch(
+                    "/api/users/logout/",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Authorization":
+                                `Token ${token}`
+                        }
+                    }
+                );
+
+            } catch (_) {
+
+                /*
+                    Even if the server request
+                    fails, clear local auth.
+                */
+
+            }
+
+
+            localStorage.removeItem(
+                "raysense_token"
+            );
+
+
+            localStorage.removeItem(
+                "raysense_user"
+            );
+
+
+            window.location.href =
+                "/login/";
+
+        }
+    );
+
+
+/* ============================================================
+   RESPONSIVE CHART
+   ============================================================ */
+
+window.addEventListener(
+    "resize",
+    function() {
+
+        if (
+            generationRecords.length > 0
+        ) {
+
+            renderGenerationChart();
+
+        }
+
+    }
+);
+
+
+/* ============================================================
+   INITIAL LOAD
+   ============================================================ */
+
+loadDashboard();
+
+// Connect sidebar logout to the existing logout handler
+document
+    .getElementById("sidebarLogoutButton")
+    .addEventListener("click", function () {
+        document.getElementById("logoutButton").click();
+    });
+
+// Keep the sidebar username synchronized
+const sidebarUserName = document.getElementById("sidebarUserName");
+const mainUserName = document.getElementById("userName");
+
+if (sidebarUserName && mainUserName) {
+    const syncUserName = () => {
+        const name = mainUserName.textContent.trim();
+
+        if (name && name !== "Loading...") {
+            sidebarUserName.textContent = name;
+        }
+    };
+
+    syncUserName();
+
+    const userNameObserver = new MutationObserver(syncUserName);
+
+    userNameObserver.observe(mainUserName, {
+        childList: true,
+        characterData: true,
+        subtree: true
+    });
+}
+
+</script>
+
+
+</body>
+
+</html>
