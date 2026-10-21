@@ -10,10 +10,15 @@ import os
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 from django.core.exceptions import ImproperlyConfigured
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load local environment variables from the project's .env file.
+# Variables already set in the operating system take precedence.
+load_dotenv(BASE_DIR / ".env")
 
 
 # ============================================================

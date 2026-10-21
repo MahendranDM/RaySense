@@ -267,6 +267,13 @@ class PerformanceRecordViewSet(viewsets.ModelViewSet):
 # ============================================================
 
 class TodayPerformanceView(APIView):
+    """
+    Compare yesterday's solar generation with that day's forecast.
+
+    Legacy generation records with a NULL generation_date are matched
+    using recorded_at and the configured local timezone.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -285,28 +292,38 @@ class TodayPerformanceView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        forecast = (
-            ForecastRecord.objects.filter(
-                solar_system=system,
-                forecast_date=evaluation_date,
-            )
-            .order_by("-id")
-            .first()
+        # Use the local calendar day's boundaries. This is important
+        # when USE_TZ=True and the application timezone is Asia/Kolkata.
+        from datetime import datetime, time
+
+        day_start = timezone.make_aware(
+            datetime.combine(evaluation_date, time.min),
+            timezone.get_current_timezone(),
+        )
+        next_day_start = timezone.make_aware(
+            datetime.combine(
+                evaluation_date + timedelta(days=1),
+                time.min,
+            ),
+            timezone.get_current_timezone(),
         )
 
-        if forecast is None:
-            return Response(
-                {
-                    "error": "Forecast for the evaluation date not found.",
-                    "date": str(evaluation_date),
-                },
-                status=status.HTTP_404_NOT_FOUND,
-            )
+        from django.db.models import Q
 
+        generation_date_filter = (
+            Q(generation_date=evaluation_date)
+            | Q(
+                generation_date__isnull=True,
+                recorded_at__gte=day_start,
+                recorded_at__lt=next_day_start,
+            )
+        )
+
+        # Prefer genuine records over simulated demonstration records.
         actual_records = GenerationRecord.objects.filter(
-            solar_system=system,
-            generation_date=evaluation_date,
-            data_source="ACTUAL",
+            Q(solar_system=system)
+            & generation_date_filter
+            & Q(data_source="ACTUAL")
         )
 
         if actual_records.exists():
@@ -315,9 +332,9 @@ class TodayPerformanceView(APIView):
             is_simulated = False
         else:
             records = GenerationRecord.objects.filter(
-                solar_system=system,
-                generation_date=evaluation_date,
-                data_source="SIMULATED",
+                Q(solar_system=system)
+                & generation_date_filter
+                & Q(data_source="SIMULATED")
             )
             data_source = "SIMULATED" if records.exists() else None
             is_simulated = data_source == "SIMULATED"
@@ -332,6 +349,52 @@ class TodayPerformanceView(APIView):
             2,
         )
 
+        forecast = (
+            ForecastRecord.objects.filter(
+                solar_system=system,
+                forecast_date=evaluation_date,
+            )
+            .order_by("-id")
+            .first()
+        )
+
+        # Missing forecasts are a pending-data state, not a server error.
+        if forecast is None:
+            return Response(
+                {
+                    "solar_system": system.system_name,
+                    "evaluation_date": str(evaluation_date),
+                    "date": str(evaluation_date),
+                    "actual_generation_kwh": generation_total,
+                    "recorded_generation_kwh": generation_total,
+                    "predicted_generation_kwh": 0.0,
+                    "full_day_forecast_kwh": 0.0,
+                    "deviation_kwh": 0.0,
+                    "performance_percentage": 0.0,
+                    "forecast_achievement_percentage": 0.0,
+                    "status": "Pending",
+                    "evaluation_scope": (
+                        "Demonstration data; not verified real-world "
+                        "production."
+                        if is_simulated
+                        else "Forecast unavailable for this evaluation date."
+                    ),
+                    "actual_data_available": (
+                        has_records and not is_simulated
+                    ),
+                    "generation_data_available": has_records,
+                    "data_source": data_source,
+                    "is_simulated": is_simulated,
+                    "verified_actual_data": False,
+                    "model_name": None,
+                    "forecast_available": False,
+                    "message": (
+                        "No forecast is available for the evaluation date."
+                    ),
+                },
+                status=status.HTTP_200_OK,
+            )
+
         predicted = round(
             safe_float(forecast.predicted_generation_kwh),
             2,
@@ -339,9 +402,13 @@ class TodayPerformanceView(APIView):
 
         if has_records and predicted > 0:
             percentage = get_forecast_achievement(
-                generation_total, predicted
+                generation_total,
+                predicted,
             )
-            deviation = get_deviation(generation_total, predicted)
+            deviation = get_deviation(
+                generation_total,
+                predicted,
+            )
 
             result_status = (
                 "SIMULATED"
@@ -381,6 +448,8 @@ class TodayPerformanceView(APIView):
                 # A database label alone cannot verify a physical reading.
                 "verified_actual_data": False,
                 "model_name": forecast.model_name,
+                "forecast_available": True,
+                "message": None,
             },
             status=status.HTTP_200_OK,
         )
