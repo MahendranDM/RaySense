@@ -349,7 +349,8 @@ class TodayPerformanceView(APIView):
             2,
         )
 
-        # IMPORTANT: Only use a forecast for the exact evaluation date.
+        # Prefer the exact-date forecast; fall back to the closest
+        # available forecast only for simulated demonstration data.
         forecast = (
             ForecastRecord.objects.filter(
                 solar_system=system,
@@ -358,6 +359,17 @@ class TodayPerformanceView(APIView):
             .order_by("-id")
             .first()
         )
+
+        if forecast is None and is_simulated:
+            forecast = (
+                ForecastRecord.objects.filter(
+                    solar_system=system,
+                    forecast_date__lte=evaluation_date,
+                    model_name__icontains="simulated",
+                )
+                .order_by("-forecast_date", "-id")
+                .first()
+            )
 
         # Do not compare generation against a forecast from another day.
         if forecast is None:
