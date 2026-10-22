@@ -16,14 +16,26 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
-            "username",
-            "email",
-            "password",
-            "password2"
-        ]
+        fields = ["first_name", "last_name", "username", "email", "password", "password2"]
 
     def validate(self, data):
+        first_name = data.get("first_name", "").strip()
+        last_name = data.get("last_name", "").strip()
+
+        errors = {}
+
+        if not first_name:
+            errors["first_name"] = "First name is required."
+
+        if not last_name:
+            errors["last_name"] = "Last name is required."
+
+        if errors:
+            raise serializers.ValidationError(errors)
+
+        data["first_name"] = first_name
+        data["last_name"] = last_name
+
         if data["password"] != data["password2"]:
             raise serializers.ValidationError({
                 "password": "Passwords do not match."
@@ -52,6 +64,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
+            first_name=validated_data["first_name"].strip(),
+            last_name=validated_data["last_name"].strip(),
         )
 
         return user

@@ -1069,6 +1069,28 @@
 
 
                 <div class="grid">
+                    <div class="field">
+                        <label for="first_name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first_name" name="first_name"
+                               placeholder="Your first name" autocomplete="given-name"
+                               maxlength="150" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="last_name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last_name" name="last_name"
+                               placeholder="Your last name" autocomplete="family-name"
+                               maxlength="150" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="phone">Phone Number <span class="required">*</span></label>
+                        <input type="tel" id="phone" name="phone"
+                               placeholder="Your phone number" autocomplete="tel"
+                               maxlength="20" pattern="[0-9+() .-]{7,20}" required>
+                    </div>
+
+
 
 
                     <div class="field">
@@ -2150,6 +2172,20 @@ locationButton.addEventListener(
 
 </script>
 
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const installationDate = document.getElementById("installation_date");
+    if (installationDate) {
+        const today = new Date();
+        const localToday = new Date(
+            today.getTime() - today.getTimezoneOffset() * 60000
+        ).toISOString().slice(0, 10);
+        installationDate.max = localToday;
+    }
+});
+</script>
 
 </body>
 

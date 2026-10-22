@@ -1,4 +1,7 @@
-﻿from django.contrib.auth import get_user_model
+import re
+from datetime import date
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 from django.db import transaction
 
 from rest_framework import status
@@ -33,6 +36,14 @@ class RegisterView(APIView):
     ]
 
     def validate_solar_data(self, data):
+        phone = str(data.get("phone", "")).strip()
+        if not phone:
+            return {"phone": "Phone number is required."}
+        if not re.fullmatch(r"[0-9+() .-]{7,20}", phone):
+            return {"phone": "Enter a valid phone number."}
+        if sum(character.isdigit() for character in phone) < 7:
+            return {"phone": "Enter a valid phone number."}
+
 
         required_fields = [
             "system_name",
@@ -54,6 +65,20 @@ class RegisterView(APIView):
             return {
                 field: "This field is required."
                 for field in missing_fields
+            }
+
+        try:
+            installation_date = date.fromisoformat(
+                str(data["installation_date"])
+            )
+        except (TypeError, ValueError):
+            return {
+                "installation_date": "Enter a valid installation date."
+            }
+
+        if installation_date > timezone.localdate():
+            return {
+                "installation_date": "Installation date cannot be in the future."
             }
 
         try:
@@ -153,10 +178,8 @@ class RegisterView(APIView):
 
         UserProfile.objects.create(
             user=user,
-            location=request.data.get(
-                "location",
-                ""
-            )
+            phone=request.data.get("phone", "").strip(),
+            location=request.data.get("location", "").strip(),
         )
 
         # ----------------------------------------------------
@@ -229,13 +252,16 @@ class RegisterView(APIView):
                 "Registration successful.",
 
                 "user": {
-    "id": user.id,
-    "username": user.username,
-    "email": user.email,
-    "is_staff": user.is_staff,
-    "is_superuser": user.is_superuser,
-    "is_admin": user.is_staff or user.is_superuser,
-},
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "phone": request.data.get("phone", "").strip(),
+                    "is_staff": user.is_staff,
+                    "is_superuser": user.is_superuser,
+                    "is_admin": user.is_staff or user.is_superuser,
+                },
 
                 "solar_system": {
                     "id":

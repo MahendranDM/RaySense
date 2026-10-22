@@ -38,13 +38,27 @@ class GenerationRecordViewSet(viewsets.ModelViewSet):
         """
         today = timezone.localdate()
 
-        return (
-            GenerationRecord.objects.filter(
-                solar_system__user=self.request.user,
-                generation_date__isnull=False,
-                generation_date__lt=today,
+        queryset = GenerationRecord.objects.filter(
+            solar_system__user=self.request.user,
+            generation_date__isnull=False,
+            generation_date__lt=today,
+        )
+
+        # Never expose records dated before system installation.
+        from django.db.models import F, Q
+
+        queryset = queryset.filter(
+            Q(solar_system__installation_date__isnull=True)
+            | Q(
+                generation_date__gte=F(
+                    "solar_system__installation_date"
+                )
             )
-            .order_by("-generation_date", "-recorded_at")
+        )
+
+        return queryset.order_by(
+            "-generation_date",
+            "-recorded_at",
         )
 
     def list(self, request, *args, **kwargs):
@@ -53,13 +67,17 @@ class GenerationRecordViewSet(viewsets.ModelViewSet):
         returning the user's generation history.
         """
         today = timezone.localdate()
-        start_date = today - timedelta(days=29)
+        history_start = today - timedelta(days=29)
 
         systems = SolarSystem.objects.filter(
             user=request.user
         )
 
         for system in systems:
+            start_date = history_start
+            if system.installation_date and system.installation_date > start_date:
+                start_date = system.installation_date
+
             self._create_missing_simulated_records(
                 system=system,
                 start_date=start_date,
@@ -144,7 +162,16 @@ class GenerationRecordViewSet(viewsets.ModelViewSet):
 
         current_date = start_date
 
+        # An installation date can be today or in the future.
+        # In those cases, there are no completed dates to simulate.
+        if start_date > end_date:
+            return
+
         while current_date <= end_date:
+            if current_date < start_date:
+                current_date += timedelta(days=1)
+                continue
+
             if current_date not in existing_dates:
                 seed_text = (
                     f"{system.pk}:{current_date.isoformat()}"
