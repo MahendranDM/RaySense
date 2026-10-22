@@ -1,6 +1,6 @@
 import logging
-
 import requests
+
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
@@ -9,16 +9,17 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 
 WEATHER_CACHE_SECONDS = 30 * 60
 STALE_CACHE_SECONDS = 24 * 60 * 60
-RATE_LIMIT_COOLDOWN_SECONDS = 15 * 60
-REQUEST_TIMEOUT = 12
+REQUEST_TIMEOUT = 15
 
 
 def get_weather_forecast(latitude, longitude, forecast_days=7):
     """
-    Fetch hourly weather from Open-Meteo.
+    Retrieve hourly weather for RaySense forecasting.
 
-    Reuse fresh cached data when available. If the provider fails,
-    use the last successful response for up to 24 hours.
+    Try the requested forecast first. If the full request is
+    rate-limited, try a shorter one-day hourly request.
+
+    Cache successful responses and reuse them during outages.
     """
 
     latitude = float(latitude)
@@ -34,156 +35,129 @@ def get_weather_forecast(latitude, longitude, forecast_days=7):
     if not 1 <= forecast_days <= 16:
         raise ValueError("Forecast days must be between 1 and 16.")
 
-    location_key = (
-        f"{latitude:.4f}:{longitude:.4f}:{forecast_days}"
-    )
+    location_key = f"{latitude:.4f}:{longitude:.4f}"
 
-    fresh_key = f"raysense_weather_fresh_v4:{location_key}"
-    stale_key = f"raysense_weather_stale_v4:{location_key}"
-    cooldown_key = f"raysense_weather_cooldown_v4:{location_key}"
+    fresh_key = f"raysense_weather_fresh_v5:{location_key}:{forecast_days}"
+    stale_key = f"raysense_weather_stale_v5:{location_key}:{forecast_days}"
 
-    # Return fresh cached data without calling the external API.
-    fresh_data = cache.get(fresh_key)
+    cached = cache.get(fresh_key)
 
-    if fresh_data is not None:
-        return fresh_data
+    if cached is not None:
+        return cached
 
-    # The stale cache is retained separately for outage fallback.
-    stale_data = cache.get(stale_key)
+    stale = cache.get(stale_key)
 
-    # Avoid sending repeated requests while the provider is rate-limiting.
-    if cache.get(cooldown_key):
-        if stale_data is not None:
-            logger.warning(
-                "Open-Meteo cooldown active; using cached weather."
-            )
-            return stale_data
-
-        raise requests.RequestException(
-            "Weather service is temporarily rate-limited. "
-            "No cached weather is available."
-        )
-
-    params = {
-        "latitude": latitude,
-        "longitude": longitude,
-        "hourly": ",".join([
-            "temperature_2m",
-            "relative_humidity_2m",
-            "wind_speed_10m",
-            "wind_direction_10m",
-            "surface_pressure",
-            "shortwave_radiation",
-            "cloud_cover",
-        ]),
-        "forecast_days": forecast_days,
-        "timezone": "auto",
+    field_map = {
+        "temperature_2m": "temperature",
+        "relative_humidity_2m": "humidity",
+        "wind_speed_10m": "wind_speed",
+        "wind_direction_10m": "wind_direction",
+        "surface_pressure": "pressure",
+        "shortwave_radiation": "solar_radiation",
+        "cloud_cover": "cloud_cover",
     }
 
-    try:
-        response = requests.get(
-            OPEN_METEO_URL,
-            params=params,
-            timeout=REQUEST_TIMEOUT,
-        )
+    # Try the requested horizon first, then one day if rate-limited.
+    horizons = [forecast_days]
 
-        if response.status_code == 429:
-            cache.set(
-                cooldown_key,
-                True,
-                timeout=RATE_LIMIT_COOLDOWN_SECONDS,
+    if forecast_days > 1:
+        horizons.append(1)
+
+    last_error = None
+
+    for days in horizons:
+        params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "hourly": ",".join(field_map.keys()),
+            "forecast_days": days,
+            "timezone": "auto",
+        }
+
+        try:
+            response = requests.get(
+                OPEN_METEO_URL,
+                params=params,
+                timeout=REQUEST_TIMEOUT,
             )
 
-            if stale_data is not None:
-                logger.warning(
-                    "Open-Meteo returned 429; using cached weather."
+            if response.status_code == 429:
+                last_error = requests.HTTPError(
+                    "Open-Meteo rate limit exceeded.",
+                    response=response,
                 )
-                return stale_data
+
+                # Try the smaller request, if available.
+                continue
 
             response.raise_for_status()
 
-        response.raise_for_status()
+            data = response.json()
+            hourly = data.get("hourly", {})
 
-        data = response.json()
-        hourly = data.get("hourly")
+            times = hourly.get("time", [])
 
-        if not isinstance(hourly, dict) or not hourly.get("time"):
-            raise ValueError("No hourly weather data received.")
+            if not times:
+                raise ValueError("No hourly weather data received.")
 
-        field_map = {
-            "temperature_2m": "temperature",
-            "relative_humidity_2m": "humidity",
-            "wind_speed_10m": "wind_speed",
-            "wind_direction_10m": "wind_direction",
-            "surface_pressure": "pressure",
-            "shortwave_radiation": "solar_radiation",
-            "cloud_cover": "cloud_cover",
-        }
+            records = []
 
-        times = hourly["time"]
-        records = []
+            for index, timestamp in enumerate(times):
+                record = {"time": timestamp}
 
-        for index, timestamp in enumerate(times):
-            record = {"time": timestamp}
+                for api_field, output_field in field_map.items():
+                    values = hourly.get(api_field)
 
-            for api_field, output_field in field_map.items():
-                values = hourly.get(api_field)
+                    if not isinstance(values, list) or index >= len(values):
+                        raise ValueError(
+                            f"Incomplete weather data: {api_field}"
+                        )
 
-                if not isinstance(values, list) or index >= len(values):
-                    raise ValueError(
-                        f"Incomplete weather data: {api_field}"
-                    )
+                    value = values[index]
 
-                value = values[index]
+                    if value is not None and api_field == "surface_pressure":
+                        value = value / 10
 
-                if value is not None and api_field == "surface_pressure":
-                    value = value / 10
+                    record[output_field] = value
 
-                record[output_field] = value
+                records.append(record)
 
-            records.append(record)
+            result = {
+                "latitude": data.get("latitude", latitude),
+                "longitude": data.get("longitude", longitude),
+                "elevation": data.get("elevation"),
+                "weather": records,
+            }
 
-        result = {
-            "latitude": latitude,
-            "longitude": longitude,
-            "elevation": data.get("elevation"),
-            "weather": records,
-        }
-
-        # Save successful results in the shared Django cache.
-        cache.set(
-            fresh_key,
-            result,
-            timeout=WEATHER_CACHE_SECONDS,
-        )
-
-        cache.set(
-            stale_key,
-            result,
-            timeout=STALE_CACHE_SECONDS,
-        )
-
-        cache.delete(cooldown_key)
-
-        return result
-
-    except requests.RequestException as error:
-        logger.warning(
-            "Open-Meteo request failed for %s: %s",
-            location_key,
-            error,
-        )
-
-        # Use previously successful data if available.
-        stale_data = cache.get(stale_key)
-
-        if stale_data is not None:
-            logger.warning(
-                "Using stale cached weather after provider failure."
+            cache.set(
+                fresh_key,
+                result,
+                timeout=WEATHER_CACHE_SECONDS,
             )
-            return stale_data
 
-        raise requests.RequestException(
-            "Weather service is temporarily unavailable, "
-            "and no cached weather is available."
-        ) from error
+            cache.set(
+                stale_key,
+                result,
+                timeout=STALE_CACHE_SECONDS,
+            )
+
+            return result
+
+        except (requests.RequestException, ValueError) as error:
+            last_error = error
+            logger.warning(
+                "Weather request failed for %s, horizon %s: %s",
+                location_key,
+                days,
+                error,
+            )
+
+    # Never invent weather data. Use only a previously successful response.
+    if stale is not None:
+        logger.warning("Using cached weather after provider failure.")
+        return stale
+
+    raise requests.RequestException(
+        "Weather provider is temporarily unavailable. "
+        "No previously cached hourly forecast is available."
+    ) from last_error
