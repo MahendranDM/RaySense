@@ -371,6 +371,27 @@ class TodayPerformanceView(APIView):
                 .first()
             )
 
+        # Create a clearly labelled demonstration forecast for any user's
+        # own system when simulated generation exists but its forecast is missing.
+        # Never create synthetic forecasts for verified ACTUAL-only records.
+        if forecast is None and is_simulated and has_records and generation_total > 0:
+            from django.db import transaction
+
+            with transaction.atomic():
+                forecast = ForecastRecord.objects.filter(
+                    solar_system=system,
+                    forecast_date=evaluation_date,
+                ).order_by("-id").first()
+
+                if forecast is None:
+                    forecast = ForecastRecord.objects.create(
+                        solar_system=system,
+                        forecast_date=evaluation_date,
+                        predicted_generation_kwh=round(generation_total * 0.85, 2),
+                        model_name="Simulated Demonstration",
+                        confidence_score=None,
+                    )
+
         # Do not compare generation against a forecast from another day.
         if forecast is None:
             return Response(
