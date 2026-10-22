@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+import requests
+
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
 from rest_framework.response import Response
@@ -792,7 +794,7 @@ class WeatherMLForecastView(APIView):
                 status=status.HTTP_200_OK
             )
 
-        except ValueError as error:
+        except (ValueError, TypeError) as error:
 
             return Response(
                 {
@@ -801,11 +803,26 @@ class WeatherMLForecastView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        except Exception as error:
+        except requests.RequestException:
 
             return Response(
                 {
-                    "error": str(error)
+                    "error": (
+                        "Weather service is temporarily unavailable. "
+                        "Please try again shortly."
+                    )
+                },
+                status=status.HTTP_503_SERVICE_UNAVAILABLE
+            )
+
+        except Exception:
+
+            return Response(
+                {
+                    "error": (
+                        "Unable to generate the weather-based forecast "
+                        "at this time."
+                    )
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
