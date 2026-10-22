@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
+import math
 
 import requests
+
+from django.utils import timezone
 
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status, viewsets
@@ -17,29 +20,47 @@ from .ml_prediction import predict_generation as ml_predict_generation
 
 
 # ============================================================
+# COMMON HELPERS
+# ============================================================
+
+def maintain_forecast_history(system, today):
+    """
+    Retain forecasts from the last five completed days,
+    respecting the system installation date.
+
+    Today's and future forecasts are retained.
+    Missing historical predictions are never fabricated.
+    """
+    first_history_date = today - timedelta(days=5)
+
+    if system.installation_date:
+        first_history_date = max(
+            first_history_date,
+            system.installation_date,
+        )
+
+    ForecastRecord.objects.filter(
+        solar_system=system,
+        forecast_date__lt=first_history_date,
+    ).delete()
+
+
+# ============================================================
 # 1. EXISTING RANDOM FOREST FORECAST API
 # ============================================================
 
 class ForecastPredictionView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
-        # ------------------------------------------------
-        # Get the logged-in user's solar system
-        # ------------------------------------------------
-
         system = SolarSystem.objects.filter(
             user=request.user
         ).first()
 
         if system is None:
             return Response(
-                {
-                    "error": "No solar system found."
-                },
-                status=status.HTTP_404_NOT_FOUND
+                {"error": "No solar system found."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         required_fields = [
@@ -51,102 +72,74 @@ class ForecastPredictionView(APIView):
         ]
 
         for field in required_fields:
-
             if field not in request.data:
                 return Response(
-                    {
-                        "error": f"Missing field: {field}"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": f"Missing field: {field}"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
         try:
-
             weather_data = {
-                "temperature": float(
-                    request.data["temperature"]
-                ),
-
-                "humidity": float(
-                    request.data["humidity"]
-                ),
-
-                "cloud_cover": float(
-                    request.data["cloud_cover"]
-                ),
-
-                "wind_speed": float(
-                    request.data["wind_speed"]
-                ),
-
+                "temperature": float(request.data["temperature"]),
+                "humidity": float(request.data["humidity"]),
+                "cloud_cover": float(request.data["cloud_cover"]),
+                "wind_speed": float(request.data["wind_speed"]),
                 "solar_irradiance": float(
                     request.data["solar_irradiance"]
                 ),
             }
 
-            # Train existing Random Forest model
+            forecast_date = request.data.get("forecast_date")
+
+            if not forecast_date:
+                return Response(
+                    {"error": "forecast_date is required."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             model = train_forecasting_model(system)
 
-            # Generate prediction
             prediction = predict_generation(
                 model,
-                weather_data
+                weather_data,
             )
 
-            # Save prediction
-            forecast = ForecastRecord.objects.create(
+            forecast = ForecastRecord.objects.update_or_create(
                 solar_system=system,
+                forecast_date=forecast_date,
+                defaults={
+                    "predicted_generation_kwh": round(prediction, 2),
+                    "model_name": "Random Forest",
+                    "confidence_score": None,
+                },
+            )[0]
 
-                forecast_date=request.data.get(
-                    "forecast_date"
-                ),
-
-                predicted_generation_kwh=round(
-                    prediction,
-                    2
-                ),
-
-                model_name="Random Forest",
-
-                confidence_score=None,
+            maintain_forecast_history(
+                system,
+                timezone.localdate(),
             )
 
             return Response(
                 {
                     "id": forecast.id,
-
                     "solar_system": system.system_name,
-
-                    "forecast_date":
-                        forecast.forecast_date,
-
-                    "predicted_generation_kwh":
-                        round(
-                            prediction,
-                            2
-                        ),
-
+                    "forecast_date": forecast.forecast_date,
+                    "predicted_generation_kwh": round(prediction, 2),
                     "model": "Random Forest",
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
-        except ValueError as error:
-
+        except (TypeError, ValueError) as error:
             return Response(
-                {
-                    "error": str(error)
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": str(error)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        except Exception as error:
-
+        except Exception:
             return Response(
-                {
-                    "error": str(error)
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Unable to generate the forecast."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -155,11 +148,9 @@ class ForecastPredictionView(APIView):
 # ============================================================
 
 class MLForecastPredictionView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
         required_fields = [
             "temperature",
             "humidity",
@@ -177,74 +168,28 @@ class MLForecastPredictionView(APIView):
             "system_capacity_kw",
         ]
 
-        # Check required fields
         for field in required_fields:
-
             if field not in request.data:
-
                 return Response(
-                    {
-                        "error": f"Missing field: {field}"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
+                    {"error": f"Missing field: {field}"},
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
         try:
-
             prediction = ml_predict_generation(
-
-                temperature=float(
-                    request.data["temperature"]
-                ),
-
-                humidity=float(
-                    request.data["humidity"]
-                ),
-
-                wind_speed=float(
-                    request.data["wind_speed"]
-                ),
-
-                wind_direction=float(
-                    request.data["wind_direction"]
-                ),
-
-                pressure=float(
-                    request.data["pressure"]
-                ),
-
-                solar_radiation=float(
-                    request.data["solar_radiation"]
-                ),
-
-                latitude=float(
-                    request.data["latitude"]
-                ),
-
-                longitude=float(
-                    request.data["longitude"]
-                ),
-
-                elevation=float(
-                    request.data["elevation"]
-                ),
-
-                hour=int(
-                    request.data["hour"]
-                ),
-
-                month=int(
-                    request.data["month"]
-                ),
-
-                day_of_year=int(
-                    request.data["day_of_year"]
-                ),
-
-                day_of_week=int(
-                    request.data["day_of_week"]
-                ),
-
+                temperature=float(request.data["temperature"]),
+                humidity=float(request.data["humidity"]),
+                wind_speed=float(request.data["wind_speed"]),
+                wind_direction=float(request.data["wind_direction"]),
+                pressure=float(request.data["pressure"]),
+                solar_radiation=float(request.data["solar_radiation"]),
+                latitude=float(request.data["latitude"]),
+                longitude=float(request.data["longitude"]),
+                elevation=float(request.data["elevation"]),
+                hour=int(request.data["hour"]),
+                month=int(request.data["month"]),
+                day_of_year=int(request.data["day_of_year"]),
+                day_of_week=int(request.data["day_of_week"]),
                 system_capacity_kw=float(
                     request.data["system_capacity_kw"]
                 ),
@@ -252,559 +197,248 @@ class MLForecastPredictionView(APIView):
 
             return Response(
                 {
-                    "predicted_generation_kwh":
-                        prediction,
-
+                    "predicted_generation_kwh": prediction,
                     "model": "XGBoost",
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
-        except ValueError as error:
-
+        except (TypeError, ValueError) as error:
             return Response(
-                {
-                    "error": str(error)
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": str(error)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        except Exception as error:
-
+        except Exception:
             return Response(
-                {
-                    "error": str(error)
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": "Unable to generate the prediction."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
 # ============================================================
 # 3. AUTOMATIC WEATHER + XGBOOST FORECAST API
-#
-# SolarSystem database
-#        ↓
-# latitude / longitude / capacity
-#        ↓
-# Weather API
-#        ↓
-# XGBoost
-#        ↓
-# Hourly Forecast
-#        ↓
-# Daily ForecastRecord
 # ============================================================
 
 class WeatherMLForecastView(APIView):
-
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         try:
-
-            # ------------------------------------------------
-            # Get the logged-in user's solar system
-            # ------------------------------------------------
-
             system = SolarSystem.objects.filter(
                 user=request.user
             ).first()
 
             if system is None:
-
                 return Response(
-                    {
-                        "error":
-                            "No solar system found."
-                    },
-                    status=status.HTTP_404_NOT_FOUND
+                    {"error": "No solar system found."},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
-            # ------------------------------------------------
-            # Get latitude from database
-            # ------------------------------------------------
-
-            if system.latitude is None:
-
+            if (
+                system.latitude is None
+                or system.longitude is None
+                or system.capacity_kw is None
+            ):
                 return Response(
                     {
-                        "error":
-                            "Solar system latitude is not configured."
+                        "error": (
+                            "Solar system location and capacity "
+                            "must be configured."
+                        )
                     },
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # ------------------------------------------------
-            # Get longitude from database
-            # ------------------------------------------------
-
-            if system.longitude is None:
-
-                return Response(
-                    {
-                        "error":
-                            "Solar system longitude is not configured."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            # ------------------------------------------------
-            # Get system capacity from database
-            # ------------------------------------------------
-
-            if system.capacity_kw is None:
-
-                return Response(
-                    {
-                        "error":
-                            "Solar system capacity is not configured."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-            latitude = float(
-                system.latitude
-            )
-
-            longitude = float(
-                system.longitude
-            )
-
-            system_capacity_kw = float(
-                system.capacity_kw
-            )
-
-            # ------------------------------------------------
-            # Get 7 days of future weather
-            # ------------------------------------------------
+            latitude = float(system.latitude)
+            longitude = float(system.longitude)
+            system_capacity_kw = float(system.capacity_kw)
 
             forecast_data = get_weather_forecast(
                 latitude,
                 longitude,
-                7
+                7,
             )
 
-            elevation = forecast_data[
-                "elevation"
-            ]
-
-            weather_records = forecast_data[
-                "weather"
-            ]
+            elevation = forecast_data["elevation"]
+            weather_records = forecast_data["weather"]
 
             if not weather_records:
-
                 return Response(
-                    {
-                        "error":
-                            "No future weather forecast available."
-                    },
-                    status=status.HTTP_404_NOT_FOUND
+                    {"error": "No future weather forecast available."},
+                    status=status.HTTP_404_NOT_FOUND,
                 )
 
             predictions = []
 
-            # ------------------------------------------------
-            # XGBoost prediction for every future hour
-            # ------------------------------------------------
-
             for weather in weather_records:
-
                 forecast_time = datetime.fromisoformat(
                     weather["time"]
                 )
 
                 prediction = ml_predict_generation(
-
-                    temperature=float(
-                        weather["temperature"]
-                    ),
-
-                    humidity=float(
-                        weather["humidity"]
-                    ),
-
-                    wind_speed=float(
-                        weather["wind_speed"]
-                    ),
-
-                    wind_direction=float(
-                        weather["wind_direction"]
-                    ),
-
-                    pressure=float(
-                        weather["pressure"]
-                    ),
-
-                    solar_radiation=float(
-                        weather["solar_radiation"]
-                    ),
-
+                    temperature=float(weather["temperature"]),
+                    humidity=float(weather["humidity"]),
+                    wind_speed=float(weather["wind_speed"]),
+                    wind_direction=float(weather["wind_direction"]),
+                    pressure=float(weather["pressure"]),
+                    solar_radiation=float(weather["solar_radiation"]),
                     latitude=latitude,
-
                     longitude=longitude,
-
-                    elevation=float(
-                        elevation
-                    ),
-
+                    elevation=float(elevation),
                     hour=forecast_time.hour,
-
                     month=forecast_time.month,
-
-                    day_of_year=
-                        forecast_time
-                        .timetuple()
-                        .tm_yday,
-
-                    day_of_week=
-                        forecast_time.weekday(),
-
-                    system_capacity_kw=
-                        system_capacity_kw,
+                    day_of_year=forecast_time.timetuple().tm_yday,
+                    day_of_week=forecast_time.weekday(),
+                    system_capacity_kw=system_capacity_kw,
                 )
 
                 predictions.append(
                     {
-                        "time":
-                            weather["time"],
-
-                        "temperature":
-                            weather["temperature"],
-
-                        "humidity":
-                            weather["humidity"],
-
-                        "wind_speed":
-                            weather["wind_speed"],
-
-                        "wind_direction":
-                            weather["wind_direction"],
-
-                        "pressure":
-                            weather["pressure"],
-
-                        "solar_radiation":
-                            weather[
-                                "solar_radiation"
-                            ],
-
-                        "predicted_generation_kwh":
-                            prediction,
+                        "time": weather["time"],
+                        "temperature": weather["temperature"],
+                        "humidity": weather["humidity"],
+                        "wind_speed": weather["wind_speed"],
+                        "wind_direction": weather["wind_direction"],
+                        "pressure": weather["pressure"],
+                        "solar_radiation": weather["solar_radiation"],
+                        "predicted_generation_kwh": prediction,
                     }
                 )
 
-            # ------------------------------------------------
-            # Forecast horizon calculations
-            # ------------------------------------------------
+            if not predictions:
+                return Response(
+                    {"error": "No predictions were generated."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-            next_1_hour = predictions[:1]
+            def total_generation(records):
+                return round(
+                    sum(
+                        float(item["predicted_generation_kwh"])
+                        for item in records
+                    ),
+                    2,
+                )
 
-            next_5_hours = predictions[:5]
-
-            next_12_hours = predictions[:12]
-
-            # ------------------------------------------------
-            # Determine dates
-            # ------------------------------------------------
-
-            first_forecast_time = datetime.fromisoformat(
+            current_date = datetime.fromisoformat(
                 predictions[0]["time"]
-            )
+            ).date()
 
-            current_date = (
-                first_forecast_time.date()
-            )
-
-            tomorrow_date = (
-                current_date +
-                timedelta(days=1)
-            )
-
-            day_after_tomorrow_date = (
-                current_date +
-                timedelta(days=2)
-            )
-
-            # ------------------------------------------------
-            # Today's predictions
-            # ------------------------------------------------
+            tomorrow_date = current_date + timedelta(days=1)
+            day_after_tomorrow_date = current_date + timedelta(days=2)
 
             today_predictions = []
-
             tomorrow_predictions = []
-
             day_after_tomorrow_predictions = []
 
             for item in predictions:
-
-                item_time = datetime.fromisoformat(
+                item_date = datetime.fromisoformat(
                     item["time"]
-                )
-
-                item_date = item_time.date()
+                ).date()
 
                 if item_date == current_date:
-
-                    today_predictions.append(
-                        item
-                    )
-
+                    today_predictions.append(item)
                 elif item_date == tomorrow_date:
+                    tomorrow_predictions.append(item)
+                elif item_date == day_after_tomorrow_date:
+                    day_after_tomorrow_predictions.append(item)
 
-                    tomorrow_predictions.append(
-                        item
-                    )
+            daily_forecasts = [
+                (
+                    current_date,
+                    total_generation(today_predictions),
+                ),
+                (
+                    tomorrow_date,
+                    total_generation(tomorrow_predictions),
+                ),
+                (
+                    day_after_tomorrow_date,
+                    total_generation(day_after_tomorrow_predictions),
+                ),
+            ]
 
-                elif (
-                    item_date ==
-                    day_after_tomorrow_date
+            for forecast_date, generation in daily_forecasts:
+                # Only save dates that have prediction records.
+                if not any(
+                    datetime.fromisoformat(item["time"]).date()
+                    == forecast_date
+                    for item in predictions
                 ):
+                    continue
 
-                    day_after_tomorrow_predictions.append(
-                        item
-                    )
-
-            # ------------------------------------------------
-            # Helper function
-            # ------------------------------------------------
-
-            def total_generation(records):
-
-                return round(
-                    sum(
-                        float(
-                            item[
-                                "predicted_generation_kwh"
-                            ]
-                        )
-                        for item in records
-                    ),
-                    2
+                ForecastRecord.objects.update_or_create(
+                    solar_system=system,
+                    forecast_date=forecast_date,
+                    defaults={
+                        "predicted_generation_kwh": generation,
+                        "model_name": "XGBoost",
+                        "confidence_score": None,
+                    },
                 )
 
-            # ------------------------------------------------
-            # Save today's remaining XGBoost forecast
-            # ------------------------------------------------
-
-            today_generation = total_generation(
-                today_predictions
+            maintain_forecast_history(
+                system,
+                timezone.localdate(),
             )
-
-            ForecastRecord.objects.update_or_create(
-                solar_system=system,
-
-                forecast_date=current_date,
-
-                defaults={
-                    "predicted_generation_kwh":
-                        today_generation,
-
-                    "model_name":
-                        "XGBoost",
-
-                    "confidence_score":
-                        None,
-                },
-            )
-
-            # ------------------------------------------------
-            # Save tomorrow's XGBoost forecast
-            # ------------------------------------------------
-
-            tomorrow_generation = total_generation(
-                tomorrow_predictions
-            )
-
-            ForecastRecord.objects.update_or_create(
-                solar_system=system,
-
-                forecast_date=tomorrow_date,
-
-                defaults={
-                    "predicted_generation_kwh":
-                        tomorrow_generation,
-
-                    "model_name":
-                        "XGBoost",
-
-                    "confidence_score":
-                        None,
-                },
-            )
-
-            # ------------------------------------------------
-            # Save day-after-tomorrow XGBoost forecast
-            # ------------------------------------------------
-
-            day_after_tomorrow_generation = total_generation(
-                day_after_tomorrow_predictions
-            )
-
-            ForecastRecord.objects.update_or_create(
-                solar_system=system,
-
-                forecast_date=day_after_tomorrow_date,
-
-                defaults={
-                    "predicted_generation_kwh":
-                        day_after_tomorrow_generation,
-
-                    "model_name":
-                        "XGBoost",
-
-                    "confidence_score":
-                        None,
-                },
-            )
-
-            # ------------------------------------------------
-            # Build response
-            # ------------------------------------------------
 
             return Response(
                 {
-                    # ----------------------------
-                    # Location
-                    # ----------------------------
-
-                    "latitude":
-                        latitude,
-
-                    "longitude":
-                        longitude,
-
-                    "elevation":
-                        elevation,
-
-                    # ----------------------------
-                    # System
-                    # ----------------------------
-
-                    "system_id":
-                        system.id,
-
-                    "system_name":
-                        system.system_name,
-
-                    "system_location":
-                        system.location,
-
-                    "system_capacity_kw":
-                        system_capacity_kw,
-
-                    # ----------------------------
-                    # Model
-                    # ----------------------------
-
-                    "model":
-                        "XGBoost",
-
-                    "forecast_hours":
-                        len(predictions),
-
-                    # ----------------------------
-                    # Next 1 hour
-                    # ----------------------------
-
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "elevation": elevation,
+                    "system_id": system.id,
+                    "system_name": system.system_name,
+                    "system_location": system.location,
+                    "system_capacity_kw": system_capacity_kw,
+                    "model": "XGBoost",
+                    "forecast_hours": len(predictions),
                     "next_1_hour": {
-                        "generation_kwh":
-                            total_generation(
-                                next_1_hour
-                            )
+                        "generation_kwh": total_generation(
+                            predictions[:1]
+                        )
                     },
-
-                    # ----------------------------
-                    # Next 5 hours
-                    # ----------------------------
-
                     "next_5_hours": {
-                        "generation_kwh":
-                            total_generation(
-                                next_5_hours
-                            )
+                        "generation_kwh": total_generation(
+                            predictions[:5]
+                        )
                     },
-
-                    # ----------------------------
-                    # Next 12 hours
-                    # ----------------------------
-
                     "next_12_hours": {
-                        "generation_kwh":
-                            total_generation(
-                                next_12_hours
-                            )
+                        "generation_kwh": total_generation(
+                            predictions[:12]
+                        )
                     },
-
-                    # ----------------------------
-                    # Today
-                    # ----------------------------
-
                     "today": {
-                        "date":
-                            str(
-                                current_date
-                            ),
-
-                        "generation_kwh":
-                            today_generation
+                        "date": str(current_date),
+                        "generation_kwh": total_generation(
+                            today_predictions
+                        ),
                     },
-
-                    # ----------------------------
-                    # Tomorrow
-                    # ----------------------------
-
                     "tomorrow": {
-                        "date":
-                            str(
-                                tomorrow_date
-                            ),
-
-                        "generation_kwh":
-                            total_generation(
-                                tomorrow_predictions
-                            )
+                        "date": str(tomorrow_date),
+                        "generation_kwh": total_generation(
+                            tomorrow_predictions
+                        ),
                     },
-
-                    # ----------------------------
-                    # Day after tomorrow
-                    # ----------------------------
-
                     "day_after_tomorrow": {
-                        "date":
-                            str(
-                                day_after_tomorrow_date
-                            ),
-
-                        "generation_kwh":
-                            total_generation(
-                                day_after_tomorrow_predictions
-                            )
+                        "date": str(day_after_tomorrow_date),
+                        "generation_kwh": total_generation(
+                            day_after_tomorrow_predictions
+                        ),
                     },
-
-                    # ----------------------------
-                    # Hourly predictions
-                    # ----------------------------
-
-                    "predictions":
-                        predictions,
+                    "predictions": predictions,
                 },
-
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
         except (ValueError, TypeError) as error:
-
             return Response(
-                {
-                    "error": str(error)
-                },
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": str(error)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         except requests.RequestException:
-
             return Response(
                 {
                     "error": (
@@ -812,11 +446,10 @@ class WeatherMLForecastView(APIView):
                         "Please try again shortly."
                     )
                 },
-                status=status.HTTP_503_SERVICE_UNAVAILABLE
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
         except Exception:
-
             return Response(
                 {
                     "error": (
@@ -824,7 +457,7 @@ class WeatherMLForecastView(APIView):
                         "at this time."
                     )
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -832,19 +465,13 @@ class WeatherMLForecastView(APIView):
 # 4. FORECAST RECORD VIEWSET
 # ============================================================
 
-class ForecastRecordViewSet(
-    viewsets.ModelViewSet
-):
-
+class ForecastRecordViewSet(viewsets.ModelViewSet):
     serializer_class = ForecastRecordSerializer
-
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-
         return (
-            ForecastRecord.objects
-            .filter(
+            ForecastRecord.objects.filter(
                 solar_system__user=self.request.user
             )
             .order_by("-forecast_date")
