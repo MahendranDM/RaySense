@@ -659,62 +659,72 @@ async function loadTodayPerformance() {
             "Accept": "application/json"
         };
 
-        const data = await fetchJson(
-            "/api/performance/today/",
-            headers
-        );
+        const data = await fetchJson("/api/performance/today/", headers);
 
         console.log("Previous-day performance:", data);
 
+        const setText = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        };
+
+        const forecastAvailable =
+            data.forecast_available === true &&
+            data.predicted_generation_kwh != null;
+
         const systemName = data.solar_system || "Solar System";
 
-        document.getElementById("systemName").textContent = systemName;
-        document.getElementById("infoSystem").textContent = systemName;
-
-        document.getElementById("evaluationScope").textContent =
-            "Simulated performance for the previous completed day";
-
-        document.getElementById("actualGeneration").textContent =
-            formatNumber(data.actual_generation_kwh);
-
-        document.getElementById("predictedGeneration").textContent =
-            formatNumber(data.predicted_generation_kwh);
-
-        document.getElementById("fullDayForecast").textContent =
-            formatNumber(data.full_day_forecast_kwh);
-
-        document.getElementById("performancePercentage").textContent =
-            `${formatNumber(data.performance_percentage)}%`;
-
-        document.getElementById("evaluationDate").textContent =
-            formatDate(data.evaluation_date);
-
-        document.getElementById("deviation").textContent =
-            formatKwh(data.deviation_kwh);
-
-        document.getElementById("currentHour").textContent =
-            "SIMULATED";
-
-        document.getElementById("modelName").textContent =
-            data.model_name || "XGBoost";
+        setText("systemName", systemName);
+        setText("infoSystem", systemName);
+        setText(
+            "evaluationScope",
+            forecastAvailable
+                ? (data.evaluation_scope || "Performance comparison")
+                : "Forecast unavailable for the evaluation date"
+        );
+        setText("actualGeneration", formatNumber(data.actual_generation_kwh));
+        setText(
+            "predictedGeneration",
+            forecastAvailable ? formatNumber(data.predicted_generation_kwh) : "N/A"
+        );
+        setText(
+            "fullDayForecast",
+            forecastAvailable ? formatNumber(data.full_day_forecast_kwh) : "N/A"
+        );
+        setText(
+            "performancePercentage",
+            forecastAvailable && data.performance_percentage != null
+                ? `${formatNumber(data.performance_percentage)}%`
+                : "N/A"
+        );
+        setText("evaluationDate", formatDate(data.evaluation_date));
+        setText(
+            "deviation",
+            forecastAvailable && data.deviation_kwh != null
+                ? formatKwh(data.deviation_kwh)
+                : "N/A"
+        );
+        setText("currentHour", data.is_simulated ? "SIMULATED" : "PENDING");
+        setText(
+            "modelName",
+            forecastAvailable ? (data.model_name || "XGBoost") : "Not available"
+        );
 
         const badge = document.getElementById("statusBadge");
-        badge.textContent = "SIMULATED";
-        badge.className = "status-badge status-neutral";
+        if (badge) {
+            badge.textContent = forecastAvailable
+                ? (data.status || "Available")
+                : "PENDING";
+            badge.className = "status-badge status-neutral";
+        }
 
         createPerformanceChart(data);
 
     } catch (error) {
         console.error("Performance loading error:", error);
-
-        showError(
-            "Unable to load the previous day's performance. " +
-            "Check that you are logged in and the backend is running."
-        );
+        showError("Unable to load performance data. Please check your login.");
     }
 }
-
-
 /* -------------------------------------------------------
    Performance History: 20 completed days
 ------------------------------------------------------- */
