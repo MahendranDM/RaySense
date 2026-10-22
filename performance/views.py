@@ -268,15 +268,16 @@ class PerformanceRecordViewSet(viewsets.ModelViewSet):
 
 class TodayPerformanceView(APIView):
     """
-    Compare yesterday's solar generation with that day's forecast.
-
-    Legacy generation records with a NULL generation_date are matched
-    using recorded_at and the configured local timezone.
+    Compare the previous completed day's generation
+    against a forecast for the same date.
     """
 
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        from datetime import datetime, time
+        from django.db.models import Q
+
         today = timezone.localdate()
         evaluation_date = today - timedelta(days=1)
 
@@ -292,23 +293,20 @@ class TodayPerformanceView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Use the local calendar day's boundaries. This is important
-        # when USE_TZ=True and the application timezone is Asia/Kolkata.
-        from datetime import datetime, time
+        current_timezone = timezone.get_current_timezone()
 
         day_start = timezone.make_aware(
             datetime.combine(evaluation_date, time.min),
-            timezone.get_current_timezone(),
+            current_timezone,
         )
+
         next_day_start = timezone.make_aware(
             datetime.combine(
                 evaluation_date + timedelta(days=1),
                 time.min,
             ),
-            timezone.get_current_timezone(),
+            current_timezone,
         )
-
-        from django.db.models import Q
 
         generation_date_filter = (
             Q(generation_date=evaluation_date)
@@ -319,7 +317,6 @@ class TodayPerformanceView(APIView):
             )
         )
 
-        # Prefer genuine records over simulated demonstration records.
         actual_records = GenerationRecord.objects.filter(
             Q(solar_system=system)
             & generation_date_filter
@@ -336,7 +333,10 @@ class TodayPerformanceView(APIView):
                 & generation_date_filter
                 & Q(data_source="SIMULATED")
             )
-            data_source = "SIMULATED" if records.exists() else None
+
+            data_source = (
+                "SIMULATED" if records.exists() else None
+            )
             is_simulated = data_source == "SIMULATED"
 
         has_records = records.exists()
@@ -349,6 +349,7 @@ class TodayPerformanceView(APIView):
             2,
         )
 
+        # IMPORTANT: Only use a forecast for the exact evaluation date.
         forecast = (
             ForecastRecord.objects.filter(
                 solar_system=system,
@@ -358,7 +359,7 @@ class TodayPerformanceView(APIView):
             .first()
         )
 
-        # Missing forecasts are a pending-data state, not a server error.
+        # Do not compare generation against a forecast from another day.
         if forecast is None:
             return Response(
                 {
@@ -367,11 +368,11 @@ class TodayPerformanceView(APIView):
                     "date": str(evaluation_date),
                     "actual_generation_kwh": generation_total,
                     "recorded_generation_kwh": generation_total,
-                    "predicted_generation_kwh": 0.0,
-                    "full_day_forecast_kwh": 0.0,
-                    "deviation_kwh": 0.0,
-                    "performance_percentage": 0.0,
-                    "forecast_achievement_percentage": 0.0,
+                    "predicted_generation_kwh": None,
+                    "full_day_forecast_kwh": None,
+                    "deviation_kwh": None,
+                    "performance_percentage": None,
+                    "forecast_achievement_percentage": None,
                     "status": "Pending",
                     "evaluation_scope": (
                         "Demonstration data; not verified real-world "
@@ -389,7 +390,9 @@ class TodayPerformanceView(APIView):
                     "model_name": None,
                     "forecast_available": False,
                     "message": (
-                        "No forecast is available for the evaluation date."
+                        "No forecast is available for the evaluation date. "
+                        "Generate a forecast for this date to calculate "
+                        "performance."
                     ),
                 },
                 status=status.HTTP_200_OK,
@@ -405,6 +408,7 @@ class TodayPerformanceView(APIView):
                 generation_total,
                 predicted,
             )
+
             deviation = get_deviation(
                 generation_total,
                 predicted,
@@ -416,8 +420,8 @@ class TodayPerformanceView(APIView):
                 else get_performance_status(percentage)
             )
         else:
-            percentage = 0.0
-            deviation = 0.0
+            percentage = None
+            deviation = None
             result_status = "Pending"
 
         return Response(
@@ -445,7 +449,6 @@ class TodayPerformanceView(APIView):
                 "generation_data_available": has_records,
                 "data_source": data_source,
                 "is_simulated": is_simulated,
-                # A database label alone cannot verify a physical reading.
                 "verified_actual_data": False,
                 "model_name": forecast.model_name,
                 "forecast_available": True,
