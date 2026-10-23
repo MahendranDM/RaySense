@@ -2,23 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'alert_screen.dart';
 import 'dashboard_screen.dart';
-import 'forecast_screen.dart';
+import 'package:raysense_app/forecast_screen.dart';
 import 'performance_screen.dart';
 import 'report_screen.dart';
 import 'settings_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({
-    super.key,
-  });
+  const MainNavigationScreen({super.key});
 
   @override
-  State<MainNavigationScreen> createState() =>
-      _MainNavigationScreenState();
+  State<MainNavigationScreen> createState() => _MainNavigationScreenState();
 }
 
-class _MainNavigationScreenState
-    extends State<MainNavigationScreen> {
+class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int selectedIndex = 0;
 
   final List<Widget> screens = const [
@@ -33,12 +29,12 @@ class _MainNavigationScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: selectedIndex, children: screens),
 
       bottomNavigationBar: NavigationBar(
+        backgroundColor: const Color(0xFF0B0B0B),
+        indicatorColor: const Color(0x29FFD166),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         selectedIndex: selectedIndex,
 
         onDestinationSelected: (index) {
@@ -49,62 +45,38 @@ class _MainNavigationScreenState
 
         destinations: const [
           NavigationDestination(
-            icon: Icon(
-              Icons.dashboard_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.dashboard,
-            ),
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.auto_graph_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.auto_graph,
-            ),
+            icon: Icon(Icons.auto_graph_outlined),
+            selectedIcon: Icon(Icons.auto_graph),
             label: 'Forecast',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.analytics_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.analytics,
-            ),
+            icon: Icon(Icons.analytics_outlined),
+            selectedIcon: Icon(Icons.analytics),
             label: 'Performance',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.notifications_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.notifications,
-            ),
+            icon: Icon(Icons.notifications_outlined),
+            selectedIcon: Icon(Icons.notifications),
             label: 'Alerts',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.description_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.description,
-            ),
+            icon: Icon(Icons.description_outlined),
+            selectedIcon: Icon(Icons.description),
             label: 'Reports',
           ),
 
           NavigationDestination(
-            icon: Icon(
-              Icons.settings_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.settings,
-            ),
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],
@@ -112,3 +84,9 @@ class _MainNavigationScreenState
     );
   }
 }
+
+
+
+
+
+

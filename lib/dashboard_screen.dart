@@ -1,1508 +1,609 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import 'api_service.dart';
-import 'forecast_screen.dart';
-import 'weather_screen.dart';
-import 'generation_screen.dart';
-import 'alert_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() =>
-      _DashboardScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState
-    extends State<DashboardScreen> {
+class _DashboardScreenState extends State<DashboardScreen> {
+  static const Color _bg = Color(0xFF050505);
+  static const Color _panel = Color(0xFF0D0D0D);
+  static const Color _panelAlt = Color(0xFF111111);
+  static const Color _border = Color(0xFF202020);
+  static const Color _gold = Color(0xFFFFD166);
+  static const Color _muted = Color(0xFF858585);
 
-  Map<String, dynamic>? solarSystem;
-
-  Map<String, dynamic>? latestGeneration;
-
-  // All generation records.
-  // Used to calculate today's total generation.
-  List<dynamic> generationRecords = [];
-
-  Map<String, dynamic>? latestForecast;
-
-  // Today's calculated performance.
-  Map<String, dynamic>? latestPerformance;
-
-  bool isLoading = true;
-
-  String? errorMessage;
+  Map<String, dynamic>? _system;
+  Map<String, dynamic>? _latestPerformance;
+  Map<String, dynamic>? _mlForecast;
+  List<dynamic> _generations = [];
+  List<dynamic> _forecasts = [];
+  List<dynamic> _weather = [];
+  List<dynamic> _alerts = [];
+  bool _loading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    loadDashboardData();
+    _loadDashboard();
   }
 
-  // =====================================================
-  // LOAD DASHBOARD DATA
-  // =====================================================
-
-  Future<void> loadDashboardData() async {
+  Future<void> _loadDashboard() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
-      // -------------------------------------------------
-      // 1. Get solar system
-      // -------------------------------------------------
+      final systems = await ApiService.getSolarSystems();
+      if (systems.isEmpty) throw Exception('No solar system found.');
 
-      final systems =
-          await ApiService.getSolarSystems();
-
-      // -------------------------------------------------
-      // 2. Get generation records
-      // -------------------------------------------------
-
-      final generations =
-          await ApiService.getGenerationRecords();
-
-      // -------------------------------------------------
-      // 3. Generate/update today's ML forecast first
-      // -------------------------------------------------
-      //
-      // This ensures today's ForecastRecord exists
-      // before the performance API is called.
-      //
-
-      await ApiService.getMLWeatherForecast();
-
-      // -------------------------------------------------
-      // 4. Get forecast records
-      // -------------------------------------------------
-
-      final forecasts =
-          await ApiService.getForecasts();
-
-      // -------------------------------------------------
-      // 5. Get today's calculated performance
-      // -------------------------------------------------
-      //
-      // The backend can now find today's ForecastRecord.
-      //
-
-      final todayPerformance =
-          await ApiService.getTodayPerformance();
-
-      if (!mounted) return;
-
-      if (systems.isNotEmpty) {
-        setState(() {
-
-          solarSystem =
-              Map<String, dynamic>.from(
-            systems[0],
-          );
-
-          // Store ALL generation records.
-          generationRecords =
-              generations;
-
-          // Latest generation record.
-          if (generations.isNotEmpty) {
-            latestGeneration =
-                Map<String, dynamic>.from(
-              generations[0],
-            );
-          }
-
-          // Latest forecast record.
-          if (forecasts.isNotEmpty) {
-            latestForecast =
-                Map<String, dynamic>.from(
-              forecasts[0],
-            );
-          }
-
-          // Use today's backend performance.
-          latestPerformance =
-              Map<String, dynamic>.from(
-            todayPerformance,
-          );
-
-          isLoading = false;
-          errorMessage = null;
-        });
-
-      } else {
-
-        setState(() {
-          isLoading = false;
-          errorMessage =
-              'No solar system found.';
-        });
+      // Keep the ML forecast request and existing Django integrations.
+      Map<String, dynamic>? ml;
+      try {
+        ml = await ApiService.getMLWeatherForecast();
+      } catch (_) {
+        // Other dashboard panels can still display if ML forecast is unavailable.
       }
 
-    } catch (e) {
+      final results = await Future.wait<dynamic>([
+        ApiService.getGenerationRecords(),
+        ApiService.getForecasts(),
+        ApiService.getTodayPerformance(),
+        ApiService.getWeatherRecords(),
+        ApiService.getAlerts(),
+      ]);
 
       if (!mounted) return;
-
       setState(() {
-        isLoading = false;
-
-        // Show the real error.
-        errorMessage =
-            'Error: $e';
+        _system = Map<String, dynamic>.from(systems.first as Map);
+        _generations = results[0] as List<dynamic>;
+        _forecasts = results[1] as List<dynamic>;
+        _latestPerformance = Map<String, dynamic>.from(results[2] as Map);
+        _weather = results[3] as List<dynamic>;
+        _alerts = results[4] as List<dynamic>;
+        _mlForecast = ml;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString().replaceFirst('Exception: ', '');
       });
     }
   }
 
-  // =====================================================
-  // SOLAR SYSTEM INFORMATION
-  // =====================================================
+  double _num(dynamic value) => double.tryParse(value?.toString() ?? '') ?? 0.0;
 
-  String get systemName {
-    return solarSystem?['system_name']
-            ?.toString() ??
-        'Solar System';
-  }
-
-  String get location {
-    return solarSystem?['location']
-            ?.toString() ??
-        'Unknown location';
-  }
-
-  String get capacity {
-    final value =
-        solarSystem?['capacity_kw'];
-
-    if (value == null) {
-      return '--';
+  dynamic _firstValue(Map? map, List<String> keys) {
+    if (map == null) return null;
+    for (final key in keys) {
+      if (map[key] != null && map[key].toString().trim().isNotEmpty) return map[key];
     }
-
-    return '$value kW';
+    return null;
   }
 
-  String get panelCount {
-    final value =
-        solarSystem?['panel_count'];
-
-    if (value == null) {
-      return '--';
-    }
-
-    return '$value Panels';
+  String _fmt(dynamic value, {int digits = 2}) {
+    if (value == null) return '—';
+    final n = double.tryParse(value.toString());
+    return n == null ? value.toString() : n.toStringAsFixed(digits);
   }
 
-  String get panelType {
-    return solarSystem?['panel_type']
-            ?.toString() ??
-        '--';
+  DateTime? _date(dynamic value) {
+    if (value == null) return null;
+    return DateTime.tryParse(value.toString())?.toLocal();
   }
 
-  // =====================================================
-  // ELECTRICITY RATE
-  // =====================================================
-
-  double get electricityRate {
-
-    final value =
-        solarSystem?['electricity_rate'];
-
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        0.0;
+  String _dateLabel(dynamic value) {
+    final date = _date(value);
+    if (date == null) return '—';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  // =====================================================
-  // NUMBER HELPER
-  // =====================================================
+  String get _systemName => _system?['system_name']?.toString() ?? 'Solar System';
+  String get _location => _system?['location']?.toString() ?? 'Location unavailable';
+  String get _capacity => '${_fmt(_system?['capacity_kw'])} kW';
+  String get _panelCount => '${_system?['panel_count'] ?? '—'} panels';
+  String get _panelType => _system?['panel_type']?.toString() ?? '—';
+  String get _installation => _dateLabel(_system?['installation_date']);
+  String get _performance => _firstValue(_latestPerformance, ['performance_percentage']) == null
+      ? '—'
+      : '${_fmt(_firstValue(_latestPerformance, ['performance_percentage']))}%';
 
-  double _number(dynamic value) {
-
-    return double.tryParse(
-          value?.toString() ?? '',
-        ) ??
-        0.0;
+  Map<String, dynamic>? get _latestGeneration {
+    if (_generations.isEmpty) return null;
+    final sorted = List<dynamic>.from(_generations);
+    sorted.sort((a, b) {
+      final da = _date((a as Map)['recorded_at']) ?? DateTime(1970);
+      final db = _date((b as Map)['recorded_at']) ?? DateTime(1970);
+      return db.compareTo(da);
+    });
+    return Map<String, dynamic>.from(sorted.first as Map);
   }
 
-  // =====================================================
-  // CHECK WHETHER RECORD IS FROM TODAY
-  // =====================================================
-
-  bool _isToday(dynamic value) {
-
-    if (value == null) {
-      return false;
-    }
-
-    final recordedAt =
-        DateTime.tryParse(
-      value.toString(),
-    );
-
-    if (recordedAt == null) {
-      return false;
-    }
-
-    final localTime =
-        recordedAt.toLocal();
-
-    final now =
-        DateTime.now();
-
-    return localTime.year == now.year &&
-        localTime.month == now.month &&
-        localTime.day == now.day;
+  Map<String, dynamic>? get _latestWeather {
+    if (_weather.isEmpty) return null;
+    final sorted = List<dynamic>.from(_weather);
+    sorted.sort((a, b) {
+      final da = _date((a as Map)['recorded_at'] ?? (a as Map)['created_at']) ?? DateTime(1970);
+      final db = _date((b as Map)['recorded_at'] ?? (b as Map)['created_at']) ?? DateTime(1970);
+      return db.compareTo(da);
+    });
+    return Map<String, dynamic>.from(sorted.first as Map);
   }
 
-  // =====================================================
-  // TODAY'S GENERATION
-  // =====================================================
-
-  double get generationValue {
-
-    double total = 0.0;
-
-    for (final record
-        in generationRecords) {
-
-      if (_isToday(
-        record['recorded_at'],
-      )) {
-
-        total += _number(
-          record['energy_generated_kwh'],
-        );
+  double get _todayGeneration {
+    final now = DateTime.now();
+    var total = 0.0;
+    for (final item in _generations) {
+      if (item is! Map) continue;
+      final date = _date(item['recorded_at']);
+      if (date != null && date.year == now.year && date.month == now.month && date.day == now.day) {
+        total += _num(item['energy_generated_kwh']);
       }
     }
-
     return total;
   }
 
-  String get generation {
-
-    return '${generationValue.toStringAsFixed(2)} kWh';
-  }
-
-  // =====================================================
-  // EXPECTED GENERATION
-  // =====================================================
-
-  String get expectedGeneration {
-
-    // Today's backend performance.
-    final performanceValue =
-        latestPerformance?[
-            'predicted_generation_kwh'];
-
-    if (performanceValue != null) {
-
-      final number =
-          double.tryParse(
-                performanceValue.toString(),
-              ) ??
-              0.0;
-
-      return '${number.toStringAsFixed(2)} kWh';
+  dynamic get _forecastValue {
+    final performance = _firstValue(_latestPerformance, ['predicted_generation_kwh']);
+    if (performance != null) return performance;
+    final ml = _firstValue(_mlForecast, ['predicted_generation_kwh', 'generation_kwh', 'prediction']);
+    if (ml != null) return ml;
+    if (_forecasts.isNotEmpty && _forecasts.first is Map) {
+      return _firstValue(_forecasts.first as Map, ['predicted_generation_kwh', 'generation_kwh']);
     }
-
-    // Fallback to forecast.
-    final forecastValue =
-        latestForecast?[
-            'predicted_generation_kwh'];
-
-    if (forecastValue == null) {
-      return '-- kWh';
-    }
-
-    final number =
-        double.tryParse(
-              forecastValue.toString(),
-            ) ??
-            0.0;
-
-    return '${number.toStringAsFixed(2)} kWh';
+    return null;
   }
 
-  // =====================================================
-  // PERFORMANCE
-  // =====================================================
+  String get _modelName => _firstValue(_mlForecast, ['model_name', 'model', 'model_used'])?.toString()
+      ?? (_forecasts.isNotEmpty && _forecasts.first is Map
+          ? (_firstValue(_forecasts.first as Map, ['model_name', 'model'])?.toString() ?? 'ML model')
+          : 'ML model');
 
-  String get performancePercentage {
-
-    final value =
-        latestPerformance?[
-            'performance_percentage'];
-
-    if (value == null) {
-      return '--%';
-    }
-
-    final number =
-        double.tryParse(
-              value.toString(),
-            ) ??
-            0.0;
-
-    return '${number.toStringAsFixed(2)}%';
+  String get _weatherValue {
+    final w = _latestWeather;
+    if (w == null) return '—';
+    return '—';
   }
 
-  String get performanceStatus {
-
-    return latestPerformance?['status']
-            ?.toString() ??
-        'Unknown';
+  List<Map<String, dynamic>> get _recentGenerations {
+    final records = _generations.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    records.sort((a, b) {
+      final da = _date(a['recorded_at']) ?? DateTime(1970);
+      final db = _date(b['recorded_at']) ?? DateTime(1970);
+      return db.compareTo(da);
+    });
+    return records.take(4).toList();
   }
 
-  // =====================================================
-  // ESTIMATED SAVINGS
-  // =====================================================
-
-  double get estimatedSavings {
-
-    return generationValue *
-        electricityRate;
+  List<Map<String, dynamic>> get _recentAlerts {
+    final records = _alerts.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+    records.sort((a, b) {
+      final da = _date(a['created_at'] ?? a['recorded_at']) ?? DateTime(1970);
+      final db = _date(b['created_at'] ?? b['recorded_at']) ?? DateTime(1970);
+      return db.compareTo(da);
+    });
+    return records.where((a) => a['is_resolved'] != true).take(3).toList();
   }
-
-  String get savings {
-
-    return '₹${estimatedSavings.toStringAsFixed(2)}';
-  }
-
-  // =====================================================
-  // BUILD
-  // =====================================================
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-
+      backgroundColor: _bg,
       appBar: AppBar(
-
+        backgroundColor: _bg,
+        surfaceTintColor: _bg,
         elevation: 0,
-
-        backgroundColor:
-            Colors.white,
-
+        titleSpacing: 20,
         title: const Row(
-
           children: [
-
-            Icon(
-              Icons.wb_sunny,
-              color: Colors.orange,
-              size: 30,
-            ),
-
+            _BrandMark(),
             SizedBox(width: 10),
-
-            Text(
-              'RaySense',
-              style: TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-                fontSize: 23,
-              ),
-            ),
+            Text('RaySense', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 19)),
           ],
         ),
-
         actions: [
-
           IconButton(
-            onPressed: () {
-              loadDashboardData();
-            },
-            icon: const Icon(
-              Icons.refresh,
-            ),
+            tooltip: 'Refresh dashboard',
+            onPressed: _loading ? null : _loadDashboard,
+            icon: const Icon(Icons.refresh_rounded, color: _gold),
           ),
-
           const SizedBox(width: 8),
         ],
       ),
-
-      body: SafeArea(
-
-        child: RefreshIndicator(
-
-          onRefresh:
-              loadDashboardData,
-
-          child:
-              SingleChildScrollView(
-
-            physics:
-                const AlwaysScrollableScrollPhysics(),
-
-            padding:
-                const EdgeInsets.all(16),
-
-            child: Column(
-
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-              children: [
-
-                // =====================================================
-                // DASHBOARD TITLE
-                // =====================================================
-
-                const Text(
-                  'Solar Dashboard',
-
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                Text(
-
-                  isLoading
-                      ? 'Loading solar system...'
-                      : errorMessage ??
-                          '$systemName • $location',
-
-                  style: TextStyle(
-                    fontSize: 15,
-                    color:
-                        errorMessage != null
-                            ? Colors.red
-                            : Colors.grey.shade600,
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // =====================================================
-                // TODAY'S GENERATION
-                // =====================================================
-
-                Container(
-
-                  width:
-                      double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(22),
-
-                  decoration:
-                      BoxDecoration(
-
-                    gradient:
-                        const LinearGradient(
-
-                      colors: [
-
-                        Color(0xFFFFB300),
-
-                        Color(0xFFFF8F00),
-
+      body: RefreshIndicator(
+        color: _gold,
+        backgroundColor: _panelAlt,
+        onRefresh: _loadDashboard,
+        child: _loading
+            ? ListView(children: [
+                SizedBox(height: 220),
+                Center(child: CircularProgressIndicator(color: _gold)),
+                SizedBox(height: 16),
+                Center(child: Text('Loading solar dashboard…', style: TextStyle(color: _muted))),
+              ])
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+                children: [
+                  const Text('SOLAR INTELLIGENCE', style: TextStyle(color: _gold, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 2)),
+                  const SizedBox(height: 8),
+                  const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 32, height: 1.1, fontWeight: FontWeight.w800)),
+                  const SizedBox(height: 6),
+                  Text('Monitor your solar system, generation and AI-powered forecasts.', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    _errorBanner(_error!),
+                  ],
+                  const SizedBox(height: 20),
+                  LayoutBuilder(builder: (context, constraints) {
+                    final columns = constraints.maxWidth >= 620 ? 4 : 2;
+                    final cardWidth = (constraints.maxWidth - (columns - 1) * 10) / columns;
+                    final latest = _latestGeneration;
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        SizedBox(width: cardWidth, child: _MetricCard(title: 'Latest Generation', value: latest == null ? '— kWh' : '${_fmt(latest['energy_generated_kwh'])} kWh', foot: _dateLabel(latest?['recorded_at']), icon: Icons.bolt_rounded)),
+                        SizedBox(width: cardWidth, child: _MetricCard(title: "Today's AI Forecast", value: _forecastValue == null ? '— kWh' : '${_fmt(_forecastValue)} kWh', foot: _modelName, icon: Icons.auto_graph_rounded)),
+                        SizedBox(width: cardWidth, child: _MetricCard(title: 'Installed Capacity', value: _capacity, foot: _panelCount, icon: Icons.solar_power_rounded)),
+                        SizedBox(width: cardWidth, child: _MetricCard(title: 'Performance', value: _performance, foot: _latestPerformance?['status']?.toString() ?? 'Latest status', icon: Icons.speed_rounded)),
                       ],
-                    ),
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      20,
-                    ),
-
-                    boxShadow: [
-
-                      BoxShadow(
-
-                        color: Colors
-                            .orange
-                            .withValues(
-                          alpha: 0.25,
+                    );
+                  }),
+                  const SizedBox(height: 14),
+                  LayoutBuilder(builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 760;
+                    final chart = _Panel(
+                      title: 'Solar Generation',
+                      subtitle: 'Recent recorded generation',
+                      trailing: const Text('kWh', style: TextStyle(color: _gold, fontWeight: FontWeight.w700)),
+                      child: SizedBox(height: 210, child: _generationChart()),
+                    );
+                    final system = _Panel(
+                      title: 'Solar System',
+                      subtitle: 'System information',
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const _BrandMark(size: 40),
+                        const SizedBox(height: 12),
+                        Text(_systemName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15)),
+                        const SizedBox(height: 4),
+                        Text(_location, style: const TextStyle(color: _muted, fontSize: 11)),
+                        const SizedBox(height: 14),
+                        Wrap(spacing: 8, runSpacing: 8, children: [
+                          _MiniInfo(label: 'Capacity', value: _capacity),
+                          _MiniInfo(label: 'Panels', value: _panelCount),
+                          _MiniInfo(label: 'Panel Type', value: _panelType),
+                          _MiniInfo(label: 'Installation', value: _installation),
+                        ]),
+                      ]),
+                    );
+                    if (wide) {
+                      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Expanded(flex: 7, child: chart),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 4, child: system),
+                      ]);
+                    }
+                    return Column(children: [chart, const SizedBox(height: 12), system]);
+                  }),
+                  const SizedBox(height: 14),
+                  LayoutBuilder(builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 760;
+                    final forecast = _Panel(
+                      title: 'AI Generation Forecast',
+                      subtitle: 'Machine-learning prediction',
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF191508),
+                          border: Border.all(color: const Color(0xFF30260C)),
+                          borderRadius: BorderRadius.circular(13),
                         ),
-
-                        blurRadius: 12,
-
-                        offset:
-                            const Offset(
-                          0,
-                          6,
-                        ),
+                        child: Row(children: [
+                          Container(width: 42, height: 42, decoration: BoxDecoration(color: _gold, borderRadius: BorderRadius.circular(12)), child: const Icon(Icons.auto_awesome, color: _bg)),
+                          const SizedBox(width: 12),
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(_forecastValue == null ? 'No forecast available' : '${_fmt(_forecastValue)} kWh', style: const TextStyle(color: _gold, fontWeight: FontWeight.w800, fontSize: 20)),
+                            const SizedBox(height: 3),
+                            const Text('Predicted solar generation', style: TextStyle(color: _muted, fontSize: 11)),
+                            const SizedBox(height: 7),
+                            _Tag(_modelName),
+                          ])),
+                        ]),
                       ),
-                    ],
-                  ),
-
-                  child: Column(
-
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-
-                      const Row(
-
-                        children: [
-
-                          Icon(
-                            Icons.bolt,
-                            color:
-                                Colors.white,
-                            size: 28,
-                          ),
-
-                          SizedBox(width: 8),
-
-                          Text(
-                            "Today's Generation",
-
-                            style:
-                                TextStyle(
-                              color:
-                                  Colors.white,
-                              fontSize: 17,
-                              fontWeight:
-                                  FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(
-                        height: 12,
-                      ),
-
-                      Text(
-
-                        isLoading
-                            ? 'Loading...'
-                            : generation,
-
-                        style:
-                            const TextStyle(
-                          color:
-                              Colors.white,
-                          fontSize: 38,
-                          fontWeight:
-                              FontWeight.bold,
-                        ),
-                      ),
-
-                      const SizedBox(
-                        height: 5,
-                      ),
-
-                      const Text(
-                        'Energy generated today',
-
-                        style:
-                            TextStyle(
-                          color:
-                              Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // =====================================================
-                // EXPECTED + PERFORMANCE
-                // =====================================================
-
-                Row(
-
-                  children: [
-
-                    Expanded(
-
-                      child:
-                          _StatCard(
-
-                        icon:
-                            Icons.auto_graph,
-
-                        title:
-                            'Expected',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : expectedGeneration,
-                      ),
-                    ),
-
-                    const SizedBox(
-                        width: 12),
-
-                    Expanded(
-
-                      child:
-                          _StatCard(
-
-                        icon:
-                            Icons.speed,
-
-                        title:
-                            'Performance',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : performancePercentage,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // =====================================================
-                // SAVINGS
-                // =====================================================
-
-                Container(
-
-                  width:
-                      double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(20),
-
-                  decoration:
-                      BoxDecoration(
-
-                    color:
-                        Colors.white,
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      18,
-                    ),
-
-                    border: Border.all(
-                      color:
-                          Colors.green.shade100,
-                    ),
-
-                    boxShadow: [
-
-                      BoxShadow(
-
-                        color: Colors
-                            .black
-                            .withValues(
-                          alpha: 0.03,
-                        ),
-
-                        blurRadius: 8,
-
-                        offset:
-                            const Offset(
-                          0,
-                          3,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  child: Row(
-
-                    children: [
-
-                      Container(
-
-                        padding:
-                            const EdgeInsets.all(
-                          12,
-                        ),
-
-                        decoration:
-                            BoxDecoration(
-
-                          color: Colors
-                              .green
-                              .shade50,
-
-                          shape:
-                              BoxShape.circle,
-                        ),
-
-                        child: Icon(
-
-                          Icons
-                              .currency_rupee,
-
-                          color: Colors
-                              .green
-                              .shade600,
-
-                          size: 30,
-                        ),
-                      ),
-
-                      const SizedBox(
-                          width: 14),
-
-                      Expanded(
-
-                        child:
-                            Column(
-
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-
-                          children: [
-
-                            const Text(
-                              'Estimated Savings',
-
-                              style:
-                                  TextStyle(
-                                fontSize:
-                                    17,
-                                fontWeight:
-                                    FontWeight
-                                        .bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height: 5),
-
-                            Text(
-
-                              isLoading
-                                  ? 'Calculating...'
-                                  : savings,
-
-                              style:
-                                  TextStyle(
-
-                                color: Colors
-                                    .green
-                                    .shade700,
-
-                                fontSize:
-                                    25,
-
-                                fontWeight:
-                                    FontWeight
-                                        .bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height: 4),
-
-                            Text(
-
-                              isLoading
-                                  ? 'Please wait...'
-                                  : 'Based on ${generationValue.toStringAsFixed(2)} kWh × ₹${electricityRate.toStringAsFixed(2)}/kWh',
-
-                              style:
-                                  TextStyle(
-
-                                color: Colors
-                                    .grey
-                                    .shade600,
-
-                                fontSize:
-                                    12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // =====================================================
-                // SYSTEM PERFORMANCE
-                // =====================================================
-
-                Container(
-
-                  width:
-                      double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(18),
-
-                  decoration:
-                      BoxDecoration(
-
-                    color:
-                        Colors.white,
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      18,
-                    ),
-
-                    border: Border.all(
-                      color:
-                          Colors.green.shade100,
-                    ),
-                  ),
-
-                  child: Row(
-
-                    children: [
-
-                      Container(
-
-                        padding:
-                            const EdgeInsets.all(
-                          12,
-                        ),
-
-                        decoration:
-                            BoxDecoration(
-
-                          color: Colors
-                              .green
-                              .shade50,
-
-                          shape:
-                              BoxShape.circle,
-                        ),
-
-                        child: Icon(
-
-                          performanceStatus ==
-                                  'Excellent'
-                              ? Icons.check_circle
-                              : performanceStatus ==
-                                      'Good'
-                                  ? Icons.check_circle
-                                  : performanceStatus ==
-                                          'Pending'
-                                      ? Icons
-                                          .hourglass_empty
-                                      : Icons
-                                          .warning,
-
-                          color:
-                              performanceStatus ==
-                                      'Pending'
-                                  ? Colors.orange
-                                  : Colors
-                                      .green
-                                      .shade600,
-
-                          size: 30,
-                        ),
-                      ),
-
-                      const SizedBox(
-                          width: 14),
-
-                      Expanded(
-
-                        child:
-                            Column(
-
-                          crossAxisAlignment:
-                              CrossAxisAlignment
-                                  .start,
-
-                          children: [
-
-                            const Text(
-                              'System Performance',
-
-                              style:
-                                  TextStyle(
-                                fontSize:
-                                    16,
-                                fontWeight:
-                                    FontWeight
-                                        .bold,
-                              ),
-                            ),
-
-                            const SizedBox(
-                                height: 4),
-
-                            Text(
-
-                              isLoading
-                                  ? 'Loading...'
-                                  : performanceStatus,
-
-                              style:
-                                  TextStyle(
-                                color:
-                                    performanceStatus ==
-                                            'Pending'
-                                        ? Colors
-                                            .orange
-                                        : Colors
-                                            .green,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // =====================================================
-                // QUICK ACCESS
-                // =====================================================
-
-                const Text(
-                  'Quick Access',
-
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 14),
-
-                // Generation + Weather
-                Row(
-
-                  children: [
-
-                    Expanded(
-
-                      child:
-                          _FeatureCard(
-
-                        icon:
-                            Icons.bolt,
-
-                        title:
-                            'Generation',
-
-                        onTap: () {
-
-                          Navigator.push(
-
-                            context,
-
-                            MaterialPageRoute(
-
-                              builder:
-                                  (context) =>
-                                      const GenerationScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(
-                        width: 12),
-
-                    Expanded(
-
-                      child:
-                          _FeatureCard(
-
-                        icon:
-                            Icons
-                                .cloud_outlined,
-
-                        title:
-                            'Weather',
-
-                        onTap: () {
-
-                          Navigator.push(
-
-                            context,
-
-                            MaterialPageRoute(
-
-                              builder:
-                                  (context) =>
-                                      const WeatherScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // Forecast + Alerts
-                Row(
-
-                  children: [
-
-                    Expanded(
-
-                      child:
-                          _FeatureCard(
-
-                        icon:
-                            Icons.auto_graph,
-
-                        title:
-                            'Forecast',
-
-                        onTap: () {
-
-                          Navigator.push(
-
-                            context,
-
-                            MaterialPageRoute(
-
-                              builder:
-                                  (context) =>
-                                      const ForecastScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(
-                        width: 12),
-
-                    Expanded(
-
-                      child:
-                          _FeatureCard(
-
-                        icon: Icons
-                            .notifications_outlined,
-
-                        title:
-                            'Alerts',
-
-                        onTap: () {
-
-                          Navigator.push(
-
-                            context,
-
-                            MaterialPageRoute(
-
-                              builder:
-                                  (context) =>
-                                      const AlertScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 25),
-
-                // =====================================================
-                // SYSTEM INFORMATION
-                // =====================================================
-
-                const Text(
-                  'System Information',
-
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight:
-                        FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                Container(
-
-                  width:
-                      double.infinity,
-
-                  padding:
-                      const EdgeInsets.all(18),
-
-                  decoration:
-                      BoxDecoration(
-
-                    color:
-                        Colors.white,
-
-                    borderRadius:
-                        BorderRadius.circular(
-                      18,
-                    ),
-                  ),
-
-                  child: Column(
-
-                    children: [
-
-                      _InfoRow(
-
-                        icon:
-                            Icons.solar_power,
-
-                        title:
-                            'System Capacity',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : capacity,
-                      ),
-
-                      const Divider(
-                        height: 22,
-                      ),
-
-                      _InfoRow(
-
-                        icon:
-                            Icons.grid_view,
-
-                        title:
-                            'Panel Count',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : panelCount,
-                      ),
-
-                      const Divider(
-                        height: 22,
-                      ),
-
-                      _InfoRow(
-
-                        icon:
-                            Icons
-                                .category_outlined,
-
-                        title:
-                            'Panel Type',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : panelType,
-                      ),
-
-                      const Divider(
-                        height: 22,
-                      ),
-
-                      _InfoRow(
-
-                        icon:
-                            Icons
-                                .location_on_outlined,
-
-                        title:
-                            'Location',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : location,
-                      ),
-
-                      const Divider(
-                        height: 22,
-                      ),
-
-                      _InfoRow(
-
-                        icon:
-                            Icons.currency_rupee,
-
-                        title:
-                            'Electricity Rate',
-
-                        value:
-                            isLoading
-                                ? 'Loading...'
-                                : '₹${electricityRate.toStringAsFixed(2)} / kWh',
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-              ],
-            ),
-          ),
-        ),
+                    );
+                    final weather = _Panel(
+                      title: 'Latest Weather',
+                      subtitle: 'Recorded weather conditions',
+                      child: _weatherGrid(),
+                    );
+                    if (wide) {
+                      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Expanded(flex: 7, child: forecast),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 4, child: weather),
+                      ]);
+                    }
+                    return Column(children: [forecast, const SizedBox(height: 12), weather]);
+                  }),
+                  const SizedBox(height: 14),
+                  LayoutBuilder(builder: (context, constraints) {
+                    final wide = constraints.maxWidth >= 760;
+                    final generation = _Panel(
+                      title: 'Recent Generation',
+                      subtitle: 'Latest available records',
+                      child: _generationTable(),
+                    );
+                    final alerts = _Panel(
+                      title: 'Solar Alerts',
+                      subtitle: 'System notifications',
+                      child: _alertsList(),
+                    );
+                    if (wide) {
+                      return Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Expanded(flex: 6, child: generation),
+                        const SizedBox(width: 12),
+                        Expanded(flex: 5, child: alerts),
+                      ]);
+                    }
+                    return Column(children: [generation, const SizedBox(height: 12), alerts]);
+                  }),
+                  const SizedBox(height: 28),
+                  Center(child: RichText(text: const TextSpan(style: TextStyle(fontSize: 10, color: _muted), children: [
+                    TextSpan(text: 'RaySense', style: TextStyle(color: _gold, fontWeight: FontWeight.w800)),
+                    TextSpan(text: ' · AI-Powered Solar Energy Intelligence'),
+                  ]))),
+                ],
+              ),
       ),
     );
   }
-}
 
-// =====================================================
-// STATISTICS CARD
-// =====================================================
-
-class _StatCard
-    extends StatelessWidget {
-
-  final IconData icon;
-
-  final String title;
-
-  final String value;
-
-  const _StatCard({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  @override
-  Widget build(
-      BuildContext context) {
-
-    return Container(
-
-      padding:
-          const EdgeInsets.all(18),
-
-      decoration:
-          BoxDecoration(
-
-        color:
-            Colors.white,
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
+  Widget _generationChart() {
+    final records = _recentGenerations.reversed.toList();
+    if (records.isEmpty) return const _EmptyState('No generation records available.');
+    final spots = <FlSpot>[];
+    for (var i = 0; i < records.length; i++) {
+      spots.add(FlSpot(i.toDouble(), _num(records[i]['energy_generated_kwh'])));
+    }
+    final maxY = spots.map((e) => e.y).fold<double>(0, (a, b) => a > b ? a : b);
+    return LineChart(
+      LineChartData(
+        minY: 0,
+        maxY: maxY <= 0 ? 1 : maxY * 1.25,
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: true,
+          getDrawingHorizontalLine: (_) => const FlLine(color: Color(0xFF1B1B1B), strokeWidth: 1),
+          getDrawingVerticalLine: (_) => const FlLine(color: Color(0xFF171717), strokeWidth: 1),
         ),
-      ),
-
-      child: Column(
-
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-
-        children: [
-
-          Icon(
-            icon,
-            color:
-                Colors.orange,
-            size: 28,
-          ),
-
-          const SizedBox(
-              height: 12),
-
-          Text(
-
-            title,
-
-            style: TextStyle(
-              color:
-                  Colors.grey.shade600,
-              fontSize: 14,
-            ),
-          ),
-
-          const SizedBox(height: 5),
-
-          Text(
-
-            value,
-
-            style:
-                const TextStyle(
-              fontSize: 18,
-              fontWeight:
-                  FontWeight.bold,
-            ),
+        borderData: FlBorderData(show: false),
+        titlesData: FlTitlesData(
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 26,
+            getTitlesWidget: (value, meta) {
+              final index = value.toInt();
+              if (index < 0 || index >= records.length) return const SizedBox.shrink();
+              final date = _date(records[index]['recorded_at']);
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(date == null ? '' : '${date.day}/${date.month}', style: const TextStyle(color: _muted, fontSize: 9)),
+              );
+            },
+          )),
+        ),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: false,
+            color: _gold,
+            barWidth: 2.5,
+            dotData: FlDotData(show: true, getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(radius: 3, color: _gold, strokeWidth: 0)),
+            belowBarData: BarAreaData(show: true, color: _gold.withValues(alpha: 0.06)),
           ),
         ],
       ),
     );
   }
-}
 
-// =====================================================
-// FEATURE CARD
-// =====================================================
-
-class _FeatureCard
-    extends StatelessWidget {
-
-  final IconData icon;
-
-  final String title;
-
-  final VoidCallback onTap;
-
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(
-      BuildContext context) {
-
-    return Material(
-
-      color:
-          Colors.transparent,
-
-      child: InkWell(
-
-        onTap: onTap,
-
-        borderRadius:
-            BorderRadius.circular(
-          18,
-        ),
-
-        child: Container(
-
-          padding:
-              const EdgeInsets.symmetric(
-
-            vertical: 22,
-
-            horizontal: 12,
-          ),
-
-          decoration:
-              BoxDecoration(
-
-            color:
-                Colors.white,
-
-            borderRadius:
-                BorderRadius.circular(
-              18,
-            ),
-          ),
-
-          child: Column(
-
-            children: [
-
-              Icon(
-
-                icon,
-
-                size: 32,
-
-                color:
-                    Colors.orange,
-              ),
-
-              const SizedBox(
-                  height: 10),
-
-              Text(
-
-                title,
-
-                style:
-                    const TextStyle(
-
-                  fontWeight:
-                      FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Widget _weatherGrid() {
+    final w = _latestWeather;
+    final fields = [
+      ('Temperature', _firstValue(w, ['temperature', 'temperature_c', 'temperature_celsius']), '°C'),
+      ('Humidity', _firstValue(w, ['humidity', 'humidity_percent']), '%'),
+      ('Cloud Cover', _firstValue(w, ['cloud_cover', 'cloud_cover_percent']), '%'),
+      ('Solar Irradiance', _firstValue(w, ['solar_irradiance', 'irradiance', 'solar_irradiance_w_m2']), ' W/m²'),
+    ];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: fields.map((f) {
+        final value = f.$2 == null ? '—' : '${_fmt(f.$2, digits: 1)}${f.$3}';
+        return SizedBox(width: 140, child: _MiniInfo(label: f.$1, value: value));
+      }).toList(),
     );
   }
-}
 
-// =====================================================
-// INFORMATION ROW
-// =====================================================
-
-class _InfoRow
-    extends StatelessWidget {
-
-  final IconData icon;
-
-  final String title;
-
-  final String value;
-
-  const _InfoRow({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
-
-  @override
-  Widget build(
-      BuildContext context) {
-
-    return Row(
-
-      children: [
-
-        Icon(
-
-          icon,
-
-          color:
-              Colors.orange,
-
-          size: 25,
+  Widget _generationTable() {
+    final records = _recentGenerations;
+    if (records.isEmpty) return const _EmptyState('No generation records available.');
+    return Column(children: [
+      const Row(children: [
+        Expanded(child: Text('DATE', style: TextStyle(color: _muted, fontSize: 9, fontWeight: FontWeight.w700))),
+        Expanded(child: Text('ENERGY', style: TextStyle(color: _muted, fontSize: 9, fontWeight: FontWeight.w700))),
+        Expanded(child: Text('POWER', style: TextStyle(color: _muted, fontSize: 9, fontWeight: FontWeight.w700))),
+      ]),
+      const SizedBox(height: 8),
+      const Divider(color: _border, height: 1),
+      for (final r in records) ...[
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(children: [
+            Expanded(child: Text(_dateLabel(r['recorded_at']), style: const TextStyle(color: _muted, fontSize: 10))),
+            Expanded(child: Text('${_fmt(r['energy_generated_kwh'])} kWh', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700))),
+            Expanded(child: Text('${_fmt(_firstValue(r, ['power_output_kw', 'power_kw', 'power_generated_kw', 'power']))} kW', style: const TextStyle(color: _muted, fontSize: 10))),
+          ]),
         ),
-
-        const SizedBox(
-            width: 14),
-
-        Expanded(
-
-          child: Text(
-
-            title,
-
-            style: TextStyle(
-
-              color:
-                  Colors.grey.shade700,
-            ),
-          ),
-        ),
-
-        Flexible(
-
-          child: Text(
-
-            value,
-
-            textAlign:
-                TextAlign.end,
-
-            style:
-                const TextStyle(
-
-              fontWeight:
-                  FontWeight.bold,
-            ),
-          ),
-        ),
+        const Divider(color: _border, height: 1),
       ],
+    ]);
+  }
+
+  Widget _alertsList() {
+    final records = _recentAlerts;
+    if (records.isEmpty) return const _EmptyState('No unresolved alerts.');
+    return Column(
+      children: records.map((a) {
+        final title = _firstValue(a, ['title', 'alert_type', 'type', 'name'])?.toString() ?? 'Solar alert';
+        final message = _firstValue(a, ['message', 'description', 'details'])?.toString() ?? 'Review this system notification.';
+        final created = _dateLabel(a['created_at'] ?? a['recorded_at']);
+        return Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: _panelAlt,
+            borderRadius: BorderRadius.circular(12),
+            border: const Border(left: BorderSide(color: Color(0xFFFFB547), width: 3)),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 11)),
+            const SizedBox(height: 5),
+            Text(message, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: _muted, fontSize: 10, height: 1.4)),
+            const SizedBox(height: 6),
+            Text(created, style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+          ]),
+        );
+      }).toList(),
     );
   }
+
+  Widget _errorBanner(String message) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(color: const Color(0xFF241111), border: Border.all(color: const Color(0xFF633333)), borderRadius: BorderRadius.circular(12)),
+    child: Text('Some dashboard data could not be loaded: $message', style: const TextStyle(color: Color(0xFFFFB4AB), fontSize: 11)),
+  );
+}
+
+class _BrandMark extends StatelessWidget {
+  final double size;
+  const _BrandMark({this.size = 34});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(color: _DashboardScreenState._gold, borderRadius: BorderRadius.circular(size * .28)),
+    child: Icon(Icons.sunny, color: _DashboardScreenState._bg, size: size * .58),
+  );
+}
+
+class _MetricCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String foot;
+  final IconData icon;
+  const _MetricCard({required this.title, required this.value, required this.foot, required this.icon});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(15),
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF12120F), Color(0xFF090909)]),
+      border: Border.all(color: _DashboardScreenState._border),
+      borderRadius: BorderRadius.circular(15),
+    ),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: _DashboardScreenState._muted, fontSize: 10)),
+      const SizedBox(height: 12),
+      Icon(icon, color: _DashboardScreenState._gold, size: 20),
+      const SizedBox(height: 8),
+      FittedBox(alignment: Alignment.centerLeft, fit: BoxFit.scaleDown, child: Text(value, style: const TextStyle(color: _DashboardScreenState._gold, fontWeight: FontWeight.w800, fontSize: 20))),
+      const SizedBox(height: 5),
+      Text(foot, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF666666), fontSize: 9)),
+    ]),
+  );
+}
+
+class _Panel extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget child;
+  final Widget? trailing;
+  const _Panel({required this.title, required this.subtitle, required this.child, this.trailing});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(color: _DashboardScreenState._panel, border: Border.all(color: _DashboardScreenState._border), borderRadius: BorderRadius.circular(16)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13)),
+          const SizedBox(height: 3),
+          Text(subtitle, style: const TextStyle(color: _DashboardScreenState._muted, fontSize: 10)),
+        ])),
+        if (trailing != null) trailing!,
+      ]),
+      const SizedBox(height: 14),
+      child,
+    ]),
+  );
+}
+
+class _MiniInfo extends StatelessWidget {
+  final String label;
+  final String value;
+  const _MiniInfo({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 128,
+    constraints: const BoxConstraints(minHeight: 58),
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(color: const Color(0xFF131313), border: Border.all(color: const Color(0xFF202020)), borderRadius: BorderRadius.circular(11)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: const TextStyle(color: Color(0xFF777777), fontSize: 9)),
+      const SizedBox(height: 6),
+      Text(value, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+    ]),
+  );
+}
+
+class _Tag extends StatelessWidget {
+  final String text;
+  const _Tag(this.text);
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(color: const Color(0xFF28210E), borderRadius: BorderRadius.circular(20)),
+    child: Text(text, style: const TextStyle(color: Color(0xFFB6A16A), fontSize: 9)),
+  );
+}
+
+class _EmptyState extends StatelessWidget {
+  final String text;
+  const _EmptyState(this.text);
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 24),
+    child: Center(child: Text(text, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF777777), fontSize: 11))),
+  );
 }

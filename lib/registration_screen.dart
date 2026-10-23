@@ -1,8 +1,6 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
+
 import 'api_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -18,254 +16,375 @@ class RegistrationScreen extends StatefulWidget {
       _RegistrationScreenState();
 }
 
-class _RegistrationScreenState
-    extends State<RegistrationScreen> {
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  static const Color bg = Color(0xFF050505);
+  static const Color card = Color(0xFF111111);
+  static const Color gold = Color(0xFFFFD166);
+  static const Color yellow = Color(0xFFFFCA28);
+  static const Color muted = Color(0xFF999999);
+
   final _formKey = GlobalKey<FormState>();
 
-  // ------------------------------------------------------------
-  // ACCOUNT
-  // ------------------------------------------------------------
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
+  final _phone = TextEditingController();
+  final _username = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  final _password2 = TextEditingController();
 
-  final _usernameController =
-      TextEditingController();
+  final _systemName = TextEditingController();
+  final _capacity = TextEditingController();
+  final _panelCount = TextEditingController();
+  final _installationDate = TextEditingController();
 
-  final _emailController =
-      TextEditingController();
+  final _location = TextEditingController();
+  final _latitude = TextEditingController();
+  final _longitude = TextEditingController();
 
-  final _passwordController =
-      TextEditingController();
+  final _provider = TextEditingController();
 
-  final _confirmPasswordController =
-      TextEditingController();
+  String _panelType = 'Monocrystalline';
+  String _consumerCategory = 'Domestic';
 
-  // ------------------------------------------------------------
-  // SOLAR SYSTEM
-  // ------------------------------------------------------------
+  bool _showPassword = false;
+  bool _showPassword2 = false;
+  bool _loading = false;
+  bool _detectingLocation = false;
 
-  final _systemNameController =
-      TextEditingController();
-
-  final _locationController =
-      TextEditingController();
-
-  final _capacityController =
-      TextEditingController();
-
-  final _panelCountController =
-      TextEditingController();
-
-  // ------------------------------------------------------------
-  // LOCATION
-  // ------------------------------------------------------------
-
-  double? _latitude;
-  double? _longitude;
-
-  bool _locationDetected = false;
-  bool _isDetectingLocation = false;
-
-  // ------------------------------------------------------------
-  // ELECTRICITY
-  // ------------------------------------------------------------
-
-  final _providerController =
-      TextEditingController();
-
-  String? _selectedPanelType;
-  String? _selectedConsumerCategory;
-
-  DateTime? _installationDate;
-
-  // ------------------------------------------------------------
-  // BILL
-  // ------------------------------------------------------------
-
-  String? _billFilePath;
-  String? _billFileName;
-
-  // ------------------------------------------------------------
-  // UI STATE
-  // ------------------------------------------------------------
-
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-
-  final List<String> _panelTypes = [
-    'Monocrystalline',
-    'Polycrystalline',
-    'Thin Film',
-    'Bifacial',
-    'Other',
-  ];
-
-  final List<String> _consumerCategories = [
-    'Domestic',
-    'Commercial',
-    'Industrial',
-    'Agricultural',
-    'Other',
-  ];
+  String? _message;
+  bool _messageError = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _systemNameController.dispose();
-    _locationController.dispose();
-    _capacityController.dispose();
-    _panelCountController.dispose();
-    _providerController.dispose();
-
+    _firstName.dispose();
+    _lastName.dispose();
+    _phone.dispose();
+    _username.dispose();
+    _email.dispose();
+    _password.dispose();
+    _password2.dispose();
+    _systemName.dispose();
+    _capacity.dispose();
+    _panelCount.dispose();
+    _installationDate.dispose();
+    _location.dispose();
+    _latitude.dispose();
+    _longitude.dispose();
+    _provider.dispose();
     super.dispose();
   }
 
-  // ------------------------------------------------------------
-  // REGISTRATION
-  // ------------------------------------------------------------
-
-  Future<void> _register() async {
-    FocusScope.of(context).unfocus();
-
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_installationDate == null) {
-      _showMessage(
-        'Please select the installation date.',
-        isError: true,
-      );
-      return;
-    }
-
-    if (!_locationDetected ||
-        _latitude == null ||
-        _longitude == null) {
-      _showMessage(
-        'Please detect your device location before registering.',
-        isError: true,
-      );
-      return;
-    }
-
+  void _showMessage(String message, {bool error = true}) {
     setState(() {
-      _isLoading = true;
+      _message = message;
+      _messageError = error;
     });
-
-    try {
-      final result = await ApiService.register(
-        username:
-            _usernameController.text.trim(),
-        email:
-            _emailController.text.trim(),
-        password:
-            _passwordController.text,
-        password2:
-            _confirmPasswordController.text,
-        systemName:
-            _systemNameController.text.trim(),
-        location:
-            _locationController.text.trim(),
-        latitude:
-            _latitude!,
-        longitude:
-            _longitude!,
-        capacityKw:
-            double.parse(
-          _capacityController.text.trim(),
-        ),
-        panelCount:
-            int.parse(
-          _panelCountController.text.trim(),
-        ),
-        panelType:
-            _selectedPanelType ?? '',
-        installationDate:
-            _formatDateForApi(
-          _installationDate!,
-        ),
-        provider:
-            _providerController.text.trim(),
-        consumerCategory:
-            _selectedConsumerCategory ?? '',
-        billFilePath:
-            _billFilePath,
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      _showMessage(
-        result['message']?.toString() ??
-            'Registration successful.',
-      );
-
-      // Wait briefly so the user can see the
-      // successful registration message.
-      await Future.delayed(
-        const Duration(seconds: 1),
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      // Existing callback handles navigation
-      // back to the Login screen.
-      widget.onRegistrationSuccess?.call();
-    } catch (e) {
-      if (!mounted) {
-        return;
-      }
-
-      String message = e.toString();
-
-      if (message.startsWith('Exception: ')) {
-        message = message.substring(11);
-      }
-
-      _showMessage(
-        message,
-        isError: true,
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 
-  // ------------------------------------------------------------
-  // LOCATION
-  // ------------------------------------------------------------
+  String? _required(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'This field is required';
+    }
+    return null;
+  }
 
-  Future<void> _detectLocation() async {
-    if (_isDetectingLocation) {
-      return;
+  String? _number(String? value, {bool integer = false}) {
+    if (value == null || value.trim().isEmpty) {
+      return 'This field is required';
     }
 
-    setState(() {
-      _isDetectingLocation = true;
-    });
+    final number = integer
+        ? int.tryParse(value.trim())
+        : double.tryParse(value.trim());
 
-    try {
-      final serviceEnabled =
-          await Geolocator.isLocationServiceEnabled();
+    if (number == null || number <= 0) {
+      return 'Enter a valid positive number';
+    }
 
-      if (!serviceEnabled) {
-        if (!mounted) {
-          return;
+    return null;
+  }
+
+  InputDecoration _decoration(
+    String hint, {
+    IconData? icon,
+    Widget? suffix,
+  }) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(color: Color(0xFF666666)),
+      prefixIcon: icon == null
+          ? null
+          : Icon(icon, color: gold, size: 20),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: const Color(0xFF171717),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: 17,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(
+          color: Color(0xFF383838),
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(
+          color: Color(0xFF383838),
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(
+          color: gold,
+          width: 1.5,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(11),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+    );
+  }
+
+  Widget _field({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    IconData? icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool requiredField = true,
+    bool obscure = false,
+    Widget? suffix,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: RichText(
+            text: TextSpan(
+              text: label,
+              style: const TextStyle(
+                color: Color(0xFFD1D1D1),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              children: [
+                if (requiredField)
+                  const TextSpan(
+                    text: ' *',
+                    style: TextStyle(color: gold),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscure,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+          validator: validator ??
+              (requiredField ? _required : null),
+          decoration: _decoration(
+            hint,
+            icon: icon,
+            suffix: suffix,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _dropdown({
+    required String label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFFD1D1D1),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: value,
+          dropdownColor: card,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+          ),
+          decoration: _decoration('Select $label'),
+          iconEnabledColor: gold,
+          items: options.map((item) {
+            return DropdownMenuItem(
+              value: item,
+              child: Text(item),
+            );
+          }).toList(),
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+
+  Widget _section({
+    required int number,
+    required String title,
+    required String subtitle,
+    required List<Widget> children,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: gold.withValues(alpha: 0.15),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 35,
+                height: 35,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: yellow.withValues(alpha: 0.10),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: gold.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: Text(
+                  number.toString().padLeft(2, '0'),
+                  style: const TextStyle(
+                    color: gold,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: muted,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(color: Color(0xFF292929), height: 1),
+          ),
+          ...children.map(
+            (child) => Padding(
+              padding: const EdgeInsets.only(bottom: 17),
+              child: child,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _responsiveGrid(List<Widget> children) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 600;
+
+        if (!wide) {
+          return Column(
+            children: children
+                .map(
+                  (child) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: child,
+                  ),
+                )
+                .toList(),
+          );
         }
 
+        final rows = <Widget>[];
+
+        for (int i = 0; i < children.length; i += 2) {
+          rows.add(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: children[i]),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: i + 1 < children.length
+                      ? children[i + 1]
+                      : const SizedBox(),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(children: rows);
+      },
+    );
+  }
+
+  Future<void> _detectLocation() async {
+    setState(() => _detectingLocation = true);
+
+    try {
+      final enabled =
+          await Geolocator.isLocationServiceEnabled();
+
+      if (!enabled) {
         _showMessage(
-          'Please turn on location services on your device.',
-          isError: true,
+          'Enable location services or enter your location and coordinates manually.',
         );
         return;
       }
@@ -273,1917 +392,645 @@ class _RegistrationScreenState
       LocationPermission permission =
           await Geolocator.checkPermission();
 
-      if (permission ==
-          LocationPermission.denied) {
-        permission =
-            await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
       }
 
-      if (permission ==
-          LocationPermission.denied) {
-        if (!mounted) {
-          return;
-        }
-
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
         _showMessage(
-          'Location permission was denied. Please allow location access to continue.',
-          isError: true,
+          'Location permission was denied. Enter your location and coordinates manually.',
         );
         return;
       }
 
-      if (permission ==
-          LocationPermission.deniedForever) {
-        if (!mounted) {
-          return;
-        }
+      final position = await Geolocator.getCurrentPosition();
 
-        _showLocationSettingsDialog();
-        return;
-      }
+      _latitude.text = position.latitude.toStringAsFixed(7);
+      _longitude.text = position.longitude.toStringAsFixed(7);
 
-      final position =
-          await Geolocator.getCurrentPosition(
-        locationSettings:
-            const LocationSettings(
-          accuracy:
-              LocationAccuracy.high,
-        ),
-      ).timeout(
-        const Duration(seconds: 15),
-      );
-
-      if (!mounted) {
-        return;
-      }
-
-      // ----------------------------------------------------------
-      // REVERSE GEOCODING USING NOMINATIM
-      // ----------------------------------------------------------
-
-      String readableLocation =
-          'Latitude ${position.latitude.toStringAsFixed(6)}, '
-          'Longitude ${position.longitude.toStringAsFixed(6)}';
+      String locationName =
+          'Latitude ${position.latitude.toStringAsFixed(5)}, '
+          'Longitude ${position.longitude.toStringAsFixed(5)}';
 
       try {
-        final uri = Uri.https(
-          'nominatim.openstreetmap.org',
-          '/reverse',
-          {
-            'lat': position.latitude.toString(),
-            'lon': position.longitude.toString(),
-            'format': 'jsonv2',
-            'zoom': '10',
-            'addressdetails': '1',
-            'accept-language': 'en',
-          },
-        );
 
-        debugPrint(
-          'REVERSE GEOCODING REQUEST: $uri',
-        );
-
-        final response = await http.get(
-          uri,
-          headers: {
-            'User-Agent':
-                'RaySense/1.0 (solar monitoring application)',
-            'Accept':
-                'application/json',
-          },
-        ).timeout(
-          const Duration(seconds: 8),
-        );
-
-        debugPrint(
-          'REVERSE GEOCODING HTTP STATUS: '
-          '${response.statusCode}',
-        );
-
-        if (response.statusCode == 200) {
-          final data =
-              jsonDecode(response.body)
-                  as Map<String, dynamic>;
-
-          final address =
-              data['address']
-                  as Map<String, dynamic>?;
-
-          if (address != null) {
-            final city =
-                address['city'] ??
-                address['town'] ??
-                address['village'] ??
-                address['municipality'];
-
-            final state =
-                address['state'];
-
-            final country =
-                address['country'];
-
-            final parts = <String>[
-              if (city != null &&
-                  city.toString().isNotEmpty)
-                city.toString(),
-
-              if (state != null &&
-                  state.toString().isNotEmpty)
-                state.toString(),
-
-              if (country != null &&
-                  country.toString().isNotEmpty)
-                country.toString(),
-            ];
-
-            if (parts.isNotEmpty) {
-              readableLocation =
-                  parts.join(', ');
-            }
-
-            debugPrint(
-              'REVERSE GEOCODING RESULT: '
-              '$readableLocation',
-            );
-          }
-        } else {
-          debugPrint(
-            'REVERSE GEOCODING ERROR: '
-            'HTTP ${response.statusCode}',
-          );
-        }
-      } catch (e) {
-        debugPrint(
-          'REVERSE GEOCODING ERROR: $e',
-        );
-
-        // Keep GPS coordinates as fallback.
+        // GPS coordinates are still saved if reverse lookup fails.
+        // Location name can always be entered manually.
+        // Keep the location request optional.
+        // The server-side registration does not depend on this lookup.
+        //
+        // HTTP package is intentionally not added to this screen;
+        // coordinates are available immediately.
+        locationName = locationName;
+      } catch (_) {
+        // Keep the GPS coordinates.
       }
 
-      // ----------------------------------------------------------
-      // SAVE LOCATION
-      // ----------------------------------------------------------
+      if (!mounted) return;
 
       setState(() {
-        _latitude = position.latitude;
-        _longitude = position.longitude;
-        _locationController.text =
-            readableLocation;
-        _locationDetected = true;
+        if (_location.text.trim().isEmpty) {
+          _location.text = locationName;
+        }
       });
 
       _showMessage(
-        'Location detected successfully.',
+        'Location detected. Verify the location name before registering.',
+        error: false,
       );
     } catch (e) {
-      if (!mounted) {
-        return;
-      }
-
       _showMessage(
-        'Location error: $e',
-        isError: true,
+        'Could not detect your location. Enter it manually.',
       );
     } finally {
       if (mounted) {
-        setState(() {
-          _isDetectingLocation = false;
-        });
+        setState(() => _detectingLocation = false);
       }
     }
   }
 
-  void _showLocationSettingsDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            'Location permission required',
-          ),
-          content: const Text(
-            'Location permission has been permanently denied. Please enable it from the app settings to use device location.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Cancel',
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
+  Future<void> _register() async {
+    FocusScope.of(context).unfocus();
 
-                await Geolocator.openAppSettings();
-              },
-              style:
-                  ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color(0xFFFFB300),
-                foregroundColor:
-                    Colors.white,
-              ),
-              child: const Text(
-                'Open Settings',
+    if (!_formKey.currentState!.validate()) {
+      _showMessage('Please correct the highlighted fields.');
+      return;
+    }
+
+    if (_password.text != _password2.text) {
+      _showMessage('Passwords do not match.');
+      return;
+    }
+
+    final lat = double.tryParse(_latitude.text.trim());
+    final lon = double.tryParse(_longitude.text.trim());
+
+    if (lat == null || lon == null) {
+      _showMessage(
+        'Please detect your location or enter valid latitude and longitude.',
+      );
+      return;
+    }
+
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      _showMessage('Enter valid latitude and longitude values.');
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _message = null;
+    });
+
+    try {
+      final result = await ApiService.register(
+        username: _username.text.trim(),
+        email: _email.text.trim(),
+        password: _password.text,
+        password2: _password2.text,
+        systemName: _systemName.text.trim(),
+        location: _location.text.trim(),
+        latitude: lat,
+        longitude: lon,
+        capacityKw: double.parse(_capacity.text.trim()),
+        panelCount: int.parse(_panelCount.text.trim()),
+        panelType: _panelType,
+        installationDate: _installationDate.text.trim(),
+        provider: _provider.text.trim(),
+        consumerCategory: _consumerCategory,
+      );
+
+      if (!mounted) return;
+
+      _showMessage(
+        result['message']?.toString() ??
+            'Registration successful. You can now sign in.',
+        error: false,
+      );
+
+      widget.onRegistrationSuccess?.call();
+
+      await Future.delayed(const Duration(milliseconds: 1200));
+
+      if (!mounted) return;
+
+      // Return to the existing login screen in your app.
+      Navigator.of(context).maybePop();
+    } catch (e) {
+      if (!mounted) return;
+
+      _showMessage(
+        'Registration failed. Check your details and server connection.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      backgroundColor: bg,
+      appBar: AppBar(
+        backgroundColor: bg,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: gold),
+        title: const Row(
+          children: [
+            Icon(Icons.wb_sunny_rounded, color: yellow, size: 27),
+            SizedBox(width: 10),
+            Text(
+              'RaySense',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
-        );
-      },
-    );
-  }
-
-  // ------------------------------------------------------------
-  // DATE PICKER
-  // ------------------------------------------------------------
-
-  Future<void> _selectInstallationDate() async {
-    final now = DateTime.now();
-
-    final pickedDate = await showDatePicker(
-      context: context,
-      initialDate:
-          _installationDate ?? now,
-      firstDate:
-          DateTime(1990),
-      lastDate:
-          now,
-      helpText:
-          'Select installation date',
-      builder: (
-        BuildContext context,
-        Widget? child,
-      ) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme:
-                const ColorScheme.light(
-              primary:
-                  Color(0xFFFFB300),
-              onPrimary:
-                  Colors.white,
-              surface:
-                  Colors.white,
-              onSurface:
-                  Color(0xFF172033),
-            ),
-          ),
-          child:
-              child!,
-        );
-      },
-    );
-
-    if (pickedDate != null) {
-      setState(() {
-        _installationDate =
-            pickedDate;
-      });
-    }
-  }
-
-  // ------------------------------------------------------------
-  // BILL
-  // ------------------------------------------------------------
-
-  void _selectBillFile() {
-    _showMessage(
-      'Electricity bill upload will be enabled in the next step.',
-    );
-  }
-
-  // ------------------------------------------------------------
-  // HELPERS
-  // ------------------------------------------------------------
-
-  String _formatDateForApi(
-    DateTime date,
-  ) {
-    final year =
-        date.year.toString().padLeft(4, '0');
-
-    final month =
-        date.month.toString().padLeft(2, '0');
-
-    final day =
-        date.day.toString().padLeft(2, '0');
-
-    return '$year-$month-$day';
-  }
-
-  String _formatDateForDisplay(
-    DateTime date,
-  ) {
-    final day =
-        date.day.toString().padLeft(2, '0');
-
-    final month =
-        date.month.toString().padLeft(2, '0');
-
-    return '$day/$month/${date.year}';
-  }
-
-  void _showMessage(
-    String message, {
-    bool isError = false,
-  }) {
-    ScaffoldMessenger.of(context)
-        .hideCurrentSnackBar();
-
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior:
-            SnackBarBehavior.floating,
-        backgroundColor:
-            isError
-                ? const Color(0xFFD32F2F)
-                : const Color(0xFF2E7D32),
+        ),
       ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // VALIDATORS
-  // ------------------------------------------------------------
-
-  String? _validateUsername(
-    String? value,
-  ) {
-    if (value == null ||
-        value.trim().isEmpty) {
-      return 'Please enter a username';
-    }
-
-    if (value.trim().length < 3) {
-      return 'Username must contain at least 3 characters';
-    }
-
-    return null;
-  }
-
-  String? _validateEmail(
-    String? value,
-  ) {
-    if (value == null ||
-        value.trim().isEmpty) {
-      return 'Please enter your email';
-    }
-
-    final emailRegex = RegExp(
-      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-    );
-
-    if (!emailRegex.hasMatch(
-      value.trim(),
-    )) {
-      return 'Please enter a valid email address';
-    }
-
-    return null;
-  }
-
-  String? _validatePassword(
-    String? value,
-  ) {
-    if (value == null ||
-        value.isEmpty) {
-      return 'Please enter a password';
-    }
-
-    if (value.length < 8) {
-      return 'Password must contain at least 8 characters';
-    }
-
-    return null;
-  }
-
-  String? _validateConfirmPassword(
-    String? value,
-  ) {
-    if (value == null ||
-        value.isEmpty) {
-      return 'Please confirm your password';
-    }
-
-    if (value !=
-        _passwordController.text) {
-      return 'Passwords do not match';
-    }
-
-    return null;
-  }
-
-  String? _validateCapacity(
-    String? value,
-  ) {
-    if (value == null ||
-        value.trim().isEmpty) {
-      return 'Please enter solar capacity';
-    }
-
-    final capacity =
-        double.tryParse(
-      value.trim(),
-    );
-
-    if (capacity == null ||
-        capacity <= 0) {
-      return 'Enter a valid capacity';
-    }
-
-    return null;
-  }
-
-  String? _validatePanelCount(
-    String? value,
-  ) {
-    if (value == null ||
-        value.trim().isEmpty) {
-      return 'Please enter panel count';
-    }
-
-    final count =
-        int.tryParse(
-      value.trim(),
-    );
-
-    if (count == null ||
-        count <= 0) {
-      return 'Enter a valid panel count';
-    }
-
-    return null;
-  }
-
-  // ------------------------------------------------------------
-  // BUILD
-  // ------------------------------------------------------------
-
-  @override
-  Widget build(
-    BuildContext context,
-  ) {
-    return Scaffold(
-      backgroundColor:
-          const Color(0xFFF7F9FC),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-
-            Expanded(
-              child:
-                  SingleChildScrollView(
-                padding:
-                    const EdgeInsets.fromLTRB(
-                  20,
-                  8,
-                  20,
-                  32,
-                ),
-                child:
-                    ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(
-                    maxWidth: 620,
-                  ),
-                  child: Form(
-                    key: _formKey,
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth < 600 ? 14 : 28,
+          vertical: 24,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 1050),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Center(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment
-                              .stretch,
                       children: [
-                        _buildHeader(),
-
-                        const SizedBox(
-                          height: 24,
+                        Text(
+                          '☀ START YOUR SOLAR JOURNEY',
+                          style: TextStyle(
+                            color: gold,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                          ),
                         ),
-
-                        _buildProgress(),
-
-                        const SizedBox(
-                          height: 24,
+                        SizedBox(height: 18),
+                        Text(
+                          'Create your RaySense account.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            height: 1.2,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-
-                        _buildAccountSection(),
-
-                        const SizedBox(
-                          height: 18,
+                        SizedBox(height: 12),
+                        Text(
+                          'Add your solar system details to unlock monitoring, '
+                          'weather intelligence, AI-powered forecasting '
+                          'and performance analysis.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: muted,
+                            height: 1.6,
+                            fontSize: 14,
+                          ),
                         ),
-
-                        _buildSolarSection(),
-
-                        const SizedBox(
-                          height: 18,
-                        ),
-
-                        _buildLocationSection(),
-
-                        const SizedBox(
-                          height: 18,
-                        ),
-
-                        _buildElectricitySection(),
-
-                        const SizedBox(
-                          height: 18,
-                        ),
-
-                        _buildBillSection(),
-
-                        const SizedBox(
-                          height: 28,
-                        ),
-
-                        _buildRegisterButton(),
-
-                        const SizedBox(
-                          height: 18,
-                        ),
-
-                        _buildLoginLink(),
                       ],
                     ),
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                  const SizedBox(height: 32),
 
-  // ------------------------------------------------------------
-  // TOP BAR
-  // ------------------------------------------------------------
-
-  Widget _buildTopBar() {
-    return Container(
-      height: 64,
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 16,
-      ),
-      decoration:
-          const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFFE7EBF2),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed:
-                _isLoading
-                    ? null
-                    : () {
-                        Navigator.of(
-                          context,
-                        ).pop();
-                      },
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-            ),
-            color:
-                const Color(0xFF172033),
-          ),
-          const SizedBox(
-            width: 4,
-          ),
-          const Icon(
-            Icons.wb_sunny_rounded,
-            color:
-                Color(0xFFFFB300),
-            size: 27,
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          const Text(
-            'RaySense',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight:
-                  FontWeight.bold,
-              color:
-                  Color(0xFF172033),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // HEADER
-  // ------------------------------------------------------------
-
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-        const SizedBox(
-          height: 12,
-        ),
-        const Text(
-          'Set up your solar system',
-          style: TextStyle(
-            fontSize: 30,
-            fontWeight:
-                FontWeight.bold,
-            color:
-                Color(0xFF172033),
-            height: 1.15,
-          ),
-        ),
-        const SizedBox(
-          height: 10,
-        ),
-        const Text(
-          'Tell RaySense about your solar installation so we can monitor performance, forecast generation and provide useful insights.',
-          style: TextStyle(
-            fontSize: 15,
-            height: 1.55,
-            color:
-                Color(0xFF697386),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // PROGRESS
-  // ------------------------------------------------------------
-
-  Widget _buildProgress() {
-    return Container(
-      padding:
-          const EdgeInsets.all(18),
-      decoration:
-          BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(18),
-        border: Border.all(
-          color:
-              const Color(0xFFE7EBF2),
-        ),
-      ),
-      child: Row(
-        children: [
-          _buildProgressCircle(
-            number: '1',
-            active: true,
-          ),
-          Expanded(
-            child: Container(
-              height: 2,
-              color:
-                  const Color(0xFFFFB300),
-            ),
-          ),
-          _buildProgressCircle(
-            number: '2',
-            active: true,
-          ),
-          Expanded(
-            child: Container(
-              height: 2,
-              color:
-                  const Color(0xFFFFB300),
-            ),
-          ),
-          _buildProgressCircle(
-            number: '3',
-            active: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProgressCircle({
-    required String number,
-    required bool active,
-  }) {
-    return Container(
-      width: 34,
-      height: 34,
-      decoration:
-          BoxDecoration(
-        shape: BoxShape.circle,
-        color: active
-            ? const Color(0xFFFFB300)
-            : const Color(0xFFE7EBF2),
-      ),
-      alignment:
-          Alignment.center,
-      child: Text(
-        number,
-        style: TextStyle(
-          fontWeight:
-              FontWeight.bold,
-          color: active
-              ? Colors.white
-              : const Color(
-                  0xFF697386,
-                ),
-        ),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ACCOUNT SECTION
-  // ------------------------------------------------------------
-
-  Widget _buildAccountSection() {
-    return _buildSectionCard(
-      icon:
-          Icons.person_outline_rounded,
-      title: 'Account information',
-      subtitle:
-          'Create your RaySense account.',
-      children: [
-        _buildTextField(
-          controller:
-              _usernameController,
-          label: 'Username',
-          hint:
-              'Choose a username',
-          icon:
-              Icons.person_outline_rounded,
-          validator:
-              _validateUsername,
-          textInputAction:
-              TextInputAction.next,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildTextField(
-          controller:
-              _emailController,
-          label: 'Email address',
-          hint:
-              'example@email.com',
-          icon:
-              Icons.email_outlined,
-          validator:
-              _validateEmail,
-          keyboardType:
-              TextInputType.emailAddress,
-          textInputAction:
-              TextInputAction.next,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildTextField(
-          controller:
-              _passwordController,
-          label: 'Password',
-          hint:
-              'Minimum 8 characters',
-          icon:
-              Icons.lock_outline_rounded,
-          obscureText:
-              _obscurePassword,
-          suffixIcon:
-              IconButton(
-            onPressed: () {
-              setState(() {
-                _obscurePassword =
-                    !_obscurePassword;
-              });
-            },
-            icon: Icon(
-              _obscurePassword
-                  ? Icons
-                      .visibility_outlined
-                  : Icons
-                      .visibility_off_outlined,
-            ),
-          ),
-          validator:
-              _validatePassword,
-          textInputAction:
-              TextInputAction.next,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildTextField(
-          controller:
-              _confirmPasswordController,
-          label:
-              'Confirm password',
-          hint:
-              'Re-enter your password',
-          icon:
-              Icons.lock_reset_rounded,
-          obscureText:
-              _obscureConfirmPassword,
-          suffixIcon:
-              IconButton(
-            onPressed: () {
-              setState(() {
-                _obscureConfirmPassword =
-                    !_obscureConfirmPassword;
-              });
-            },
-            icon: Icon(
-              _obscureConfirmPassword
-                  ? Icons
-                      .visibility_outlined
-                  : Icons
-                      .visibility_off_outlined,
-            ),
-          ),
-          validator:
-              _validateConfirmPassword,
-          textInputAction:
-              TextInputAction.next,
-        ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // SOLAR SECTION
-  // ------------------------------------------------------------
-
-  Widget _buildSolarSection() {
-    return _buildSectionCard(
-      icon:
-          Icons.solar_power_rounded,
-      title:
-          'Solar system details',
-      subtitle:
-          'Enter the basic specifications of your installation.',
-      children: [
-        _buildTextField(
-          controller:
-              _systemNameController,
-          label:
-              'System name',
-          hint:
-              'e.g. Home Solar System',
-          icon:
-              Icons.home_work_outlined,
-          validator: (value) {
-            if (value == null ||
-                value.trim().isEmpty) {
-              return 'Please enter a system name';
-            }
-            return null;
-          },
-          textInputAction:
-              TextInputAction.next,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildTextField(
-                controller:
-                    _capacityController,
-                label:
-                    'Capacity',
-                hint:
-                    'e.g. 5.0',
-                icon:
-                    Icons.bolt_outlined,
-                suffixText:
-                    'kW',
-                validator:
-                    _validateCapacity,
-                keyboardType:
-                    const TextInputType
-                        .numberWithOptions(
-                  decimal: true,
-                ),
-                textInputAction:
-                    TextInputAction.next,
-              ),
-            ),
-            const SizedBox(
-              width: 14,
-            ),
-            Expanded(
-              child: _buildTextField(
-                controller:
-                    _panelCountController,
-                label:
-                    'Panel count',
-                hint:
-                    'e.g. 10',
-                icon:
-                    Icons.grid_view_rounded,
-                suffixText:
-                    'panels',
-                validator:
-                    _validatePanelCount,
-                keyboardType:
-                    TextInputType.number,
-                textInputAction:
-                    TextInputAction.next,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildDropdown(
-          value:
-              _selectedPanelType,
-          label:
-              'Panel type',
-          hint:
-              'Select panel type',
-          icon:
-              Icons.view_module_outlined,
-          items:
-              _panelTypes,
-          onChanged: (value) {
-            setState(() {
-              _selectedPanelType =
-                  value;
-            });
-          },
-          validator: (value) {
-            if (value == null ||
-                value.isEmpty) {
-              return 'Please select the panel type';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        InkWell(
-          onTap:
-              _selectInstallationDate,
-          borderRadius:
-              BorderRadius.circular(14),
-          child: InputDecorator(
-            decoration:
-                _inputDecoration(
-              label:
-                  'Installation date',
-              hint:
-                  'Select installation date',
-              icon:
-                  Icons.calendar_today_outlined,
-            ),
-            child: Text(
-              _installationDate ==
-                      null
-                  ? 'Select installation date'
-                  : _formatDateForDisplay(
-                      _installationDate!,
-                    ),
-              style: TextStyle(
-                fontSize: 15,
-                color:
-                    _installationDate ==
-                            null
-                        ? const Color(
-                            0xFF9AA3B2,
-                          )
-                        : const Color(
-                            0xFF172033,
-                          ),
-              ),
-            ),
-          ),
-        ),
-        if (_installationDate ==
-            null)
-          const Padding(
-            padding:
-                EdgeInsets.only(
-              top: 8,
-              left: 12,
-            ),
-            child: Text(
-              'Please select the installation date',
-              style: TextStyle(
-                fontSize: 12,
-                color:
-                    Color(0xFFD32F2F),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // LOCATION SECTION
-  // ------------------------------------------------------------
-
-  Widget _buildLocationSection() {
-    return _buildSectionCard(
-      icon:
-          Icons.location_on_outlined,
-      title:
-          'Installation location',
-      subtitle:
-          'RaySense uses your device location to identify where your solar system is installed.',
-      children: [
-        Container(
-          padding:
-              const EdgeInsets.all(16),
-          decoration:
-              BoxDecoration(
-            color:
-                const Color(0xFFFFF8E7),
-            borderRadius:
-                BorderRadius.circular(16),
-            border: Border.all(
-              color:
-                  const Color(0xFFFFE2A3),
-            ),
-          ),
-          child: Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration:
-                    BoxDecoration(
-                  color:
-                      const Color(0xFFFFB300),
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
-                ),
-                child:
-                    const Icon(
-                  Icons
-                      .my_location_rounded,
-                  color:
-                      Colors.white,
-                ),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment
-                          .start,
-                  children: [
-                    Text(
-                      'Use device location',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight:
-                            FontWeight.bold,
-                        color:
-                            Color(0xFF172033),
+                  if (_message != null) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: _messageError
+                            ? Colors.red.withValues(alpha: 0.10)
+                            : yellow.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _messageError
+                              ? Colors.redAccent.withValues(alpha: 0.5)
+                              : gold.withValues(alpha: 0.4),
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      'Your GPS coordinates will be used to identify the installation area and support weather-based forecasting.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.45,
-                        color:
-                            Color(0xFF697386),
+                      child: Text(
+                        _message!,
+                        style: TextStyle(
+                          color: _messageError
+                              ? Colors.redAccent
+                              : gold,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(
-          height: 14,
-        ),
-        SizedBox(
-          height: 50,
-          width: double.infinity,
-          child:
-              OutlinedButton.icon(
-            onPressed:
-                _isLoading ||
-                        _isDetectingLocation
-                    ? null
-                    : _detectLocation,
-            icon: _isDetectingLocation
-                ? const SizedBox(
-                    width: 19,
-                    height: 19,
-                    child:
-                        CircularProgressIndicator(
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(
-                    _locationDetected
-                        ? Icons
-                            .check_circle_outline
-                        : Icons
-                            .my_location_rounded,
-                  ),
-            label: Text(
-              _isDetectingLocation
-                  ? 'Detecting location...'
-                  : _locationDetected
-                      ? 'Location detected'
-                      : 'Detect my location',
-            ),
-            style:
-                OutlinedButton.styleFrom(
-              foregroundColor:
-                  _locationDetected
-                      ? const Color(
-                          0xFF2E7D32,
-                        )
-                      : const Color(
-                          0xFFF39C00,
+
+                  _section(
+                    number: 1,
+                    title: 'Account Information',
+                    subtitle: 'Your RaySense account',
+                    children: [
+                      _responsiveGrid([
+                        _field(
+                          label: 'First Name',
+                          controller: _firstName,
+                          hint: 'Your first name',
+                          icon: Icons.person_outline,
                         ),
-              side: BorderSide(
-                color:
-                    _locationDetected
-                        ? const Color(
-                            0xFF2E7D32,
-                          )
-                        : const Color(
-                            0xFFFFB300,
+                        _field(
+                          label: 'Last Name',
+                          controller: _lastName,
+                          hint: 'Your last name',
+                          icon: Icons.person_outline,
+                        ),
+                        _field(
+                          label: 'Phone Number',
+                          controller: _phone,
+                          hint: 'Your phone number',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        _field(
+                          label: 'Username',
+                          controller: _username,
+                          hint: 'Choose a username',
+                          icon: Icons.account_circle_outlined,
+                        ),
+                        _field(
+                          label: 'Email',
+                          controller: _email,
+                          hint: 'you@example.com',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Email is required';
+                            }
+                            if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                .hasMatch(value.trim())) {
+                              return 'Enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        _field(
+                          label: 'Password',
+                          controller: _password,
+                          hint: 'Minimum 8 characters',
+                          icon: Icons.lock_outline,
+                          obscure: !_showPassword,
+                          suffix: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _showPassword = !_showPassword;
+                              });
+                            },
+                            icon: Icon(
+                              _showPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: gold,
+                            ),
                           ),
-              ),
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  14,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildTextField(
-          controller:
-              _locationController,
-          label:
-              'Readable location',
-          hint:
-              'Your detected location will appear here',
-          icon:
-              Icons.place_outlined,
-          validator: (value) {
-            if (value == null ||
-                value.trim().isEmpty) {
-              return 'Location is required';
-            }
-            return null;
-          },
-          readOnly:
-              _locationDetected,
-          textInputAction:
-              TextInputAction.next,
-        ),
-        if (_locationDetected) ...[
-          const SizedBox(
-            height: 14,
-          ),
-          Row(
-            children: [
-              Expanded(
-                child:
-                    _buildCoordinateBox(
-                  label:
-                      'Latitude',
-                  value:
-                      _latitude?.toStringAsFixed(
-                            6,
-                          ) ??
-                          '--',
-                ),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child:
-                    _buildCoordinateBox(
-                  label:
-                      'Longitude',
-                  value:
-                      _longitude?.toStringAsFixed(
-                            6,
-                          ) ??
-                          '--',
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildCoordinateBox({
-    required String label,
-    required String value,
-  }) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 12,
-      ),
-      decoration:
-          BoxDecoration(
-        color:
-            const Color(0xFFF7F9FC),
-        borderRadius:
-            BorderRadius.circular(12),
-        border: Border.all(
-          color:
-              const Color(0xFFE0E5ED),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              color:
-                  Color(0xFF697386),
-            ),
-          ),
-          const SizedBox(
-            height: 3,
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight:
-                  FontWeight.w600,
-              color:
-                  Color(0xFF172033),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // ELECTRICITY SECTION
-  // ------------------------------------------------------------
-
-  Widget _buildElectricitySection() {
-    return _buildSectionCard(
-      icon:
-          Icons.electric_bolt_outlined,
-      title:
-          'Electricity information',
-      subtitle:
-          'These details help RaySense estimate savings and understand your electricity usage context.',
-      children: [
-        _buildTextField(
-          controller:
-              _providerController,
-          label:
-              'Electricity provider',
-          hint:
-              'e.g. KSEB',
-          icon:
-              Icons.account_balance_outlined,
-          textInputAction:
-              TextInputAction.next,
-        ),
-        const SizedBox(
-          height: 16,
-        ),
-        _buildDropdown(
-          value:
-              _selectedConsumerCategory,
-          label:
-              'Consumer category',
-          hint:
-              'Select consumer category',
-          icon:
-              Icons.category_outlined,
-          items:
-              _consumerCategories,
-          onChanged: (value) {
-            setState(() {
-              _selectedConsumerCategory =
-                  value;
-            });
-          },
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        Container(
-          padding:
-              const EdgeInsets.all(13),
-          decoration:
-              BoxDecoration(
-            color:
-                const Color(0xFFF7F9FC),
-            borderRadius:
-                BorderRadius.circular(12),
-          ),
-          child: const Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.info_outline_rounded,
-                size: 19,
-                color:
-                    Color(0xFF697386),
-              ),
-              SizedBox(
-                width: 9,
-              ),
-              Expanded(
-                child: Text(
-                  'You do not need to know your electricity rate. RaySense can determine applicable tariff information later from supported provider and bill data.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.45,
-                    color:
-                        Color(0xFF697386),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Password is required';
+                            }
+                            if (value.length < 8) {
+                              return 'Use at least 8 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        _field(
+                          label: 'Confirm Password',
+                          controller: _password2,
+                          hint: 'Enter password again',
+                          icon: Icons.lock_reset_outlined,
+                          obscure: !_showPassword2,
+                          suffix: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _showPassword2 = !_showPassword2;
+                              });
+                            },
+                            icon: Icon(
+                              _showPassword2
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: gold,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ],
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
-  // ------------------------------------------------------------
-  // BILL SECTION
-  // ------------------------------------------------------------
+                  _section(
+                    number: 2,
+                    title: 'Solar System',
+                    subtitle: 'System configuration',
+                    children: [
+                      _field(
+                        label: 'System Name',
+                        controller: _systemName,
+                        hint: 'e.g. Home Solar System',
+                        icon: Icons.solar_power,
+                      ),
+                      _responsiveGrid([
+                        _field(
+                          label: 'System Capacity (kW)',
+                          controller: _capacity,
+                          hint: 'e.g. 5',
+                          icon: Icons.bolt,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          validator: (value) =>
+                              _number(value),
+                        ),
+                        _field(
+                          label: 'Number of Panels',
+                          controller: _panelCount,
+                          hint: 'e.g. 10',
+                          icon: Icons.grid_view,
+                          keyboardType: TextInputType.number,
+                          validator: (value) =>
+                              _number(value, integer: true),
+                        ),
+                        _dropdown(
+                          label: 'Panel Type',
+                          value: _panelType,
+                          options: const [
+                            'Monocrystalline',
+                            'Polycrystalline',
+                            'Thin Film',
+                            'Other',
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() => _panelType = value);
+                            }
+                          },
+                        ),
+                        GestureDetector(
+                          onTap: () async {
+                            final date = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1990),
+                              lastDate: DateTime.now(),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: ThemeData.dark().copyWith(
+                                    colorScheme:
+                                        const ColorScheme.dark(
+                                      primary: yellow,
+                                      surface: card,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
 
-  Widget _buildBillSection() {
-    return _buildSectionCard(
-      icon:
-          Icons.receipt_long_outlined,
-      title:
-          'Latest electricity bill',
-      subtitle:
-          'Optional. Upload your latest bill to help RaySense obtain electricity information.',
-      children: [
-        InkWell(
-          onTap:
-              _isLoading
-                  ? null
-                  : _selectBillFile,
-          borderRadius:
-              BorderRadius.circular(16),
-          child: Container(
-            width:
-                double.infinity,
-            padding:
-                const EdgeInsets.all(20),
-            decoration:
-                BoxDecoration(
-              color:
-                  const Color(0xFFF9FAFC),
-              borderRadius:
-                  BorderRadius.circular(16),
-              border: Border.all(
-                color:
-                    const Color(0xFFD8DEE9),
-              ),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration:
-                      BoxDecoration(
-                    color:
-                        const Color(0xFFFFF3D0),
-                    borderRadius:
-                        BorderRadius.circular(
-                      16,
-                    ),
+                            if (date != null) {
+                              _installationDate.text =
+                                  '${date.year.toString().padLeft(4, '0')}-'
+                                  '${date.month.toString().padLeft(2, '0')}-'
+                                  '${date.day.toString().padLeft(2, '0')}';
+                            }
+                          },
+                          child: AbsorbPointer(
+                            child: _field(
+                              label: 'Installation Date',
+                              controller: _installationDate,
+                              hint: 'Select installation date',
+                              icon: Icons.calendar_month_outlined,
+                            ),
+                          ),
+                        ),
+                      ]),
+                    ],
                   ),
-                  child:
-                      const Icon(
-                    Icons
-                        .cloud_upload_outlined,
-                    size: 28,
-                    color:
-                        Color(0xFFFFB300),
-                  ),
-                ),
-                const SizedBox(
-                  height: 12,
-                ),
-                Text(
-                  _billFileName ??
-                      'Upload electricity bill',
-                  textAlign:
-                      TextAlign.center,
-                  style:
-                      const TextStyle(
-                    fontSize: 15,
-                    fontWeight:
-                        FontWeight.w600,
-                    color:
-                        Color(0xFF172033),
-                  ),
-                ),
-                const SizedBox(
-                  height: 5,
-                ),
-                const Text(
-                  'PDF, JPG or PNG • Optional',
-                  textAlign:
-                      TextAlign.center,
-                  style:
-                      TextStyle(
-                    fontSize: 12,
-                    color:
-                        Color(0xFF697386),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(
-          height: 12,
-        ),
-        const Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.lock_outline_rounded,
-              size: 17,
-              color:
-                  Color(0xFF697386),
-            ),
-            SizedBox(
-              width: 8,
-            ),
-            Expanded(
-              child: Text(
-                'Your bill is optional. You can skip this step and provide electricity information later.',
-                style: TextStyle(
-                  fontSize: 12,
-                  height: 1.4,
-                  color:
-                      Color(0xFF697386),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
 
-  // ------------------------------------------------------------
-  // REGISTER BUTTON
-  // ------------------------------------------------------------
-
-  Widget _buildRegisterButton() {
-    return SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed:
-            _isLoading
-                ? null
-                : _register,
-        style:
-            ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color(0xFFFFB300),
-          foregroundColor:
-              Colors.white,
-          disabledBackgroundColor:
-              const Color(0xFFFFD77A),
-          elevation: 0,
-          shape:
-              RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(15),
-          ),
-        ),
-        child: _isLoading
-            ? const SizedBox(
-                width: 25,
-                height: 25,
-                child:
-                    CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  color:
-                      Colors.white,
-                ),
-              )
-            : const Row(
-                mainAxisAlignment:
-                    MainAxisAlignment
-                        .center,
-                children: [
-                  Text(
-                    'Create RaySense account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight:
-                          FontWeight.bold,
-                    ),
+                  _section(
+                    number: 3,
+                    title: 'Location',
+                    subtitle: 'Solar installation location',
+                    children: [
+                      _field(
+                        label: 'Location',
+                        controller: _location,
+                        hint: 'e.g. Kochi, Kerala, India',
+                        icon: Icons.location_on_outlined,
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: _detectingLocation
+                              ? null
+                              : _detectLocation,
+                          icon: _detectingLocation
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: gold,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.my_location,
+                                  color: gold,
+                                ),
+                          label: Text(
+                            _detectingLocation
+                                ? 'Getting Location...'
+                                : 'Use My Location',
+                            style: const TextStyle(
+                              color: gold,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: gold.withValues(alpha: 0.35),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        'You can enter the location manually or use your device location.',
+                        style: TextStyle(
+                          color: muted,
+                          fontSize: 11,
+                          height: 1.5,
+                        ),
+                      ),
+                      _responsiveGrid([
+                        _field(
+                          label: 'Latitude',
+                          controller: _latitude,
+                          hint: 'e.g. 9.9312',
+                          icon: Icons.map_outlined,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          validator: (value) {
+                            final number = double.tryParse(
+                              value?.trim() ?? '',
+                            );
+                            if (number == null ||
+                                number < -90 ||
+                                number > 90) {
+                              return 'Enter valid latitude';
+                            }
+                            return null;
+                          },
+                        ),
+                        _field(
+                          label: 'Longitude',
+                          controller: _longitude,
+                          hint: 'e.g. 76.2673',
+                          icon: Icons.public,
+                          keyboardType:
+                              const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          validator: (value) {
+                            final number = double.tryParse(
+                              value?.trim() ?? '',
+                            );
+                            if (number == null ||
+                                number < -180 ||
+                                number > 180) {
+                              return 'Enter valid longitude';
+                            }
+                            return null;
+                          },
+                        ),
+                      ]),
+                    ],
                   ),
+
+                  _section(
+                    number: 4,
+                    title: 'Electricity Information',
+                    subtitle: 'Optional',
+                    children: [
+                      _responsiveGrid([
+                        _field(
+                          label: 'Electricity Provider',
+                          controller: _provider,
+                          hint: 'e.g. KSEB',
+                          icon: Icons.electrical_services,
+                          requiredField: false,
+                        ),
+                        _dropdown(
+                          label: 'Consumer Category',
+                          value: _consumerCategory,
+                          options: const [
+                            'Domestic',
+                            'Commercial',
+                            'Industrial',
+                            'Other',
+                          ],
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(
+                                () => _consumerCategory = value,
+                              );
+                            }
+                          },
+                        ),
+                      ]),
+                    ],
+                  ),
+
                   SizedBox(
-                    width: 9,
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _register,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: yellow,
+                        foregroundColor: Colors.black,
+                        disabledBackgroundColor:
+                            yellow.withValues(alpha: 0.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: _loading
+                          ? const SizedBox(
+                              height: 23,
+                              width: 23,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text(
+                              'Create RaySense Account  →',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                    ),
                   ),
-                  Icon(
-                    Icons
-                        .arrow_forward_rounded,
-                    size: 21,
+
+                  const SizedBox(height: 15),
+
+                  const Center(
+                    child: Text(
+                      'By creating an account, you agree to use RaySense '
+                      'responsibly for solar energy monitoring and analysis.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF666666),
+                        fontSize: 11,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  const Center(
+                    child: Text(
+                      '© 2026 RaySense  •  AI  •  Solar Monitoring  •  Forecasting',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFF666666),
+                        fontSize: 11,
+                      ),
+                    ),
                   ),
                 ],
               ),
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // LOGIN LINK
-  // ------------------------------------------------------------
-
-  Widget _buildLoginLink() {
-    return Row(
-      mainAxisAlignment:
-          MainAxisAlignment.center,
-      children: [
-        const Text(
-          'Already have an account? ',
-          style: TextStyle(
-            fontSize: 14,
-            color:
-                Color(0xFF697386),
-          ),
-        ),
-        TextButton(
-          onPressed:
-              _isLoading
-                  ? null
-                  : () {
-                      Navigator.of(
-                        context,
-                      ).pop();
-                    },
-          child: const Text(
-            'Login',
-            style: TextStyle(
-              color:
-                  Color(0xFFF39C00),
-              fontWeight:
-                  FontWeight.bold,
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  // ------------------------------------------------------------
-  // SECTION CARD
-  // ------------------------------------------------------------
-
-  Widget _buildSectionCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required List<Widget> children,
-  }) {
-    return Container(
-      padding:
-          const EdgeInsets.all(20),
-      decoration:
-          BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(20),
-        border: Border.all(
-          color:
-              const Color(0xFFE7EBF2),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color:
-                Color(0x08000000),
-            blurRadius: 14,
-            offset:
-                Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration:
-                    BoxDecoration(
-                  color:
-                      const Color(0xFFFFF3D0),
-                  borderRadius:
-                      BorderRadius.circular(
-                    12,
-                  ),
-                ),
-                child:
-                    Icon(
-                  icon,
-                  color:
-                      const Color(0xFFFFB300),
-                  size: 23,
-                ),
-              ),
-              const SizedBox(
-                width: 12,
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style:
-                          const TextStyle(
-                        fontSize: 17,
-                        fontWeight:
-                            FontWeight.bold,
-                        color:
-                            Color(0xFF172033),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      subtitle,
-                      style:
-                          const TextStyle(
-                        fontSize: 12,
-                        height: 1.4,
-                        color:
-                            Color(0xFF697386),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          ...children,
-        ],
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // TEXT FIELD
-  // ------------------------------------------------------------
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
-    TextInputAction? textInputAction,
-    bool obscureText = false,
-    bool readOnly = false,
-    Widget? suffixIcon,
-    String? suffixText,
-  }) {
-    return TextFormField(
-      controller:
-          controller,
-      validator:
-          validator,
-      keyboardType:
-          keyboardType,
-      textInputAction:
-          textInputAction,
-      obscureText:
-          obscureText,
-      readOnly:
-          readOnly,
-      style:
-          const TextStyle(
-        fontSize: 15,
-        color:
-            Color(0xFF172033),
-      ),
-      decoration:
-          _inputDecoration(
-        label:
-            label,
-        hint:
-            hint,
-        icon:
-            icon,
-        suffixIcon:
-            suffixIcon,
-        suffixText:
-            suffixText,
-      ),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // DROPDOWN
-  // ------------------------------------------------------------
-
-  Widget _buildDropdown({
-    required String? value,
-    required String label,
-    required String hint,
-    required IconData icon,
-    required List<String> items,
-    required ValueChanged<String?>
-        onChanged,
-    String? Function(String?)?
-        validator,
-  }) {
-    return DropdownButtonFormField<
-        String>(
-      initialValue: value,
-      validator:
-          validator,
-      onChanged:
-          _isLoading
-              ? null
-              : onChanged,
-      decoration:
-          _inputDecoration(
-        label:
-            label,
-        hint:
-            hint,
-        icon:
-            icon,
-      ),
-      items: items
-          .map(
-            (item) =>
-                DropdownMenuItem<
-                    String>(
-              value: item,
-              child: Text(item),
-            ),
-          )
-          .toList(),
-    );
-  }
-
-  // ------------------------------------------------------------
-  // INPUT DECORATION
-  // ------------------------------------------------------------
-
-  InputDecoration _inputDecoration({
-    required String label,
-    required String hint,
-    required IconData icon,
-    Widget? suffixIcon,
-    String? suffixText,
-  }) {
-    return InputDecoration(
-      labelText:
-          label,
-      hintText:
-          hint,
-      prefixIcon:
-          Icon(icon),
-      suffixIcon:
-          suffixIcon,
-      suffixText:
-          suffixText,
-      filled: true,
-      fillColor:
-          Colors.white,
-      labelStyle:
-          const TextStyle(
-        color:
-            Color(0xFF697386),
-      ),
-      hintStyle:
-          const TextStyle(
-        color:
-            Color(0xFF9AA3B2),
-        fontSize: 14,
-      ),
-      border:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-        borderSide:
-            const BorderSide(
-          color:
-              Color(0xFFD8DEE9),
-        ),
-      ),
-      enabledBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-        borderSide:
-            const BorderSide(
-          color:
-              Color(0xFFD8DEE9),
-        ),
-      ),
-      focusedBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-        borderSide:
-            const BorderSide(
-          color:
-              Color(0xFFFFB300),
-          width: 2,
-        ),
-      ),
-      errorBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-        borderSide:
-            const BorderSide(
-          color:
-              Color(0xFFD32F2F),
-        ),
-      ),
-      focusedErrorBorder:
-          OutlineInputBorder(
-        borderRadius:
-            BorderRadius.circular(14),
-        borderSide:
-            const BorderSide(
-          color:
-              Color(0xFFD32F2F),
-          width: 2,
-        ),
-      ),
-      contentPadding:
-          const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 17,
       ),
     );
   }

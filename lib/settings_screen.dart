@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'api_service.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -17,7 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String panelCount = '12 panels';
   String panelType = 'Monocrystalline';
   String installationDate = '01 January 2026';
-  String electricityRate = '₹7.00 / kWh';
+  String electricityRate = 'â‚¹7.00 / kWh';
 
   bool alertsEnabled = true;
   bool isLoading = true;
@@ -95,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           if (rateValue != null) {
             electricityRate =
-                '₹${rateValue.toStringAsFixed(2)} / kWh';
+                'â‚¹${rateValue.toStringAsFixed(2)} / kWh';
           }
 
           isLoading = false;
@@ -216,10 +216,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
         if (rateValue != null) {
           electricityRate =
-              '₹${rateValue.toStringAsFixed(2)} / kWh';
+              'â‚¹${rateValue.toStringAsFixed(2)} / kWh';
         } else {
           electricityRate =
-              '₹${result['electricity_rate']} / kWh';
+              'â‚¹${result['electricity_rate']} / kWh';
         }
       }
     });
@@ -324,239 +324,674 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+    const orange = Color(0xFFFF9800);
+    const ink = Color(0xFF172033);
+    const muted = Color(0xFF64748B);
+    const background = Color(0xFFF5F7FB);
+    const border = Color(0xFFE8ECF2);
 
+    return Scaffold(
+      backgroundColor: background,
       appBar: AppBar(
         backgroundColor: Colors.white,
+        foregroundColor: ink,
         elevation: 0,
-
+        scrolledUnderElevation: 0,
+        titleSpacing: 22,
         title: const Row(
           children: [
-            Icon(
-              Icons.settings_outlined,
-              color: Colors.orange,
-            ),
-
+            Icon(Icons.wb_sunny_rounded, color: orange, size: 25),
             SizedBox(width: 10),
-
             Text(
-              'Settings',
+              'RaySense',
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                color: ink,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ],
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 18),
+            child: CircleAvatar(
+              backgroundColor: const Color(0xFFFFF1D6),
+              child: Icon(Icons.settings_rounded, color: orange),
+            ),
+          ),
+        ],
       ),
-
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Colors.orange,
-              ),
+              child: CircularProgressIndicator(color: orange),
             )
-          : ListView(
-              padding: const EdgeInsets.all(16),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 760;
+                final horizontal = wide ? 24.0 : 16.0;
 
-              children: [
-                const Text(
-                  'System Settings',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  'Manage your RaySense system',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 15,
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // =====================================================
-                // Solar System
-                // =====================================================
-
-                _SettingsSection(
-                  title: 'Solar System',
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.solar_power,
-                      title: 'Solar System',
-                      subtitle: systemName,
-                      onTap: _editSolarSystem,
+                Widget card({
+                  required Widget child,
+                  EdgeInsets padding = const EdgeInsets.all(20),
+                }) {
+                  return Container(
+                    padding: padding,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: ink.withValues(alpha: 0.035),
+                          blurRadius: 18,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
                     ),
+                    child: child,
+                  );
+                }
 
-                    _SettingsTile(
-                      icon: Icons.location_on_outlined,
-                      title: 'Location',
-                      subtitle: location,
-                      onTap: _editSolarSystem,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.battery_charging_full,
-                      title: 'System Capacity',
-                      subtitle: capacity,
-                      onTap: _editSolarSystem,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.grid_view,
-                      title: 'Panel Count',
-                      subtitle: panelCount,
-                      onTap: _editSolarSystem,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.view_module_outlined,
-                      title: 'Panel Type',
-                      subtitle: panelType,
-                      onTap: _editSolarSystem,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.calendar_today_outlined,
-                      title: 'Installation Date',
-                      subtitle: installationDate,
-                      onTap: _showInstallationDate,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.currency_rupee,
-                      title: 'Electricity Rate',
-                      subtitle: electricityRate,
-                      onTap: _editSolarSystem,
-                    ),
-
-                    _SettingsTile(
-                      icon: Icons.edit_outlined,
-                      title: 'Edit Solar System',
-                      subtitle:
-                          'Update system information',
-                      onTap: _editSolarSystem,
-                    ),
-                    _SettingsTile(
-                      icon: Icons.logout,
-                      title: 'Logout',
-                      subtitle: 'Sign out of your RaySense account',
-                      onTap: _logout,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 18),
-
-                // =====================================================
-                // Notifications
-                // =====================================================
-
-                _SettingsSection(
-                  title: 'Notifications',
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.notifications_outlined,
-                      title: 'Alerts',
-                      subtitle:
-                          'Receive solar system alerts',
-
-                      trailing: Switch(
-                        value: alertsEnabled,
-
-                        onChanged: (value) {
-                          setState(() {
-                            alertsEnabled = value;
-                          });
-                        },
-
-                        activeThumbColor:
-                            Colors.orange,
+                Widget heading(String title, String subtitle, IconData icon) {
+                  return Row(
+                    children: [
+                      Container(
+                        width: 43,
+                        height: 43,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF3DD),
+                          borderRadius: BorderRadius.circular(13),
+                        ),
+                        child: Icon(icon, color: orange, size: 23),
                       ),
-
-                      onTap: () {
-                        setState(() {
-                          alertsEnabled =
-                              !alertsEnabled;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 18),
-
-                // =====================================================
-                // Application
-                // =====================================================
-
-                _SettingsSection(
-                  title: 'Application',
-                  children: [
-                    _SettingsTile(
-                      icon: Icons.info_outline,
-                      title: 'About RaySense',
-                      subtitle:
-                          'AI-based solar monitoring system',
-
-                      onTap: () {
-                        showAboutDialog(
-                          context: context,
-                          applicationName: 'RaySense',
-                          applicationVersion: '1.0.0',
-
-                          applicationIcon:
-                              const Icon(
-                            Icons.wb_sunny,
-                            color: Colors.orange,
-                            size: 35,
-                          ),
-
-                          children: const [
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              'RaySense is an AI-based solar energy monitoring, forecasting and performance management system.',
+                              title,
+                              style: const TextStyle(
+                                color: ink,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle,
+                              style: const TextStyle(
+                                color: muted,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
-                        );
-                      },
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                Widget detail(
+                  String label,
+                  String value,
+                  IconData icon,
+                ) {
+                  return Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF7F8FC),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(icon, size: 20, color: orange),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                label,
+                                style: const TextStyle(
+                                  color: muted,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                value,
+                                style: const TextStyle(
+                                  color: ink,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                Widget actionRow({
+                  required IconData icon,
+                  required String title,
+                  required String subtitle,
+                  required VoidCallback onTap,
+                  Widget? trailing,
+                  Color iconColor = orange,
+                }) {
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: onTap,
+                      borderRadius: BorderRadius.circular(13),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF3DD),
+                                borderRadius: BorderRadius.circular(13),
+                              ),
+                              child: Icon(icon, color: iconColor, size: 21),
+                            ),
+                            const SizedBox(width: 13),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: const TextStyle(
+                                      color: ink,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    subtitle,
+                                    style: const TextStyle(
+                                      color: muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            trailing ??
+                                const Icon(
+                                  Icons.chevron_right_rounded,
+                                  color: Color(0xFF9AA4B2),
+                                ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
+                Widget sectionTitle(String title) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12, top: 24),
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: ink,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  );
+                }
+
+                return ListView(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontal,
+                    26,
+                    horizontal,
+                    32,
+                  ),
+                  children: [
+                    const Text(
+                      'Settings',
+                      style: TextStyle(
+                        color: ink,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.8,
+                      ),
+                    ),
+                    const SizedBox(height: 7),
+                    const Text(
+                      'Manage your account, solar installation and application preferences.',
+                      style: TextStyle(
+                        color: muted,
+                        fontSize: 13,
+                        height: 1.6,
+                      ),
                     ),
 
-                    _SettingsTile(
-                      icon: Icons.code,
-                      title: 'Technology',
-                      subtitle:
-                          'Flutter • Django • MySQL • Machine Learning',
-                      onTap: () {},
+                    sectionTitle('Solar installation'),
+
+                    card(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF5E4),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 51,
+                                  height: 51,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: const Icon(
+                                    Icons.solar_power_rounded,
+                                    color: orange,
+                                    size: 29,
+                                  ),
+                                ),
+                                const SizedBox(width: 13),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        systemName,
+                                        style: const TextStyle(
+                                          color: ink,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Row(
+                                        children: [
+                                          const Icon(
+                                            Icons.location_on_outlined,
+                                            size: 15,
+                                            color: muted,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              location,
+                                              style: const TextStyle(
+                                                color: muted,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 9,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFE6F8EE),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: const Text(
+                                    'Registered',
+                                    style: TextStyle(
+                                      color: Color(0xFF16834A),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          GridView.count(
+                            crossAxisCount: constraints.maxWidth >= 1000 ? 4 : 2,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: constraints.maxWidth >= 1000 ? 1.5 : 1.35,
+                            children: [
+                              detail('SYSTEM CAPACITY', capacity,
+                                  Icons.bolt_rounded),
+                              detail('SOLAR PANELS', panelCount,
+                                  Icons.grid_view_rounded),
+                              detail('PANEL TECHNOLOGY', panelType,
+                                  Icons.view_module_rounded),
+                              InkWell(
+                                borderRadius: BorderRadius.circular(14),
+                                onTap: _showInstallationDate,
+                                child: detail(
+                                  'INSTALLATION DATE',
+                                  installationDate,
+                                  Icons.calendar_month_rounded,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: border),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.currency_rupee_rounded,
+                                  color: orange,
+                                  size: 23,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Electricity tariff',
+                                        style: TextStyle(
+                                          color: ink,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'INR 7.00 / kWh',
+                                        style: TextStyle(
+                                          color: muted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _editSolarSystem,
+                                  child: const Text(
+                                    'EDIT',
+                                    style: TextStyle(
+                                      color: orange,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: _editSolarSystem,
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              label: const Text('Edit solar system'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: orange,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(13),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    sectionTitle('Account & security'),
+
+                    card(
+                      child: Column(
+                        children: [
+                          heading(
+                            'Account settings',
+                            'Manage your RaySense session',
+                            Icons.manage_accounts_outlined,
+                          ),
+                          const SizedBox(height: 15),
+                          const Divider(color: border, height: 1),
+                          actionRow(
+                            icon: Icons.verified_user_outlined,
+                            title: 'Account security',
+                            subtitle: 'Your session is authenticated',
+                            onTap: () {
+                              showDialog<void>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Account security'),
+                                  content: const Text(
+                                    'You are signed in to RaySense. Your account uses the existing authenticated session.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Close'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            trailing: const Icon(
+                              Icons.check_circle_rounded,
+                              color: Color(0xFF16A765),
+                            ),
+                          ),
+                          const Divider(color: border, height: 1),
+                          actionRow(
+                            icon: Icons.logout_rounded,
+                            title: 'Logout',
+                            subtitle: 'Sign out of your RaySense account',
+                            iconColor: const Color(0xFFDC4545),
+                            onTap: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Log out?'),
+                                  content: const Text(
+                                    'Are you sure you want to sign out of RaySense?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Navigator.pop(context, true),
+                                      style: FilledButton.styleFrom(
+                                        backgroundColor: orange,
+                                      ),
+                                      child: const Text('Log out'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true && mounted) {
+                                await _logout();
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    sectionTitle('Preferences'),
+
+                    card(
+                      child: Column(
+                        children: [
+                          heading(
+                            'Notifications',
+                            'Choose your alert preferences',
+                            Icons.notifications_active_outlined,
+                          ),
+                          const SizedBox(height: 14),
+                          const Divider(color: border, height: 1),
+                          actionRow(
+                            icon: Icons.notifications_outlined,
+                            title: 'Solar system alerts',
+                            subtitle: alertsEnabled
+                                ? 'Notifications are enabled'
+                                : 'Notifications are disabled',
+                            onTap: () {
+                              setState(() {
+                                alertsEnabled = !alertsEnabled;
+                              });
+                            },
+                            trailing: Switch(
+                              value: alertsEnabled,
+                              activeThumbColor: orange,
+                              onChanged: (value) {
+                                setState(() {
+                                  alertsEnabled = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    sectionTitle('About RaySense'),
+
+                    card(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          heading(
+                            'RaySense Solar Intelligence',
+                            'AI-powered solar monitoring platform',
+                            Icons.wb_sunny_outlined,
+                          ),
+                          const SizedBox(height: 18),
+                          const Text(
+                            'Monitor solar generation, forecast energy production and review your system performance through one unified application.',
+                            style: TextStyle(
+                              color: muted,
+                              fontSize: 13,
+                              height: 1.7,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              'Flutter',
+                              'Django REST API',
+                              'MySQL',
+                              'Machine Learning',
+                            ].map((technology) {
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 11,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F5F9),
+                                  borderRadius: BorderRadius.circular(9),
+                                  border: Border.all(color: border),
+                                ),
+                                child: Text(
+                                  technology,
+                                  style: const TextStyle(
+                                    color: ink,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 18),
+                          const Divider(color: border),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.info_outline_rounded,
+                                color: orange,
+                                size: 19,
+                              ),
+                              const SizedBox(width: 9),
+                              const Expanded(
+                                child: Text(
+                                  'Application version',
+                                  style: TextStyle(
+                                    color: muted,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 11,
+                                  vertical: 7,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF3DD),
+                                  borderRadius: BorderRadius.circular(9),
+                                ),
+                                child: const Text(
+                                  'v1.0.0',
+                                  style: TextStyle(
+                                    color: Color(0xFF9A5A00),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+                    const Center(
+                      child: Text(
+                        'RaySense ? Solar Intelligence',
+                        style: TextStyle(
+                          color: Color(0xFF8A94A5),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ],
-                ),
-
-                const SizedBox(height: 30),
-
-                Center(
-                  child: Text(
-                    'RaySense v1.0.0',
-                    style: TextStyle(
-                      color: Colors.grey.shade500,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-              ],
+                );
+              },
             ),
     );
   }
 }
 
-// =====================================================
 // Edit Solar System Dialog
 // =====================================================
 
@@ -637,7 +1072,7 @@ class _EditSolarSystemDialogState
     rateController =
         TextEditingController(
       text: widget.electricityRate
-          .replaceAll('₹', '')
+          .replaceAll('â‚¹', '')
           .replaceAll(' / kWh', ''),
     );
   }
@@ -956,7 +1391,7 @@ class _EditSolarSystemDialogState
               controller:
                   rateController,
               label:
-                  'Electricity Rate (₹/kWh)',
+                  'Electricity Rate (â‚¹/kWh)',
               icon:
                   Icons.currency_rupee,
               keyboardType:
@@ -1155,5 +1590,4 @@ class _SettingsTile
     );
   }
 }
-
 

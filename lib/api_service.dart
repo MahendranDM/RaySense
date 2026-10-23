@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+
+import 'dart:io';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -5,9 +8,20 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:8000';
+ 
+static String get baseUrl {
+  if (kIsWeb) {
+    return 'http://127.0.0.1:8000';
+  }
 
-  // ------------------------------------------------------------
+  if (Platform.isAndroid) {
+    return 'http://127.0.0.1:8000';
+  }
+
+  return 'http://127.0.0.1:8000';
+}
+
+ // ------------------------------------------------------------
   // AUTHENTICATION
   // ------------------------------------------------------------
 
@@ -17,13 +31,8 @@ class ApiService {
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/users/login/'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'username': username,
-        'password': password,
-      }),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username, 'password': password}),
     );
 
     final data = jsonDecode(response.body);
@@ -38,9 +47,7 @@ class ApiService {
       return data as Map<String, dynamic>;
     }
 
-    throw Exception(
-      data['detail'] ?? 'Login failed: ${response.statusCode}',
-    );
+    throw Exception(data['detail'] ?? 'Login failed: ${response.statusCode}');
   }
 
   // ------------------------------------------------------------
@@ -87,27 +94,18 @@ class ApiService {
 
     // Electricity information
     request.fields['provider'] = provider;
-    request.fields['consumer_category'] =
-        consumerCategory;
+    request.fields['consumer_category'] = consumerCategory;
 
     // Optional electricity bill
-    if (billFilePath != null &&
-        billFilePath.isNotEmpty) {
+    if (billFilePath != null && billFilePath.isNotEmpty) {
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'bill_file',
-          billFilePath,
-        ),
+        await http.MultipartFile.fromPath('bill_file', billFilePath),
       );
     }
 
-    final streamedResponse =
-        await request.send();
+    final streamedResponse = await request.send();
 
-    final response =
-        await http.Response.fromStream(
-      streamedResponse,
-    );
+    final response = await http.Response.fromStream(streamedResponse);
 
     final data = jsonDecode(response.body);
 
@@ -117,18 +115,11 @@ class ApiService {
 
     if (data is Map<String, dynamic>) {
       if (data['detail'] != null) {
-        throw Exception(
-          data['detail'].toString(),
-        );
+        throw Exception(data['detail'].toString());
       }
 
       throw Exception(
-        data.entries
-            .map(
-              (entry) =>
-                  '${entry.key}: ${entry.value}',
-            )
-            .join('\n'),
+        data.entries.map((entry) => '${entry.key}: ${entry.value}').join('\n'),
       );
     }
 
@@ -151,9 +142,7 @@ class ApiService {
 
     final response = await http.get(
       Uri.parse('$baseUrl/api/users/me/'),
-      headers: {
-        'Authorization': 'Token $token',
-      },
+      headers: {'Authorization': 'Token $token'},
     );
 
     final data = jsonDecode(response.body);
@@ -166,9 +155,7 @@ class ApiService {
       await AuthService.clearToken();
     }
 
-    throw Exception(
-      data['detail'] ?? 'Failed to load user profile.',
-    );
+    throw Exception(data['detail'] ?? 'Failed to load user profile.');
   }
 
   // ------------------------------------------------------------
@@ -184,17 +171,13 @@ class ApiService {
 
     final response = await http.post(
       Uri.parse('$baseUrl/api/users/logout/'),
-      headers: {
-        'Authorization': 'Token $token',
-      },
+      headers: {'Authorization': 'Token $token'},
     );
 
     await AuthService.clearToken();
 
     if (response.statusCode != 200) {
-      throw Exception(
-        'Logout failed: ${response.statusCode} ${response.body}',
-      );
+      throw Exception('Logout failed: ${response.statusCode} ${response.body}');
     }
   }
 
@@ -211,19 +194,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getSolarSystems() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/solar/systems/',
-      ),
+      Uri.parse('$baseUrl/api/solar/systems/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load solar systems: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 
@@ -241,11 +236,16 @@ class ApiService {
     required String panelType,
     String? installationDate,
   }) async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.patch(
-      Uri.parse(
-        '$baseUrl/api/solar/systems/$systemId/',
-      ),
+      Uri.parse('$baseUrl/api/solar/systems/$systemId/'),
       headers: {
+        'Authorization': 'Token $token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
@@ -260,8 +260,13 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)
-          as Map<String, dynamic>;
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
     }
 
     throw Exception(
@@ -276,19 +281,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getForecasts() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/forecasting/records/',
-      ),
+      Uri.parse('$baseUrl/api/forecasting/records/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load forecasts: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 
@@ -297,19 +314,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getPerformance() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/performance/records/',
-      ),
+      Uri.parse('$baseUrl/api/performance/records/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load performance records: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 
@@ -318,15 +347,25 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<Map<String, dynamic>> getTodayPerformance() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/performance/today/',
-      ),
+      Uri.parse('$baseUrl/api/performance/today/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)
-          as Map<String, dynamic>;
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
     }
 
     throw Exception(
@@ -341,19 +380,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getAlerts() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/alerts/records/',
-      ),
+      Uri.parse('$baseUrl/api/alerts/records/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load alerts: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 
@@ -365,21 +416,29 @@ class ApiService {
     required int alertId,
     required bool isResolved,
   }) async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.patch(
-      Uri.parse(
-        '$baseUrl/api/alerts/records/$alertId/',
-      ),
+      Uri.parse('$baseUrl/api/alerts/records/$alertId/'),
       headers: {
+        'Authorization': 'Token $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'is_resolved': isResolved,
-      }),
+      body: jsonEncode({'is_resolved': isResolved}),
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)
-          as Map<String, dynamic>;
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
     }
 
     throw Exception(
@@ -396,22 +455,29 @@ class ApiService {
   static Future<Map<String, dynamic>> generateWeatherAlert({
     required int solarSystemId,
   }) async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.post(
-      Uri.parse(
-        '$baseUrl/api/alerts/weather-generate/',
-      ),
+      Uri.parse('$baseUrl/api/alerts/weather-generate/'),
       headers: {
+        'Authorization': 'Token $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'solar_system_id': solarSystemId,
-      }),
+      body: jsonEncode({'solar_system_id': solarSystemId}),
     );
 
-    if (response.statusCode == 200 ||
-        response.statusCode == 201) {
-      return jsonDecode(response.body)
-          as Map<String, dynamic>;
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
     }
 
     throw Exception(
@@ -426,19 +492,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getGenerationRecords() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/solar/generation/',
-      ),
+      Uri.parse('$baseUrl/api/solar/generation/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load generation records: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 
@@ -447,15 +525,25 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<Map<String, dynamic>> getMLWeatherForecast() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/forecasting/weather-predict/',
-      ),
+      Uri.parse('$baseUrl/api/forecasting/weather-predict/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body)
-          as Map<String, dynamic>;
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
     }
 
     throw Exception(
@@ -470,19 +558,31 @@ class ApiService {
   // ------------------------------------------------------------
 
   static Future<List<dynamic>> getWeatherRecords() async {
+    final token = await AuthService.getToken();
+
+    if (token == null || token.isEmpty) {
+      throw Exception('Authentication token not found.');
+    }
+
     final response = await http.get(
-      Uri.parse(
-        '$baseUrl/api/weather/records/',
-      ),
+      Uri.parse('$baseUrl/api/weather/records/'),
+      headers: {'Authorization': 'Token $token'},
     );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
 
+    if (response.statusCode == 401) {
+      await AuthService.clearToken();
+
+      throw Exception('Authentication failed. Please login again.');
+    }
+
     throw Exception(
       'Failed to load weather records: '
-      '${response.statusCode}',
+      '${response.statusCode} '
+      '${response.body}',
     );
   }
 }
